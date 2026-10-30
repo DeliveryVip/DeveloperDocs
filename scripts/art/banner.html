@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  body { background: #fff; font-family: Inter, sans-serif; }
+  #banner { position: relative; width: 1280px; height: 400px; overflow: hidden; background: #2B284C; color: #fff; padding: 64px 72px; display: flex; flex-direction: column; justify-content: center; }
+  #banner .glow { position: absolute; right: -120px; top: -160px; width: 620px; height: 620px; border-radius: 50%; background: radial-gradient(circle, rgba(236,104,27,.55) 0%, rgba(236,104,27,0) 65%); }
+  #banner .grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px); background-size: 40px 40px; }
+  #banner .logo { height: 64px; width: auto; align-self: flex-start; position: relative; }
+  #banner h1 { position: relative; font-size: 60px; font-weight: 800; letter-spacing: -1.5px; margin-top: 28px; }
+  #banner h1 span { color: #EC681B; }
+  #banner p { position: relative; font-size: 22px; color: #c9c6e0; margin-top: 12px; }
+  #banner .chips { position: relative; display: flex; gap: 10px; margin-top: 28px; }
+  #banner .chip { font-family: "JetBrains Mono", monospace; font-size: 15px; padding: 7px 14px; border-radius: 999px; border: 1.5px solid rgba(255,255,255,.22); color: #fff; background: rgba(255,255,255,.06); }
+  #banner .code { position: absolute; right: 72px; bottom: 56px; font-family: "JetBrains Mono", monospace; font-size: 15px; line-height: 1.7; color: #c9c6e0; background: rgba(15,13,35,.55); border: 1.5px solid rgba(255,255,255,.12); border-radius: 14px; padding: 18px 22px; }
+  #banner .code b { color: #EC681B; font-weight: 500; }
+  #banner .code i { color: #8ee0b0; font-style: normal; }
+</style>
+</head>
+<body>
+<div id="banner">
+  <div class="grid"></div>
+  <div class="glow"></div>
+  <img class="logo" src="../../logo/dark.svg" alt="DeliveryVip">
+  <h1>Documentação de <span>API</span></h1>
+  <p>Integre pedidos, catálogo, fidelidade e parceiros à DeliveryVip.</p>
+  <div class="chips">
+    <span class="chip">Merchant API</span>
+    <span class="chip">Open Delivery</span>
+    <span class="chip">Fidelidade</span>
+    <span class="chip">Partner API</span>
+  </div>
+  <div class="code"><b>GET</b> /merchant/v3/events:polling<br><i>200</i> [{ "eventType": "CREATED" }]</div>
+</div>
+</body>
+</html>
