@@ -1,0 +1,43 @@
+---
+title: Use esta documentação com IA
+sidebarTitle: Use com IA
+description: Conecte a documentação da DeliveryVip ao Claude, ChatGPT, Cursor ou VS Code para tirar dúvidas e gerar código de integração com base no conteúdo oficial.
+icon: sparkles
+---
+
+Assistentes de IA escrevem integrações melhores quando leem a documentação atual em vez de depender do que aprenderam no treinamento. Esta documentação foi preparada para isso: cada página pode ser lida em Markdown, há um índice para modelos de linguagem e um servidor MCP para o seu editor consultar.
+
+## Pelo menu da página
+
+No topo de cada página há um menu com atalhos:
+
+| Opção | O que faz |
+| --- | --- |
+| **Copiar página** | Copia a página em Markdown para colar no assistente. |
+| **Ver como Markdown** | Abre a versão em Markdown da página. |
+| **Abrir no ChatGPT** / **Abrir no Claude** | Abre uma conversa já com a página como contexto. |
+| **Conectar ao Cursor** / **Conectar ao VS Code** | Instala o servidor MCP da documentação no editor. |
+| **Copiar MCP Server** | Copia o endereço do servidor MCP para configurar em outro cliente. |
+
+## Servidor MCP
+
+Com o servidor MCP instalado, o assistente do editor pesquisa esta documentação sozinho enquanto escreve o código. Use **Conectar ao Cursor**, **Conectar ao VS Code** ou **Copiar MCP Server** no menu de qualquer página. O endereço é o desta documentação seguido de `/mcp`.
+
+<Tip>
+Peça ao assistente para consultar a documentação antes de responder, por exemplo: "Usando o MCP da DeliveryVip, escreva o polling de eventos com confirmação em Node.js."
+</Tip>
+
+## llms.txt
+
+Para ferramentas que leem arquivos de contexto, acrescente ao endereço desta documentação:
+
+- `/llms.txt`: índice de todas as páginas, com título e descrição.
+- `/llms-full.txt`: a documentação inteira em um só arquivo.
+
+## Especificações OpenAPI
+
+Para gerar clientes ou dar ao assistente o contrato exato de cada rota, use as specs da [página do Postman](/inicio/conceitos/postman#specs-disponíveis).
+
+<Warning>
+Confira o código gerado antes de usar em produção, principalmente a validação da assinatura dos webhooks e o tratamento de erros. E nunca cole `client_secret` ou tokens no chat de um assistente.
+</Warning>

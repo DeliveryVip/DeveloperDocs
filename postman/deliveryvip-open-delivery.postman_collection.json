@@ -1,0 +1,4816 @@
+{
+  "info": {
+    "_postman_id": "0b972e63-6b46-5d49-b3ef-74d8ef181ab8",
+    "name": "DeliveryVip — Open Delivery",
+    "description": "Rotas Open Delivery da DeliveryVip como Ordering Application.\n\nUse o client_id do app e o client_secret da loja no ambiente **DeliveryVip**, abra a aba Authorization da coleção e clique em **Get New Access Token**.\n\nDúvidas: https://discord.gg/AJF8Yha4",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "oauth2",
+    "oauth2": [
+      {
+        "key": "grant_type",
+        "value": "client_credentials",
+        "type": "string"
+      },
+      {
+        "key": "accessTokenUrl",
+        "value": "https://od.deliveryvip.com.br/oauth/token",
+        "type": "string"
+      },
+      {
+        "key": "clientId",
+        "value": "{{clientId}}",
+        "type": "string"
+      },
+      {
+        "key": "clientSecret",
+        "value": "{{clientSecret}}",
+        "type": "string"
+      },
+      {
+        "key": "scope",
+        "value": "{{scope}}",
+        "type": "string"
+      },
+      {
+        "key": "client_authentication",
+        "value": "body",
+        "type": "string"
+      },
+      {
+        "key": "tokenName",
+        "value": "DeliveryVip",
+        "type": "string"
+      },
+      {
+        "key": "addTokenTo",
+        "value": "header",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://od.deliveryvip.com.br"
+    },
+    {
+      "key": "scope",
+      "value": "od.all"
+    }
+  ],
+  "item": [
+    {
+      "name": "Autenticação",
+      "description": "Emissão de access tokens para a API OpenDelivery.",
+      "item": [
+        {
+          "id": "5af71c67-ed1c-434a-883f-72d778a74a4d",
+          "name": "Obter access token",
+          "request": {
+            "name": "Obter access token",
+            "description": {
+              "content": "Emite um access token com `grant_type=client_credentials`. As credenciais podem ser enviadas no corpo (`client_id`/`client_secret`) ou via HTTP Basic. Quando o `client_secret` é a credencial de uma loja específica (aplicativos com a extensão OpenDelivery), o token fica vinculado apenas àquela loja; nesse caso, a loja precisa ter o aplicativo instalado. Tokens expiram em 24 horas e não têm `refresh_token`. Envie `Content-Type: application/x-www-form-urlencoded`.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "oauth",
+                "token"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) Tipo de concessão OAuth.",
+                    "type": "text/plain"
+                  },
+                  "key": "grant_type",
+                  "value": "client_credentials"
+                },
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "Identificador do aplicativo.",
+                    "type": "text/plain"
+                  },
+                  "key": "client_id",
+                  "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "Segredo do aplicativo ou credencial da loja.",
+                    "type": "text/plain"
+                  },
+                  "key": "client_secret",
+                  "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "Escopos separados por espaço. Padrão `od.all`.",
+                    "type": "text/plain"
+                  },
+                  "key": "scope",
+                  "value": "<string>"
+                }
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [
+            {
+              "id": "adf75015-747c-46a5-b364-28cdd678ab46",
+              "name": "Token emitido.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "oauth",
+                    "token"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/x-www-form-urlencoded"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: basic",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Basic <credentials>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "urlencoded",
+                  "urlencoded": [
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) Tipo de concessão OAuth.",
+                        "type": "text/plain"
+                      },
+                      "key": "grant_type",
+                      "value": "client_credentials"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "Identificador do aplicativo.",
+                        "type": "text/plain"
+                      },
+                      "key": "client_id",
+                      "value": "<string>"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "Segredo do aplicativo ou credencial da loja.",
+                        "type": "text/plain"
+                      },
+                      "key": "client_secret",
+                      "value": "<string>"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "Escopos separados por espaço. Padrão `od.all`.",
+                        "type": "text/plain"
+                      },
+                      "key": "scope",
+                      "value": "<string>"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"access_token\": \"<string>\",\n  \"token_type\": \"<string>\",\n  \"expires_in\": \"<integer>\",\n  \"scope\": \"<string>\",\n  \"created_at\": \"<integer>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "de0709de-d594-4115-afdd-5c296a77d4ab",
+              "name": "Requisição inválida (parâmetro ausente, `grant_type` ou escopo não suportado).",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "oauth",
+                    "token"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/x-www-form-urlencoded"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: basic",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Basic <credentials>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "urlencoded",
+                  "urlencoded": [
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) Tipo de concessão OAuth.",
+                        "type": "text/plain"
+                      },
+                      "key": "grant_type",
+                      "value": "client_credentials"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "Identificador do aplicativo.",
+                        "type": "text/plain"
+                      },
+                      "key": "client_id",
+                      "value": "<string>"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "Segredo do aplicativo ou credencial da loja.",
+                        "type": "text/plain"
+                      },
+                      "key": "client_secret",
+                      "value": "<string>"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "Escopos separados por espaço. Padrão `od.all`.",
+                        "type": "text/plain"
+                      },
+                      "key": "scope",
+                      "value": "<string>"
+                    }
+                  ]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": \"<string>\",\n  \"error_description\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "aa71dce4-3801-4bbf-9f66-f51ae9c17882",
+              "name": "Credenciais inválidas ou loja sem o aplicativo instalado (`invalid_client`).",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "oauth",
+                    "token"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/x-www-form-urlencoded"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: basic",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Basic <credentials>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "urlencoded",
+                  "urlencoded": [
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) Tipo de concessão OAuth.",
+                        "type": "text/plain"
+                      },
+                      "key": "grant_type",
+                      "value": "client_credentials"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "Identificador do aplicativo.",
+                        "type": "text/plain"
+                      },
+                      "key": "client_id",
+                      "value": "<string>"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "Segredo do aplicativo ou credencial da loja.",
+                        "type": "text/plain"
+                      },
+                      "key": "client_secret",
+                      "value": "<string>"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "Escopos separados por espaço. Padrão `od.all`.",
+                        "type": "text/plain"
+                      },
+                      "key": "scope",
+                      "value": "<string>"
+                    }
+                  ]
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": \"<string>\",\n  \"error_description\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Versões",
+      "description": "Versões da API implementadas. Não exigem autenticação.",
+      "item": [
+        {
+          "id": "f2347382-57cd-4e58-a3c4-9a0dfab6220a",
+          "name": "Consultar versão da Ordering Application",
+          "request": {
+            "name": "Consultar versão da Ordering Application",
+            "description": {
+              "content": "Retorna as versões dos endpoints hospedados pela DeliveryVip como Ordering Application e os métodos de entrega de eventos suportados.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v1",
+                "versions",
+                "orderingApp"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "body": {}
+          },
+          "response": [
+            {
+              "id": "94a1712a-a03a-400e-bdbe-c2278c6d825b",
+              "name": "Versões da Ordering Application.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "versions",
+                    "orderingApp"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"merchant\": {\n    \"version\": \"<string>\"\n  },\n  \"order\": {\n    \"version\": \"<string>\",\n    \"availableEventsMethods\": [\n      \"WEBHOOK\",\n      \"POLLING\"\n    ]\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "02cc61fa-8c7e-47d9-8c70-bfc261faa428",
+          "name": "Consultar versão da API de merchant",
+          "request": {
+            "name": "Consultar versão da API de merchant",
+            "description": {
+              "content": "Retorna a versão dos endpoints de merchant que a Ordering Application espera do Software Service.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v1",
+                "versions",
+                "merchant"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "body": {}
+          },
+          "response": [
+            {
+              "id": "1fed6f38-ffb1-47cf-b45d-d8c1091c2c34",
+              "name": "Versão da API de merchant.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "versions",
+                    "merchant"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"merchantEndpoint\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Eventos",
+      "description": "Mudanças de estado e outras notificações dos pedidos das lojas vinculadas ao aplicativo.",
+      "item": [
+        {
+          "id": "501ba723-de24-4b11-a74b-6671dc46658a",
+          "name": "Listar eventos",
+          "request": {
+            "name": "Listar eventos",
+            "description": {
+              "content": "Retorna os eventos ainda não confirmados pelo aplicativo, das lojas vinculadas ao token, criados nas últimas 24 horas. Os eventos vêm em ordem cronológica, no máximo 100 por chamada. Cada evento recebido deve ser confirmado em `/v1/events/acknowledgment`; caso contrário, continuará sendo retornado nas próximas consultas.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v1",
+                "events:polling"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "Filtra pelos tipos de evento. Pode ser repetido (`eventType=CREATED&eventType=CANCELLED`) ou separado por vírgula.",
+                    "type": "text/plain"
+                  },
+                  "key": "eventType",
+                  "value": "DISPATCHED"
+                },
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "Filtra pelos tipos de evento. Pode ser repetido (`eventType=CREATED&eventType=CANCELLED`) ou separado por vírgula.",
+                    "type": "text/plain"
+                  },
+                  "key": "eventType",
+                  "value": "CONCLUDED"
+                },
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "Filtra pelo tipo do pedido. Pode ser repetido ou separado por vírgula.",
+                    "type": "text/plain"
+                  },
+                  "key": "orderType",
+                  "value": "DELIVERY"
+                },
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "Filtra pelo tipo do pedido. Pode ser repetido ou separado por vírgula.",
+                    "type": "text/plain"
+                  },
+                  "key": "orderType",
+                  "value": "DELIVERY"
+                }
+              ],
+              "variable": []
+            },
+            "header": [
+              {
+                "disabled": false,
+                "description": {
+                  "content": "Restringe a consulta a estas lojas. Aceita o `merchantId` informado no onboarding ou o identificador interno da loja, separados por vírgula. Todas precisam estar vinculadas ao token.",
+                  "type": "text/plain"
+                },
+                "key": "x-polling-merchants",
+                "value": "<string>,<string>"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "body": {}
+          },
+          "response": [
+            {
+              "id": "823e9797-faaa-4ac8-8c36-f4bcc8a3a117",
+              "name": "Eventos pendentes de confirmação.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "events:polling"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "Filtra pelos tipos de evento. Pode ser repetido (`eventType=CREATED&eventType=CANCELLED`) ou separado por vírgula.",
+                        "type": "text/plain"
+                      },
+                      "key": "eventType",
+                      "value": "CONCLUDED"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "Filtra pelo tipo do pedido. Pode ser repetido ou separado por vírgula.",
+                        "type": "text/plain"
+                      },
+                      "key": "orderType",
+                      "value": "DELIVERY"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "disabled": false,
+                    "description": {
+                      "content": "Restringe a consulta a estas lojas. Aceita o `merchantId` informado no onboarding ou o identificador interno da loja, separados por vírgula. Todas precisam estar vinculadas ao token.",
+                      "type": "text/plain"
+                    },
+                    "key": "x-polling-merchants",
+                    "value": "<string>,<string>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "[\n  {\n    \"eventId\": \"<uuid>\",\n    \"eventType\": \"CANCELLATION_REQUEST_DENIED\",\n    \"merchantId\": \"<string>\",\n    \"createdAt\": \"<dateTime>\",\n    \"metadata\": {\n      \"ametc\": 75767784.21744847\n    },\n    \"orderId\": \"<uuid>\",\n    \"orderURL\": \"<uri>\",\n    \"orderType\": \"INDOOR\",\n    \"placeName\": \"<string>\",\n    \"placeId\": \"<string>\",\n    \"tab\": \"<string>\",\n    \"tabId\": \"<string>\",\n    \"tabCode\": \"<string>\",\n    \"tabName\": \"<string>\"\n  },\n  {\n    \"eventId\": \"<uuid>\",\n    \"eventType\": \"CANCELLED\",\n    \"merchantId\": \"<string>\",\n    \"createdAt\": \"<dateTime>\",\n    \"metadata\": {\n      \"magna_f\": 71025190,\n      \"voluptate_023\": false,\n      \"inf\": -43709421,\n      \"irure__\": 41780809\n    },\n    \"orderId\": \"<uuid>\",\n    \"orderURL\": \"<uri>\",\n    \"orderType\": \"INDOOR\",\n    \"placeName\": \"<string>\",\n    \"placeId\": \"<string>\",\n    \"tab\": \"<string>\",\n    \"tabId\": \"<string>\",\n    \"tabCode\": \"<string>\",\n    \"tabName\": \"<string>\"\n  }\n]",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "2d0f5045-0db9-4c67-ad9f-b4e449eeecab",
+              "name": "Nenhum evento disponível.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "events:polling"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "Filtra pelos tipos de evento. Pode ser repetido (`eventType=CREATED&eventType=CANCELLED`) ou separado por vírgula.",
+                        "type": "text/plain"
+                      },
+                      "key": "eventType",
+                      "value": "CONCLUDED"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "Filtra pelo tipo do pedido. Pode ser repetido ou separado por vírgula.",
+                        "type": "text/plain"
+                      },
+                      "key": "orderType",
+                      "value": "DELIVERY"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "disabled": false,
+                    "description": {
+                      "content": "Restringe a consulta a estas lojas. Aceita o `merchantId` informado no onboarding ou o identificador interno da loja, separados por vírgula. Todas precisam estar vinculadas ao token.",
+                      "type": "text/plain"
+                    },
+                    "key": "x-polling-merchants",
+                    "value": "<string>,<string>"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "No Content",
+              "code": 204,
+              "header": [],
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            },
+            {
+              "id": "83fb4eee-cf55-42de-b577-5cca18d0aa9d",
+              "name": "Token ausente, inválido ou expirado.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "events:polling"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "Filtra pelos tipos de evento. Pode ser repetido (`eventType=CREATED&eventType=CANCELLED`) ou separado por vírgula.",
+                        "type": "text/plain"
+                      },
+                      "key": "eventType",
+                      "value": "CONCLUDED"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "Filtra pelo tipo do pedido. Pode ser repetido ou separado por vírgula.",
+                        "type": "text/plain"
+                      },
+                      "key": "orderType",
+                      "value": "DELIVERY"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "disabled": false,
+                    "description": {
+                      "content": "Restringe a consulta a estas lojas. Aceita o `merchantId` informado no onboarding ou o identificador interno da loja, separados por vírgula. Todas precisam estar vinculadas ao token.",
+                      "type": "text/plain"
+                    },
+                    "key": "x-polling-merchants",
+                    "value": "<string>,<string>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<integer>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "c014b940-d116-4c55-935c-840abeaa0be4",
+              "name": "`eventType`, `orderType` ou `x-polling-merchants` inválido, ou loja não vinculada ao token.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "events:polling"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "Filtra pelos tipos de evento. Pode ser repetido (`eventType=CREATED&eventType=CANCELLED`) ou separado por vírgula.",
+                        "type": "text/plain"
+                      },
+                      "key": "eventType",
+                      "value": "CONCLUDED"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "Filtra pelo tipo do pedido. Pode ser repetido ou separado por vírgula.",
+                        "type": "text/plain"
+                      },
+                      "key": "orderType",
+                      "value": "DELIVERY"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "disabled": false,
+                    "description": {
+                      "content": "Restringe a consulta a estas lojas. Aceita o `merchantId` informado no onboarding ou o identificador interno da loja, separados por vírgula. Todas precisam estar vinculadas ao token.",
+                      "type": "text/plain"
+                    },
+                    "key": "x-polling-merchants",
+                    "value": "<string>,<string>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Forbidden",
+              "code": 403,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "d4ad7acb-f2fb-472d-bee0-52ee3a9d22a1",
+              "name": "Parâmetros em formato inválido.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "events:polling"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "Filtra pelos tipos de evento. Pode ser repetido (`eventType=CREATED&eventType=CANCELLED`) ou separado por vírgula.",
+                        "type": "text/plain"
+                      },
+                      "key": "eventType",
+                      "value": "CONCLUDED"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "Filtra pelo tipo do pedido. Pode ser repetido ou separado por vírgula.",
+                        "type": "text/plain"
+                      },
+                      "key": "orderType",
+                      "value": "DELIVERY"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "disabled": false,
+                    "description": {
+                      "content": "Restringe a consulta a estas lojas. Aceita o `merchantId` informado no onboarding ou o identificador interno da loja, separados por vírgula. Todas precisam estar vinculadas ao token.",
+                      "type": "text/plain"
+                    },
+                    "key": "x-polling-merchants",
+                    "value": "<string>,<string>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Not Acceptable",
+              "code": 406,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "e7ec7dac-0950-4927-b9f7-8ff25c829e4d",
+          "name": "Confirmar recebimento de eventos",
+          "request": {
+            "name": "Confirmar recebimento de eventos",
+            "description": {
+              "content": "Confirma o recebimento de eventos. Eventos confirmados deixam de ser retornados no polling. Identificadores desconhecidos ou de lojas não vinculadas ao token são ignorados e não entram no total.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v1",
+                "events",
+                "acknowledgment"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"id\": \"<uuid>\"\n  }\n]",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "1190b183-b1be-42a8-8f9b-898788a7f905",
+              "name": "Confirmação aceita.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "events",
+                    "acknowledgment"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "[\n  {\n    \"id\": \"<uuid>\"\n  }\n]",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Accepted",
+              "code": 202,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"total\": \"<integer>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "02168e6b-acd5-4743-acbd-cda81540ed8f",
+              "name": "Token ausente, inválido ou expirado.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "events",
+                    "acknowledgment"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "[\n  {\n    \"id\": \"<uuid>\"\n  }\n]",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<integer>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "544cb275-41fd-4ad4-b58f-89d6db1c3b3f",
+              "name": "Parâmetros em formato inválido.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "events",
+                    "acknowledgment"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "[\n  {\n    \"id\": \"<uuid>\"\n  }\n]",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Not Acceptable",
+              "code": 406,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "aee77789-cfb1-4a9c-b39a-0ef173313874",
+              "name": "Lista de eventos vazia.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "events",
+                    "acknowledgment"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "[\n  {\n    \"id\": \"<uuid>\"\n  }\n]",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pedidos",
+      "description": "Detalhes do pedido e ações sobre ele.",
+      "item": [
+        {
+          "id": "3bb19658-0e33-4b1c-a171-128f63f871b0",
+          "name": "Consultar pedido",
+          "request": {
+            "name": "Consultar pedido",
+            "description": {
+              "content": "Retorna os detalhes de um pedido de uma loja vinculada ao token. Pedidos aguardando pagamento ou não pagos não são retornados.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v1",
+                "orders",
+                ":orderId"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "Formato dos complementos dos itens. Sem o parâmetro, cada item traz `options` (lista plana). `optionGroups` retorna `items[].optionGroups` e `groupOptions` retorna `items[].optionsGroup`, ambos agrupados por grupo de complemento.",
+                    "type": "text/plain"
+                  },
+                  "key": "views",
+                  "value": "groupOptions"
+                }
+              ],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "{{orderId}}",
+                  "key": "orderId",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) Identificador (UUID) do pedido.",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "body": {}
+          },
+          "response": [
+            {
+              "id": "0e2604d9-5039-464a-a88d-bf3947269bfb",
+              "name": "Detalhes do pedido.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "Formato dos complementos dos itens. Sem o parâmetro, cada item traz `options` (lista plana). `optionGroups` retorna `items[].optionGroups` e `groupOptions` retorna `items[].optionsGroup`, ambos agrupados por grupo de complemento.",
+                        "type": "text/plain"
+                      },
+                      "key": "views",
+                      "value": "groupOptions"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"<uuid>\",\n  \"type\": \"DELIVERY\",\n  \"displayId\": \"<string>\",\n  \"salesChannel\": \"TABLET\",\n  \"createdAt\": \"<dateTime>\",\n  \"orderTiming\": \"SCHEDULED\",\n  \"preparationStartDateTime\": \"<dateTime>\",\n  \"lastEvent\": \"CONFIRMED\",\n  \"merchant\": {\n    \"id\": \"<string>\",\n    \"name\": \"<string>\"\n  },\n  \"items\": [\n    {\n      \"id\": \"<uuid>\",\n      \"index\": \"<integer>\",\n      \"name\": \"<string>\",\n      \"externalCode\": \"<string>\",\n      \"unit\": \"UN\",\n      \"ean\": \"<string>\",\n      \"quantity\": \"<integer>\",\n      \"specialInstructions\": \"<string>\",\n      \"unitPrice\": {\n        \"value\": \"<number>\",\n        \"currency\": \"BRL\"\n      },\n      \"optionsPrice\": {\n        \"value\": \"<number>\",\n        \"currency\": \"BRL\"\n      },\n      \"totalPrice\": {\n        \"value\": \"<number>\",\n        \"currency\": \"BRL\"\n      },\n      \"options\": [\n        {\n          \"id\": \"<uuid>\",\n          \"index\": \"<integer>\",\n          \"name\": \"<string>\",\n          \"externalCode\": \"<string>\",\n          \"unit\": \"UN\",\n          \"quantity\": \"<integer>\",\n          \"unitPrice\": {\n            \"value\": \"<number>\",\n            \"currency\": \"BRL\"\n          },\n          \"totalPrice\": {\n            \"value\": \"<number>\",\n            \"currency\": \"BRL\"\n          }\n        },\n        {\n          \"id\": \"<uuid>\",\n          \"index\": \"<integer>\",\n          \"name\": \"<string>\",\n          \"externalCode\": \"<string>\",\n          \"unit\": \"UN\",\n          \"quantity\": \"<integer>\",\n          \"unitPrice\": {\n            \"value\": \"<number>\",\n            \"currency\": \"BRL\"\n          },\n          \"totalPrice\": {\n            \"value\": \"<number>\",\n            \"currency\": \"BRL\"\n          }\n        }\n      ],\n      \"optionGroups\": [\n        {\n          \"id\": \"<uuid>\",\n          \"name\": \"<string>\",\n          \"externalCode\": \"<string>\",\n          \"totalPrice\": {\n            \"value\": \"<number>\",\n            \"currency\": \"BRL\"\n          },\n          \"options\": [\n            {\n              \"id\": \"<uuid>\",\n              \"index\": \"<integer>\",\n              \"name\": \"<string>\",\n              \"externalCode\": \"<string>\",\n              \"unit\": \"UN\",\n              \"quantity\": \"<integer>\",\n              \"unitPrice\": {\n                \"value\": \"<number>\",\n                \"currency\": \"BRL\"\n              },\n              \"totalPrice\": {\n                \"value\": \"<number>\",\n                \"currency\": \"BRL\"\n              }\n            },\n            {\n              \"id\": \"<uuid>\",\n              \"index\": \"<integer>\",\n              \"name\": \"<string>\",\n              \"externalCode\": \"<string>\",\n              \"unit\": \"UN\",\n              \"quantity\": \"<integer>\",\n              \"unitPrice\": {\n                \"value\": \"<number>\",\n                \"currency\": \"BRL\"\n              },\n              \"totalPrice\": {\n                \"value\": \"<number>\",\n                \"currency\": \"BRL\"\n              }\n            }\n          ]\n        },\n        {\n          \"id\": \"<uuid>\",\n          \"name\": \"<string>\",\n          \"externalCode\": \"<string>\",\n          \"totalPrice\": {\n            \"value\": \"<number>\",\n            \"currency\": \"BRL\"\n          },\n          \"options\": [\n            {\n              \"id\": \"<uuid>\",\n              \"index\": \"<integer>\",\n              \"name\": \"<string>\",\n              \"externalCode\": \"<string>\",\n              \"unit\": \"UN\",\n              \"quantity\": \"<integer>\",\n              \"unitPrice\": {\n                \"value\": \"<number>\",\n                \"currency\": \"BRL\"\n              },\n              \"totalPrice\": {\n                \"value\": \"<number>\",\n                \"currency\": \"BRL\"\n              }\n            },\n            {\n              \"id\": \"<uuid>\",\n              \"index\": \"<integer>\",\n              \"name\": \"<string>\",\n              \"externalCode\": \"<string>\",\n              \"unit\": \"UN\",\n              \"quantity\": \"<integer>\",\n              \"unitPrice\": {\n                \"value\": \"<number>\",\n                \"currency\": \"BRL\"\n              },\n              \"totalPrice\": {\n                \"value\": \"<number>\",\n                \"currency\": \"BRL\"\n              }\n            }\n          ]\n        }\n      ],\n      \"optionsGroup\": [\n        {\n          \"id\": \"<uuid>\",\n          \"name\": \"<string>\",\n          \"externalCode\": \"<string>\",\n          \"totalPrice\": {\n            \"value\": \"<number>\",\n            \"currency\": \"BRL\"\n          },\n          \"options\": [\n            {\n              \"id\": \"<uuid>\",\n              \"index\": \"<integer>\",\n              \"name\": \"<string>\",\n              \"externalCode\": \"<string>\",\n              \"unit\": \"UN\",\n              \"quantity\": \"<integer>\",\n              \"unitPrice\": {\n                \"value\": \"<number>\",\n                \"currency\": \"BRL\"\n              },\n              \"totalPrice\": {\n                \"value\": \"<number>\",\n                \"currency\": \"BRL\"\n              }\n            },\n            {\n              \"id\": \"<uuid>\",\n              \"index\": \"<integer>\",\n              \"name\": \"<string>\",\n              \"externalCode\": \"<string>\",\n              \"unit\": \"UN\",\n              \"quantity\": \"<integer>\",\n              \"unitPrice\": {\n                \"value\": \"<number>\",\n                \"currency\": \"BRL\"\n              },\n              \"totalPrice\": {\n                \"value\": \"<number>\",\n                \"currency\": \"BRL\"\n              }\n            }\n          ]\n        },\n        {\n          \"id\": \"<uuid>\",\n          \"name\": \"<string>\",\n          \"externalCode\": \"<string>\",\n          \"totalPrice\": {\n            \"value\": \"<number>\",\n            \"currency\": \"BRL\"\n          },\n          \"options\": [\n            {\n              \"id\": \"<uuid>\",\n              \"index\": \"<integer>\",\n              \"name\": \"<string>\",\n              \"externalCode\": \"<string>\",\n              \"unit\": \"UN\",\n              \"quantity\": \"<integer>\",\n              \"unitPrice\": {\n                \"value\": \"<number>\",\n                \"currency\": \"BRL\"\n              },\n              \"totalPrice\": {\n                \"value\": \"<number>\",\n                \"currency\": \"BRL\"\n              }\n            },\n            {\n              \"id\": \"<uuid>\",\n              \"index\": \"<integer>\",\n              \"name\": \"<string>\",\n              \"externalCode\": \"<string>\",\n              \"unit\": \"UN\",\n              \"quantity\": \"<integer>\",\n              \"unitPrice\": {\n                \"value\": \"<number>\",\n                \"currency\": \"BRL\"\n              },\n              \"totalPrice\": {\n                \"value\": \"<number>\",\n                \"currency\": \"BRL\"\n              }\n            }\n          ]\n        }\n      ]\n    },\n    {\n      \"id\": \"<uuid>\",\n      \"index\": \"<integer>\",\n      \"name\": \"<string>\",\n      \"externalCode\": \"<string>\",\n      \"unit\": \"UN\",\n      \"ean\": \"<string>\",\n      \"quantity\": \"<integer>\",\n      \"specialInstructions\": \"<string>\",\n      \"unitPrice\": {\n        \"value\": \"<number>\",\n        \"currency\": \"BRL\"\n      },\n      \"optionsPrice\": {\n        \"value\": \"<number>\",\n        \"currency\": \"BRL\"\n      },\n      \"totalPrice\": {\n        \"value\": \"<number>\",\n        \"currency\": \"BRL\"\n      },\n      \"options\": [\n        {\n          \"id\": \"<uuid>\",\n          \"index\": \"<integer>\",\n          \"name\": \"<string>\",\n          \"externalCode\": \"<string>\",\n          \"unit\": \"UN\",\n          \"quantity\": \"<integer>\",\n          \"unitPrice\": {\n            \"value\": \"<number>\",\n            \"currency\": \"BRL\"\n          },\n          \"totalPrice\": {\n            \"value\": \"<number>\",\n            \"currency\": \"BRL\"\n          }\n        },\n        {\n          \"id\": \"<uuid>\",\n          \"index\": \"<integer>\",\n          \"name\": \"<string>\",\n          \"externalCode\": \"<string>\",\n          \"unit\": \"UN\",\n          \"quantity\": \"<integer>\",\n          \"unitPrice\": {\n            \"value\": \"<number>\",\n            \"currency\": \"BRL\"\n          },\n          \"totalPrice\": {\n            \"value\": \"<number>\",\n            \"currency\": \"BRL\"\n          }\n        }\n      ],\n      \"optionGroups\": [\n        {\n          \"id\": \"<uuid>\",\n          \"name\": \"<string>\",\n          \"externalCode\": \"<string>\",\n          \"totalPrice\": {\n            \"value\": \"<number>\",\n            \"currency\": \"BRL\"\n          },\n          \"options\": [\n            {\n              \"id\": \"<uuid>\",\n              \"index\": \"<integer>\",\n              \"name\": \"<string>\",\n              \"externalCode\": \"<string>\",\n              \"unit\": \"UN\",\n              \"quantity\": \"<integer>\",\n              \"unitPrice\": {\n                \"value\": \"<number>\",\n                \"currency\": \"BRL\"\n              },\n              \"totalPrice\": {\n                \"value\": \"<number>\",\n                \"currency\": \"BRL\"\n              }\n            },\n            {\n              \"id\": \"<uuid>\",\n              \"index\": \"<integer>\",\n              \"name\": \"<string>\",\n              \"externalCode\": \"<string>\",\n              \"unit\": \"UN\",\n              \"quantity\": \"<integer>\",\n              \"unitPrice\": {\n                \"value\": \"<number>\",\n                \"currency\": \"BRL\"\n              },\n              \"totalPrice\": {\n                \"value\": \"<number>\",\n                \"currency\": \"BRL\"\n              }\n            }\n          ]\n        },\n        {\n          \"id\": \"<uuid>\",\n          \"name\": \"<string>\",\n          \"externalCode\": \"<string>\",\n          \"totalPrice\": {\n            \"value\": \"<number>\",\n            \"currency\": \"BRL\"\n          },\n          \"options\": [\n            {\n              \"id\": \"<uuid>\",\n              \"index\": \"<integer>\",\n              \"name\": \"<string>\",\n              \"externalCode\": \"<string>\",\n              \"unit\": \"UN\",\n              \"quantity\": \"<integer>\",\n              \"unitPrice\": {\n                \"value\": \"<number>\",\n                \"currency\": \"BRL\"\n              },\n              \"totalPrice\": {\n                \"value\": \"<number>\",\n                \"currency\": \"BRL\"\n              }\n            },\n            {\n              \"id\": \"<uuid>\",\n              \"index\": \"<integer>\",\n              \"name\": \"<string>\",\n              \"externalCode\": \"<string>\",\n              \"unit\": \"UN\",\n              \"quantity\": \"<integer>\",\n              \"unitPrice\": {\n                \"value\": \"<number>\",\n                \"currency\": \"BRL\"\n              },\n              \"totalPrice\": {\n                \"value\": \"<number>\",\n                \"currency\": \"BRL\"\n              }\n            }\n          ]\n        }\n      ],\n      \"optionsGroup\": [\n        {\n          \"id\": \"<uuid>\",\n          \"name\": \"<string>\",\n          \"externalCode\": \"<string>\",\n          \"totalPrice\": {\n            \"value\": \"<number>\",\n            \"currency\": \"BRL\"\n          },\n          \"options\": [\n            {\n              \"id\": \"<uuid>\",\n              \"index\": \"<integer>\",\n              \"name\": \"<string>\",\n              \"externalCode\": \"<string>\",\n              \"unit\": \"UN\",\n              \"quantity\": \"<integer>\",\n              \"unitPrice\": {\n                \"value\": \"<number>\",\n                \"currency\": \"BRL\"\n              },\n              \"totalPrice\": {\n                \"value\": \"<number>\",\n                \"currency\": \"BRL\"\n              }\n            },\n            {\n              \"id\": \"<uuid>\",\n              \"index\": \"<integer>\",\n              \"name\": \"<string>\",\n              \"externalCode\": \"<string>\",\n              \"unit\": \"UN\",\n              \"quantity\": \"<integer>\",\n              \"unitPrice\": {\n                \"value\": \"<number>\",\n                \"currency\": \"BRL\"\n              },\n              \"totalPrice\": {\n                \"value\": \"<number>\",\n                \"currency\": \"BRL\"\n              }\n            }\n          ]\n        },\n        {\n          \"id\": \"<uuid>\",\n          \"name\": \"<string>\",\n          \"externalCode\": \"<string>\",\n          \"totalPrice\": {\n            \"value\": \"<number>\",\n            \"currency\": \"BRL\"\n          },\n          \"options\": [\n            {\n              \"id\": \"<uuid>\",\n              \"index\": \"<integer>\",\n              \"name\": \"<string>\",\n              \"externalCode\": \"<string>\",\n              \"unit\": \"UN\",\n              \"quantity\": \"<integer>\",\n              \"unitPrice\": {\n                \"value\": \"<number>\",\n                \"currency\": \"BRL\"\n              },\n              \"totalPrice\": {\n                \"value\": \"<number>\",\n                \"currency\": \"BRL\"\n              }\n            },\n            {\n              \"id\": \"<uuid>\",\n              \"index\": \"<integer>\",\n              \"name\": \"<string>\",\n              \"externalCode\": \"<string>\",\n              \"unit\": \"UN\",\n              \"quantity\": \"<integer>\",\n              \"unitPrice\": {\n                \"value\": \"<number>\",\n                \"currency\": \"BRL\"\n              },\n              \"totalPrice\": {\n                \"value\": \"<number>\",\n                \"currency\": \"BRL\"\n              }\n            }\n          ]\n        }\n      ]\n    }\n  ],\n  \"otherFees\": [\n    {\n      \"name\": \"<string>\",\n      \"type\": \"MIN_ORDER_FEE\",\n      \"receivedBy\": \"LOGISTIC_SERVICES\",\n      \"receiverDocument\": \"<string>\",\n      \"price\": {\n        \"value\": \"<number>\",\n        \"currency\": \"BRL\"\n      }\n    },\n    {\n      \"name\": \"<string>\",\n      \"type\": \"DELIVERY_FEE\",\n      \"receivedBy\": \"LOGISTIC_SERVICES\",\n      \"receiverDocument\": \"<string>\",\n      \"price\": {\n        \"value\": \"<number>\",\n        \"currency\": \"BRL\"\n      }\n    }\n  ],\n  \"discounts\": [\n    {\n      \"amount\": {\n        \"value\": \"<number>\",\n        \"currency\": \"BRL\"\n      },\n      \"target\": \"CART\",\n      \"sponsorshipValues\": [\n        {\n          \"name\": \"MERCHANT\",\n          \"amount\": {\n            \"value\": \"<number>\",\n            \"currency\": \"BRL\"\n          },\n          \"discountCode\": \"<string>\"\n        },\n        {\n          \"name\": \"MERCHANT\",\n          \"amount\": {\n            \"value\": \"<number>\",\n            \"currency\": \"BRL\"\n          },\n          \"discountCode\": \"<string>\"\n        }\n      ]\n    },\n    {\n      \"amount\": {\n        \"value\": \"<number>\",\n        \"currency\": \"BRL\"\n      },\n      \"target\": \"CART\",\n      \"sponsorshipValues\": [\n        {\n          \"name\": \"MERCHANT\",\n          \"amount\": {\n            \"value\": \"<number>\",\n            \"currency\": \"BRL\"\n          },\n          \"discountCode\": \"<string>\"\n        },\n        {\n          \"name\": \"MERCHANT\",\n          \"amount\": {\n            \"value\": \"<number>\",\n            \"currency\": \"BRL\"\n          },\n          \"discountCode\": \"<string>\"\n        }\n      ]\n    }\n  ],\n  \"total\": {\n    \"itemsPrice\": {\n      \"value\": \"<number>\",\n      \"currency\": \"BRL\"\n    },\n    \"otherFees\": {\n      \"value\": \"<number>\",\n      \"currency\": \"BRL\"\n    },\n    \"discount\": {\n      \"value\": \"<number>\",\n      \"currency\": \"BRL\"\n    },\n    \"orderAmount\": {\n      \"value\": \"<number>\",\n      \"currency\": \"BRL\"\n    }\n  },\n  \"payments\": {\n    \"prepaid\": \"<number>\",\n    \"pending\": \"<number>\",\n    \"methods\": [\n      {\n        \"value\": \"<number>\",\n        \"currency\": \"BRL\",\n        \"type\": \"OFFLINE\",\n        \"method\": \"DIGITAL_WALLET\",\n        \"brand\": \"<string>\",\n        \"methodInfo\": \"<string>\",\n        \"changeFor\": \"<number>\"\n      },\n      {\n        \"value\": \"<number>\",\n        \"currency\": \"BRL\",\n        \"type\": \"PENDING\",\n        \"method\": \"PIX\",\n        \"brand\": \"<string>\",\n        \"methodInfo\": \"<string>\",\n        \"changeFor\": \"<number>\"\n      }\n    ]\n  },\n  \"loyalty\": {\n    \"accountId\": \"<string>\",\n    \"programId\": \"<string>\",\n    \"redemption\": {\n      \"externalId\": \"<string>\",\n      \"status\": \"REVERSED\",\n      \"amount\": {\n        \"value\": \"<number>\",\n        \"currency\": \"BRL\"\n      }\n    }\n  },\n  \"customer\": {\n    \"id\": \"<uuid>\",\n    \"name\": \"<string>\",\n    \"documentNumber\": \"<string>\",\n    \"phone\": {\n      \"number\": \"<string>\"\n    },\n    \"email\": \"<string>\",\n    \"ordersCountOnMerchant\": \"<integer>\"\n  },\n  \"schedule\": {\n    \"scheduledDateTimeStart\": \"<dateTime>\",\n    \"scheduledDateTimeEnd\": \"<dateTime>\"\n  },\n  \"delivery\": {\n    \"deliveredBy\": \"MERCHANT\",\n    \"estimatedDeliveryDateTime\": \"<dateTime>\",\n    \"deliveryAddress\": {\n      \"country\": \"<string>\",\n      \"state\": \"<string>\",\n      \"city\": \"<string>\",\n      \"district\": \"<string>\",\n      \"street\": \"<string>\",\n      \"number\": \"<string>\",\n      \"complement\": \"<string>\",\n      \"reference\": \"<string>\",\n      \"postalCode\": \"<string>\",\n      \"formattedAddress\": \"<string>\",\n      \"coordinates\": {\n        \"latitude\": \"<number>\",\n        \"longitude\": \"<number>\"\n      }\n    }\n  },\n  \"takeout\": {\n    \"mode\": \"DEFAULT\",\n    \"takeoutDateTime\": \"<dateTime>\"\n  },\n  \"indoor\": {\n    \"mode\": \"TAB\",\n    \"indoorDateTime\": \"<dateTime>\",\n    \"place\": \"<string>\",\n    \"placeName\": \"<string>\",\n    \"placeId\": \"<string>\",\n    \"tab\": \"<string>\",\n    \"tabId\": \"<uuid>\",\n    \"tabName\": \"<string>\",\n    \"tabCode\": \"<string>\"\n  },\n  \"sendDelivered\": \"<boolean>\",\n  \"sendPreparing\": \"<boolean>\",\n  \"sendPickedUp\": \"<boolean>\",\n  \"sendTracking\": \"<boolean>\",\n  \"extraInfo\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "a43fe8b7-2073-4f2a-a5fd-59a9e7f63e54",
+              "name": "Token ausente, inválido ou expirado.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "Formato dos complementos dos itens. Sem o parâmetro, cada item traz `options` (lista plana). `optionGroups` retorna `items[].optionGroups` e `groupOptions` retorna `items[].optionsGroup`, ambos agrupados por grupo de complemento.",
+                        "type": "text/plain"
+                      },
+                      "key": "views",
+                      "value": "groupOptions"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<integer>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "e1d99fea-cc77-4aef-a22c-4a97b92697d4",
+              "name": "Recurso não encontrado.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "Formato dos complementos dos itens. Sem o parâmetro, cada item traz `options` (lista plana). `optionGroups` retorna `items[].optionGroups` e `groupOptions` retorna `items[].optionsGroup`, ambos agrupados por grupo de complemento.",
+                        "type": "text/plain"
+                      },
+                      "key": "views",
+                      "value": "groupOptions"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "f6058877-d7c0-4d9b-9aca-8d29ef8176d2",
+          "name": "Confirmar pedido",
+          "request": {
+            "name": "Confirmar pedido",
+            "description": {
+              "content": "Confirma (aceita) o pedido. Consulte os detalhes do pedido antes de confirmá-lo. Um corpo, se enviado, é ignorado.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v1",
+                "orders",
+                ":orderId",
+                "confirm"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "{{orderId}}",
+                  "key": "orderId",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) Identificador (UUID) do pedido.",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {}
+          },
+          "response": [
+            {
+              "id": "ac9cab0a-09ac-4142-a995-b44c11d18c2b",
+              "name": "Ação aceita.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "confirm"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Accepted",
+              "code": 202,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"<uuid>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "522ff0a6-b988-43c4-ab38-64035797933b",
+              "name": "Token ausente, inválido ou expirado.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "confirm"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<integer>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "6a12afea-a433-4bfc-9e2a-b9e6ddf6bc25",
+              "name": "Recurso não encontrado.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "confirm"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "5413f1dd-f017-447d-9900-d72f051be794",
+              "name": "A transição não é permitida no estado atual do pedido ou os dados são inválidos.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "confirm"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "848abdef-faa9-4b0f-822e-cad40491f08a",
+          "name": "Iniciar preparo",
+          "request": {
+            "name": "Iniciar preparo",
+            "description": {
+              "content": "Sinaliza que a loja começou a preparar o pedido.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v1",
+                "orders",
+                ":orderId",
+                "preparing"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "{{orderId}}",
+                  "key": "orderId",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) Identificador (UUID) do pedido.",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {}
+          },
+          "response": [
+            {
+              "id": "07886747-1eeb-49b9-b7e3-c0093bb6284c",
+              "name": "Ação aceita.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "preparing"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Accepted",
+              "code": 202,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"<uuid>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "f30ba395-3892-41d9-9061-2ad615c7c82d",
+              "name": "Token ausente, inválido ou expirado.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "preparing"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<integer>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "c7d35e11-7ddb-425d-a18d-9d7be1ce6cb2",
+              "name": "Recurso não encontrado.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "preparing"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "8501d4df-174b-441a-b930-cfb1aee07d40",
+              "name": "A transição não é permitida no estado atual do pedido ou os dados são inválidos.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "preparing"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "fff5e561-6049-468c-9321-72d2d405cb67",
+          "name": "Marcar pedido como pronto",
+          "request": {
+            "name": "Marcar pedido como pronto",
+            "description": {
+              "content": "Sinaliza que o pedido está pronto para ser retirado ou entregue.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v1",
+                "orders",
+                ":orderId",
+                "readyForPickup"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "{{orderId}}",
+                  "key": "orderId",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) Identificador (UUID) do pedido.",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {}
+          },
+          "response": [
+            {
+              "id": "ba93a191-2da0-4352-abf3-8d95040dfa00",
+              "name": "Ação aceita.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "readyForPickup"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Accepted",
+              "code": 202,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"<uuid>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "6a578321-f572-4063-9a95-80603606c002",
+              "name": "Token ausente, inválido ou expirado.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "readyForPickup"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<integer>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "1ee78540-ba42-4c2c-b5cd-e24ba60ddb7a",
+              "name": "Recurso não encontrado.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "readyForPickup"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "29752215-0b15-4ee2-920d-bb6733ee57f5",
+              "name": "A transição não é permitida no estado atual do pedido ou os dados são inválidos.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "readyForPickup"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "b8019d85-4516-4c14-9fe4-95576f7cf212",
+          "name": "Marcar pedido como retirado",
+          "request": {
+            "name": "Marcar pedido como retirado",
+            "description": {
+              "content": "Sinaliza que o pedido foi retirado pelo cliente (pedidos para retirada).",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v1",
+                "orders",
+                ":orderId",
+                "pickedUp"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "{{orderId}}",
+                  "key": "orderId",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) Identificador (UUID) do pedido.",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {}
+          },
+          "response": [
+            {
+              "id": "a973127a-5e1a-41d2-8f1c-8e061bc5be68",
+              "name": "Ação aceita.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "pickedUp"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Accepted",
+              "code": 202,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"<uuid>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "b9db86a6-c598-4bbb-92e5-679695381d06",
+              "name": "Token ausente, inválido ou expirado.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "pickedUp"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<integer>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "3428f0c8-b74f-40db-9678-1e5efefecf3b",
+              "name": "Recurso não encontrado.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "pickedUp"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "1d28993a-b784-4ffa-aaa9-29b43342a751",
+              "name": "A transição não é permitida no estado atual do pedido ou os dados são inválidos.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "pickedUp"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "ad89cf67-f028-4912-b9aa-bef16c52ac4a",
+          "name": "Despachar pedido",
+          "request": {
+            "name": "Despachar pedido",
+            "description": {
+              "content": "Sinaliza que o pedido saiu para entrega.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v1",
+                "orders",
+                ":orderId",
+                "dispatch"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "{{orderId}}",
+                  "key": "orderId",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) Identificador (UUID) do pedido.",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {}
+          },
+          "response": [
+            {
+              "id": "c932233f-8ce3-44d1-a2eb-39df4e30a271",
+              "name": "Ação aceita.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "dispatch"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Accepted",
+              "code": 202,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"<uuid>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "78ab8380-57f8-4e25-86e6-bbc37429e181",
+              "name": "Token ausente, inválido ou expirado.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "dispatch"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<integer>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "92d80849-27b9-4c44-b04d-3e54039ef021",
+              "name": "Recurso não encontrado.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "dispatch"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "5a933252-87bf-493f-a803-41b827d97773",
+              "name": "A transição não é permitida no estado atual do pedido ou os dados são inválidos.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "dispatch"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "38885b17-89aa-4c2f-b738-ad023486e0b6",
+          "name": "Marcar pedido como entregue",
+          "request": {
+            "name": "Marcar pedido como entregue",
+            "description": {
+              "content": "Sinaliza que o pedido foi entregue ao cliente.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v1",
+                "orders",
+                ":orderId",
+                "delivered"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "{{orderId}}",
+                  "key": "orderId",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) Identificador (UUID) do pedido.",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {}
+          },
+          "response": [
+            {
+              "id": "233240b3-1932-4585-9bd5-1600fc288677",
+              "name": "Ação aceita.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "delivered"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Accepted",
+              "code": 202,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"<uuid>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "ed65439b-c9e1-4676-8ab3-d25c084d69bb",
+              "name": "Token ausente, inválido ou expirado.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "delivered"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<integer>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "c4977f09-dd38-45fb-947c-1c3b40655a19",
+              "name": "Recurso não encontrado.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "delivered"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "d4a6323e-e14a-4a10-a618-d035c738bb66",
+              "name": "A transição não é permitida no estado atual do pedido ou os dados são inválidos.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "delivered"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "96f9e5ae-ce3f-487e-9196-0201e90a23a6",
+          "name": "Cancelar pedido",
+          "request": {
+            "name": "Cancelar pedido",
+            "description": {
+              "content": "Cancela o pedido imediatamente. Um corpo (motivo, código, itens indisponíveis), se enviado, é ignorado.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v1",
+                "orders",
+                ":orderId",
+                "requestCancellation"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "{{orderId}}",
+                  "key": "orderId",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) Identificador (UUID) do pedido.",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {}
+          },
+          "response": [
+            {
+              "id": "d2e2513f-4db2-4688-8bd5-58b5df3685c7",
+              "name": "Ação processada.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "requestCancellation"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"<uuid>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "38bb17ca-2bb9-417d-b1fe-3befea2f5fdc",
+              "name": "Token ausente, inválido ou expirado.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "requestCancellation"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<integer>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "26e71ce6-5027-4be9-8b2a-04d61d18ae6c",
+              "name": "Recurso não encontrado.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "requestCancellation"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "f367c79c-49af-4904-b1a8-2474a24b1feb",
+              "name": "A transição não é permitida no estado atual do pedido ou os dados são inválidos.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "requestCancellation"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "430ab0a0-b392-406a-bf6c-0586e0dfccaf",
+          "name": "Aceitar cancelamento",
+          "request": {
+            "name": "Aceitar cancelamento",
+            "description": {
+              "content": "Aceita uma solicitação de cancelamento. Apenas confirma o recebimento: o estado do pedido não é alterado.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v1",
+                "orders",
+                ":orderId",
+                "acceptCancellation"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "{{orderId}}",
+                  "key": "orderId",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) Identificador (UUID) do pedido.",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {}
+          },
+          "response": [
+            {
+              "id": "b7c2d04f-4e85-41e7-92d5-c789dbeb9d8d",
+              "name": "Ação processada.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "acceptCancellation"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"<uuid>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "6d26b6be-4716-41d3-ad1e-4e6566147164",
+              "name": "Token ausente, inválido ou expirado.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "acceptCancellation"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<integer>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "dddeabb2-42d4-4637-a276-24b37240a891",
+              "name": "Recurso não encontrado.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "acceptCancellation"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "f3d23c04-bd9b-4c21-a633-622470fe5661",
+          "name": "Recusar cancelamento",
+          "request": {
+            "name": "Recusar cancelamento",
+            "description": {
+              "content": "Recusa uma solicitação de cancelamento. Apenas confirma o recebimento: o estado do pedido não é alterado.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v1",
+                "orders",
+                ":orderId",
+                "denyCancellation"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "{{orderId}}",
+                  "key": "orderId",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) Identificador (UUID) do pedido.",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {}
+          },
+          "response": [
+            {
+              "id": "15f82682-2f28-4c30-9e9a-cb6c2cf07113",
+              "name": "Ação processada.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "denyCancellation"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"<uuid>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "ed2fa349-90ee-4182-9b7c-7003ac07c61e",
+              "name": "Token ausente, inválido ou expirado.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "denyCancellation"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<integer>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "9fb090d0-18bf-444e-8ed0-15e9bdb9743b",
+              "name": "Recurso não encontrado.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "denyCancellation"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "6cc831a2-6566-4948-9047-419ec761be4d",
+          "name": "Enviar rastreamento da entrega",
+          "request": {
+            "name": "Enviar rastreamento da entrega",
+            "description": {
+              "content": "Atualiza o rastreamento da entrega do pedido: um evento de entrega (`event`) ou uma ocorrência (`problem`), com dados opcionais de entregador, veículo, previsões e localização.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v1",
+                "orders",
+                ":orderId",
+                "tracking"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "{{orderId}}",
+                  "key": "orderId",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) Identificador (UUID) do pedido.",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"event\": {\n    \"type\": \"CANCELLED\",\n    \"datetime\": \"<dateTime>\",\n    \"message\": \"<string>\"\n  },\n  \"vehicle\": {\n    \"type\": \"CAR\",\n    \"licencePlate\": \"<string>\"\n  },\n  \"eta\": {\n    \"pickupEtaInMinutes\": \"<integer>\",\n    \"pickupEtaDatetime\": \"<dateTime>\",\n    \"deliveryEtaInMinutes\": \"<integer>\",\n    \"deliveryEtaDatetime\": \"<dateTime>\",\n    \"maxDeliveryTime\": \"<dateTime>\"\n  },\n  \"deliveryPerson\": {\n    \"id\": \"<string>\",\n    \"name\": \"<string>\",\n    \"pictureURL\": \"<uri>\"\n  },\n  \"geoLocalization\": {\n    \"latitude\": \"<number>\",\n    \"longitude\": \"<number>\",\n    \"lastAddress\": {\n      \"distanceToPickup\": \"<string>\",\n      \"distanceToDelivery\": \"<string>\",\n      \"timestamp\": \"<dateTime>\",\n      \"country\": \"<string>\",\n      \"state\": \"<string>\",\n      \"city\": \"<string>\",\n      \"district\": \"<string>\",\n      \"street\": \"<string>\",\n      \"postalCode\": \"<string>\"\n    }\n  },\n  \"externalTrackingURL\": \"<uri>\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "779c5a8d-2601-46d8-bcef-496a923c7120",
+              "name": "Ação aceita.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "tracking"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"event\": {\n    \"type\": \"CANCELLED\",\n    \"datetime\": \"<dateTime>\",\n    \"message\": \"<string>\"\n  },\n  \"vehicle\": {\n    \"type\": \"CAR\",\n    \"licencePlate\": \"<string>\"\n  },\n  \"eta\": {\n    \"pickupEtaInMinutes\": \"<integer>\",\n    \"pickupEtaDatetime\": \"<dateTime>\",\n    \"deliveryEtaInMinutes\": \"<integer>\",\n    \"deliveryEtaDatetime\": \"<dateTime>\",\n    \"maxDeliveryTime\": \"<dateTime>\"\n  },\n  \"deliveryPerson\": {\n    \"id\": \"<string>\",\n    \"name\": \"<string>\",\n    \"pictureURL\": \"<uri>\"\n  },\n  \"geoLocalization\": {\n    \"latitude\": \"<number>\",\n    \"longitude\": \"<number>\",\n    \"lastAddress\": {\n      \"distanceToPickup\": \"<string>\",\n      \"distanceToDelivery\": \"<string>\",\n      \"timestamp\": \"<dateTime>\",\n      \"country\": \"<string>\",\n      \"state\": \"<string>\",\n      \"city\": \"<string>\",\n      \"district\": \"<string>\",\n      \"street\": \"<string>\",\n      \"postalCode\": \"<string>\"\n    }\n  },\n  \"externalTrackingURL\": \"<uri>\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Accepted",
+              "code": 202,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"<uuid>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "76bafd8b-964c-4da5-b5c6-4dbc6533e0ed",
+              "name": "Token ausente, inválido ou expirado.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "tracking"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"event\": {\n    \"type\": \"CANCELLED\",\n    \"datetime\": \"<dateTime>\",\n    \"message\": \"<string>\"\n  },\n  \"vehicle\": {\n    \"type\": \"CAR\",\n    \"licencePlate\": \"<string>\"\n  },\n  \"eta\": {\n    \"pickupEtaInMinutes\": \"<integer>\",\n    \"pickupEtaDatetime\": \"<dateTime>\",\n    \"deliveryEtaInMinutes\": \"<integer>\",\n    \"deliveryEtaDatetime\": \"<dateTime>\",\n    \"maxDeliveryTime\": \"<dateTime>\"\n  },\n  \"deliveryPerson\": {\n    \"id\": \"<string>\",\n    \"name\": \"<string>\",\n    \"pictureURL\": \"<uri>\"\n  },\n  \"geoLocalization\": {\n    \"latitude\": \"<number>\",\n    \"longitude\": \"<number>\",\n    \"lastAddress\": {\n      \"distanceToPickup\": \"<string>\",\n      \"distanceToDelivery\": \"<string>\",\n      \"timestamp\": \"<dateTime>\",\n      \"country\": \"<string>\",\n      \"state\": \"<string>\",\n      \"city\": \"<string>\",\n      \"district\": \"<string>\",\n      \"street\": \"<string>\",\n      \"postalCode\": \"<string>\"\n    }\n  },\n  \"externalTrackingURL\": \"<uri>\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<integer>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "49be6986-3783-428a-82bc-22df6ddd1a4f",
+              "name": "Recurso não encontrado.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "tracking"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"event\": {\n    \"type\": \"CANCELLED\",\n    \"datetime\": \"<dateTime>\",\n    \"message\": \"<string>\"\n  },\n  \"vehicle\": {\n    \"type\": \"CAR\",\n    \"licencePlate\": \"<string>\"\n  },\n  \"eta\": {\n    \"pickupEtaInMinutes\": \"<integer>\",\n    \"pickupEtaDatetime\": \"<dateTime>\",\n    \"deliveryEtaInMinutes\": \"<integer>\",\n    \"deliveryEtaDatetime\": \"<dateTime>\",\n    \"maxDeliveryTime\": \"<dateTime>\"\n  },\n  \"deliveryPerson\": {\n    \"id\": \"<string>\",\n    \"name\": \"<string>\",\n    \"pictureURL\": \"<uri>\"\n  },\n  \"geoLocalization\": {\n    \"latitude\": \"<number>\",\n    \"longitude\": \"<number>\",\n    \"lastAddress\": {\n      \"distanceToPickup\": \"<string>\",\n      \"distanceToDelivery\": \"<string>\",\n      \"timestamp\": \"<dateTime>\",\n      \"country\": \"<string>\",\n      \"state\": \"<string>\",\n      \"city\": \"<string>\",\n      \"district\": \"<string>\",\n      \"street\": \"<string>\",\n      \"postalCode\": \"<string>\"\n    }\n  },\n  \"externalTrackingURL\": \"<uri>\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "602ff973-ca37-45e0-a02b-bf9ff9920028",
+              "name": "A transição não é permitida no estado atual do pedido ou os dados são inválidos.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "tracking"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"event\": {\n    \"type\": \"CANCELLED\",\n    \"datetime\": \"<dateTime>\",\n    \"message\": \"<string>\"\n  },\n  \"vehicle\": {\n    \"type\": \"CAR\",\n    \"licencePlate\": \"<string>\"\n  },\n  \"eta\": {\n    \"pickupEtaInMinutes\": \"<integer>\",\n    \"pickupEtaDatetime\": \"<dateTime>\",\n    \"deliveryEtaInMinutes\": \"<integer>\",\n    \"deliveryEtaDatetime\": \"<dateTime>\",\n    \"maxDeliveryTime\": \"<dateTime>\"\n  },\n  \"deliveryPerson\": {\n    \"id\": \"<string>\",\n    \"name\": \"<string>\",\n    \"pictureURL\": \"<uri>\"\n  },\n  \"geoLocalization\": {\n    \"latitude\": \"<number>\",\n    \"longitude\": \"<number>\",\n    \"lastAddress\": {\n      \"distanceToPickup\": \"<string>\",\n      \"distanceToDelivery\": \"<string>\",\n      \"timestamp\": \"<dateTime>\",\n      \"country\": \"<string>\",\n      \"state\": \"<string>\",\n      \"city\": \"<string>\",\n      \"district\": \"<string>\",\n      \"street\": \"<string>\",\n      \"postalCode\": \"<string>\"\n    }\n  },\n  \"externalTrackingURL\": \"<uri>\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Lojas",
+      "description": "Onboarding da loja, abertura/fechamento e atualização de catálogo.",
+      "item": [
+        {
+          "id": "784b0719-9f56-45b7-b45f-bb31d7c5cf70",
+          "name": "Fazer onboarding da loja",
+          "request": {
+            "name": "Fazer onboarding da loja",
+            "description": {
+              "content": "Registra (ou atualiza) os dados do Software Service para a loja do token: o seu identificador da loja (`merchantId`), a URL e a chave para consulta do merchant (getMerchant) e a URL do webhook de pedidos. Responde 201 no primeiro registro e 204 nas atualizações.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v1",
+                "merchantOnboarding"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) Identificador da loja no Software Service.",
+                    "type": "text/plain"
+                  },
+                  "key": "merchantId",
+                  "value": "<string>"
+                }
+              ],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "PUT",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"getMerchantURL\": {\n    \"baseURL\": \"<uri>\",\n    \"apiKey\": \"<string>\"\n  },\n  \"ordersWebhookURL\": \"<uri>\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "92fe6171-ec26-4437-9ae7-78ecd3e652b7",
+              "name": "Onboarding registrado.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "merchantOnboarding"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) Identificador da loja no Software Service.",
+                        "type": "text/plain"
+                      },
+                      "key": "merchantId",
+                      "value": "<string>"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "PUT",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"getMerchantURL\": {\n    \"baseURL\": \"<uri>\",\n    \"apiKey\": \"<string>\"\n  },\n  \"ordersWebhookURL\": \"<uri>\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "header": [],
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            },
+            {
+              "id": "199ee1f8-c1c5-4639-bfed-35701eb0d8e0",
+              "name": "Onboarding atualizado.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "merchantOnboarding"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) Identificador da loja no Software Service.",
+                        "type": "text/plain"
+                      },
+                      "key": "merchantId",
+                      "value": "<string>"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "PUT",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"getMerchantURL\": {\n    \"baseURL\": \"<uri>\",\n    \"apiKey\": \"<string>\"\n  },\n  \"ordersWebhookURL\": \"<uri>\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "No Content",
+              "code": 204,
+              "header": [],
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            },
+            {
+              "id": "50940a75-c3e0-4c90-9706-143b97b53ec4",
+              "name": "`merchantId` ausente, corpo ausente ou URL inválida.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "merchantOnboarding"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) Identificador da loja no Software Service.",
+                        "type": "text/plain"
+                      },
+                      "key": "merchantId",
+                      "value": "<string>"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "PUT",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"getMerchantURL\": {\n    \"baseURL\": \"<uri>\",\n    \"apiKey\": \"<string>\"\n  },\n  \"ordersWebhookURL\": \"<uri>\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "0d15f133-902e-4db8-878d-5af3f1ce15d4",
+              "name": "Token ausente, inválido ou expirado.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "merchantOnboarding"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) Identificador da loja no Software Service.",
+                        "type": "text/plain"
+                      },
+                      "key": "merchantId",
+                      "value": "<string>"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "PUT",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"getMerchantURL\": {\n    \"baseURL\": \"<uri>\",\n    \"apiKey\": \"<string>\"\n  },\n  \"ordersWebhookURL\": \"<uri>\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<integer>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "f191e895-4e05-46a2-9525-2fd179cef249",
+              "name": "O token está vinculado a mais de uma loja e a operação exige uma única (`Token must be associated with a single merchant`).",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "merchantOnboarding"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) Identificador da loja no Software Service.",
+                        "type": "text/plain"
+                      },
+                      "key": "merchantId",
+                      "value": "<string>"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "PUT",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"getMerchantURL\": {\n    \"baseURL\": \"<uri>\",\n    \"apiKey\": \"<string>\"\n  },\n  \"ordersWebhookURL\": \"<uri>\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Forbidden",
+              "code": 403,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "b17f0a59-f544-40b2-9585-b0d9fb9bb935",
+              "name": "O aplicativo não declarou a extensão OpenDelivery (`open_delivery_extension_not_declared`).",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "merchantOnboarding"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) Identificador da loja no Software Service.",
+                        "type": "text/plain"
+                      },
+                      "key": "merchantId",
+                      "value": "<string>"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "PUT",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"getMerchantURL\": {\n    \"baseURL\": \"<uri>\",\n    \"apiKey\": \"<string>\"\n  },\n  \"ordersWebhookURL\": \"<uri>\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "42c18878-3274-4e04-86a3-9a240fd9427f",
+          "name": "Consultar processamento do merchant",
+          "request": {
+            "name": "Consultar processamento do merchant",
+            "description": {
+              "content": "Retorna o resultado do último processamento de atualização da loja disparado por `/v1/merchantUpdate` (nova leitura do merchant e do catálogo via getMerchant).",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v1",
+                "merchantStatus"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) Identificador da loja no Software Service, informado no onboarding.",
+                    "type": "text/plain"
+                  },
+                  "key": "merchantId",
+                  "value": "<string>"
+                }
+              ],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "body": {}
+          },
+          "response": [
+            {
+              "id": "b8e6bf66-98de-4be6-a7e5-4b16eb67da02",
+              "name": "Resultado do último processamento.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "merchantStatus"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) Identificador da loja no Software Service, informado no onboarding.",
+                        "type": "text/plain"
+                      },
+                      "key": "merchantId",
+                      "value": "<string>"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"lastRead\": \"<dateTime>\",\n  \"status\": \"FAIL\",\n  \"moreInfo\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "cde43a8b-b5a1-47f1-8922-6f45413e1684",
+              "name": "Parâmetro `merchantId` ausente.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "merchantStatus"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) Identificador da loja no Software Service, informado no onboarding.",
+                        "type": "text/plain"
+                      },
+                      "key": "merchantId",
+                      "value": "<string>"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "e57252f0-2ac8-4d8e-b911-99825f2e6269",
+              "name": "Token ausente, inválido ou expirado.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "merchantStatus"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) Identificador da loja no Software Service, informado no onboarding.",
+                        "type": "text/plain"
+                      },
+                      "key": "merchantId",
+                      "value": "<string>"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<integer>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "19ae69f1-957d-4853-8f4b-8a1a2945fb2d",
+              "name": "Loja não encontrada para o token (`merchant not found`) ou ainda sem processamento (`no processing result`).",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "merchantStatus"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) Identificador da loja no Software Service, informado no onboarding.",
+                        "type": "text/plain"
+                      },
+                      "key": "merchantId",
+                      "value": "<string>"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "1e54e32f-42f9-46a1-86f0-b3a8babc3758",
+          "name": "Atualizar merchant",
+          "request": {
+            "name": "Atualizar merchant",
+            "description": {
+              "content": "Notifica a DeliveryVip de mudanças na loja do token. Modos:\n\n- corpo vazio: agenda uma nova leitura completa do merchant e do catálogo via getMerchant;\n- apenas `merchantStatus`: abre (`AVAILABLE`) ou fecha (`UNAVAILABLE`) a loja, sem nova leitura;\n- `entityType` com `updatedObjects`: agenda uma nova leitura completa (as entidades informadas não são aplicadas individualmente);\n- `merchantStatus` com `entityType`: faz as duas coisas.\n\nA nova leitura exige onboarding com `getMerchantURL` e é processada de forma assíncrona; acompanhe o resultado em `/v1/merchantStatus`.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v1",
+                "merchantUpdate"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"merchantStatus\": \"AVAILABLE\",\n  \"entityType\": \"OPTION_GROUP\",\n  \"updatedObjects\": [\n    {\n      \"incididunt_9_\": -7316424\n    },\n    {\n      \"mollit_6e4\": false\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "de053db7-e6cd-431c-8593-6a20070de26c",
+              "name": "Atualização aceita.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "merchantUpdate"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"merchantStatus\": \"AVAILABLE\",\n  \"entityType\": \"OPTION_GROUP\",\n  \"updatedObjects\": [\n    {\n      \"incididunt_9_\": -7316424\n    },\n    {\n      \"mollit_6e4\": false\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "No Content",
+              "code": 204,
+              "header": [],
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            },
+            {
+              "id": "a866be75-36fc-4bec-b220-0a3e3ff8d0f3",
+              "name": "Token ausente, inválido ou expirado.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "merchantUpdate"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"merchantStatus\": \"AVAILABLE\",\n  \"entityType\": \"OPTION_GROUP\",\n  \"updatedObjects\": [\n    {\n      \"incididunt_9_\": -7316424\n    },\n    {\n      \"mollit_6e4\": false\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<integer>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "7783d3dd-0592-447a-8ed3-26c110f37a08",
+              "name": "O token está vinculado a mais de uma loja e a operação exige uma única (`Token must be associated with a single merchant`).",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "merchantUpdate"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"merchantStatus\": \"AVAILABLE\",\n  \"entityType\": \"OPTION_GROUP\",\n  \"updatedObjects\": [\n    {\n      \"incididunt_9_\": -7316424\n    },\n    {\n      \"mollit_6e4\": false\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Forbidden",
+              "code": 403,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "7d339368-2b62-42a5-b279-e4280e9db928",
+              "name": "Valor inválido de `merchantStatus` ou `entityType`, `entityType` sem `updatedObjects` (`objects_empty`), ou nova leitura solicitada sem onboarding com getMerchant (`api_info_missing`).",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "merchantUpdate"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"merchantStatus\": \"AVAILABLE\",\n  \"entityType\": \"OPTION_GROUP\",\n  \"updatedObjects\": [\n    {\n      \"incididunt_9_\": -7316424\n    },\n    {\n      \"mollit_6e4\": false\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"title\": \"<string>\",\n  \"status\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ]
+    }
+  ]
+}

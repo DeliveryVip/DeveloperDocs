@@ -54,7 +54,8 @@
                   "inicio/conceitos/paginacao",
                   "inicio/conceitos/datas-e-horarios",
                   "inicio/conceitos/rate-limiting",
-                  "inicio/conceitos/postman"
+                  "inicio/conceitos/postman",
+                  "inicio/conceitos/usando-com-ia"
                 ],
                 "icon": "book"
               },
@@ -897,20 +898,50 @@
   },
   "footer": {
     "socials": {
-      "discord": "https://discord.gg/AJF8Yha4",
-      "website": "https://deliveryvip.com.br"
+      "website": "https://deliveryvip.com.br",
+      "github": "https://github.com/DeliveryVip",
+      "discord": "https://discord.gg/AJF8Yha4"
     },
     "links": [
       {
-        "header": "Desenvolvedores",
+        "header": "Plataforma",
         "items": [
+          {
+            "label": "Painel do lojista",
+            "href": "https://app.deliveryvip.com.br"
+          },
           {
             "label": "Painel do developer",
             "href": "https://developer.deliveryvip.com.br"
           },
           {
+            "label": "Status",
+            "href": "https://status.deliveryvip.com.br"
+          },
+          {
+            "label": "Central de ajuda",
+            "href": "https://ajuda.deliveryvip.com.br"
+          }
+        ]
+      },
+      {
+        "header": "Desenvolvedores",
+        "items": [
+          {
             "label": "Jornada do Developer",
             "href": "/inicio/primeiros-passos/jornada-do-developer"
+          },
+          {
+            "label": "Postman",
+            "href": "/inicio/conceitos/postman"
+          },
+          {
+            "label": "Use com IA",
+            "href": "/inicio/conceitos/usando-com-ia"
+          },
+          {
+            "label": "Cofrinho (exemplo de fidelidade)",
+            "href": "https://github.com/DeliveryVip/cofrinho"
           },
           {
             "label": "Changelog",

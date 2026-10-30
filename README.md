@@ -16,6 +16,18 @@ A DeliveryVip é uma plataforma de delivery e cardápio digital para restaurante
 
 Cada guia traz exemplos em cURL, Node.js e Python. A referência de endpoints é gerada das especificações OpenAPI publicadas pela plataforma.
 
+## 🔗 Links úteis
+
+| | |
+| --- | --- |
+| 🏪 [Painel do lojista](https://app.deliveryvip.com.br) | Onde a loja recebe os pedidos e instala os apps. |
+| 🧑‍💻 [Painel do developer](https://developer.deliveryvip.com.br) | Crie seu app e pegue as credenciais. |
+| 🟢 [Status](https://status.deliveryvip.com.br) | Disponibilidade da plataforma e incidentes. |
+| ❓ [Central de ajuda](https://ajuda.deliveryvip.com.br) | Dúvidas de uso do painel, para lojistas. |
+| 📮 [Coleções do Postman](postman/) | Merchant API, Partner API e Open Delivery, com OAuth2 configurado. |
+| 🐷 [Cofrinho](https://github.com/DeliveryVip/cofrinho) | Operador de fidelidade de exemplo, em Node.js. |
+| 📄 [Specs OpenAPI](https://app.deliveryvip.com.br/swaggers/merchant.yaml) | `authentication`, `merchant`, `partner`, `opendelivery` e `loyalty_operator` em `app.deliveryvip.com.br/swaggers/`. |
+
 ## 🚀 Início rápido
 
 A documentação é feita com [Mintlify](https://mintlify.com). Você precisa do Node.js 20 ou mais novo.
@@ -43,7 +55,10 @@ Abra `http://localhost:3000` para ver a documentação. As páginas recarregam s
 ├── deprecations.mdx # Rotas descontinuadas e datas de desligamento
 ├── images/          # Imagens e diagramas (versões clara e escura)
 ├── logo/            # Logos para os temas claro e escuro
-├── scripts/art/     # Fontes dos diagramas (kit de artes)
+├── postman/         # Coleções e ambiente do Postman (gerados)
+├── scripts/
+│   ├── art/           # Fontes dos diagramas (kit de artes)
+│   └── postman/       # Gerador das coleções a partir das specs
 └── style.css        # Ajustes de estilo
 ```
 
@@ -65,6 +80,14 @@ Os diagramas não usam Mermaid: são PNGs gerados pelo kit em `scripts/art/`. Ca
 2. Sirva a pasta com `python3 -m http.server 8765` dentro de `scripts/art` e abra no navegador.
 3. Capture o elemento `#<id>` em escala 2x para `images/<id>.png` e, com `?theme=dark` na URL, para `images/<id>-dark.png`.
 
+### Coleções do Postman
+
+As coleções em `postman/` são geradas das specs publicadas em produção. Depois de um deploy que mude uma spec, gere de novo:
+
+```bash
+python3 scripts/postman/build.py
+```
+
 ### Estilo
 
 O guia de estilo está em [`CLAUDE.md`](CLAUDE.md): estrutura das páginas, componentes, exemplos de código e regras de exatidão. Em resumo: português claro e direto, toda chamada com exemplos em cURL, Node.js e Python, e nada documentado sem conferir no código da plataforma.
@@ -82,5 +105,6 @@ Mudanças no branch `main` são publicadas automaticamente pela [integração do
 ## 💬 Suporte
 
 - Converse com a gente na [comunidade no Discord](https://discord.gg/AJF8Yha4).
+- Instabilidade? Confira o [status da plataforma](https://status.deliveryvip.com.br).
 - Encontrou um erro na documentação? [Abra uma issue](https://github.com/DeliveryVip/developer-docs/issues).
 - Quer conversar sobre uma integração? [Agende uma reunião](https://calendar.app.google/EchaXk57y7xp8Hyx6).

@@ -7,6 +7,10 @@ icon: rocket
 
 Ao final deste guia você tem um operador de fidelidade rodando, com as cinco rotas do [contrato](/guides/merchant/loyalty/contrato-do-operador), ativo em uma loja de teste. Um cliente adere ao programa no checkout, vê o saldo, resgata cashback no pedido e recebe o saldo de volta quando o pedido é cancelado.
 
+<Tip>
+Quer um operador mais completo, com banco de dados, painel e cenários de erro? Veja o [**Cofrinho**](https://github.com/DeliveryVip/cofrinho), nosso operador de exemplo em Node.js, de código aberto.
+</Tip>
+
 ## Como funciona
 
 1. **A DeliveryVip chama você.** Durante o checkout, ela faz requisições HTTP às rotas sob a `api_base_url` da extensão de fidelidade do seu app. Você responde; o saldo vive só do seu lado.
@@ -533,5 +537,8 @@ Todos os casos do débito síncrono e do estorno.
 </Card>
 <Card title="Referência rápida" icon="list" href="/guides/merchant/loyalty/referencia-rapida">
 Rotas, headers, limites e regras em uma página.
+</Card>
+<Card title="Cofrinho" icon="github" href="https://github.com/DeliveryVip/cofrinho">
+Operador de exemplo completo: SQLite, painel de controle e painel de caos para testar falhas.
 </Card>
 </CardGroup>

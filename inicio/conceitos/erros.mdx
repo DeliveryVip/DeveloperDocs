@@ -44,7 +44,7 @@ O formato vale para a Merchant API V3, a Partner API V2 e o Open Delivery.
 | `406` | Not Acceptable | Parâmetros inválidos em listagens e no acknowledgment, como datas fora do formato em `GET /merchant/v3/{merchantId}/orders`. | Corrija os parâmetros. |
 | `422` | Unprocessable Content | Dados inválidos para a regra de negócio, ou campo obrigatório ausente (`"param is missing: ..."`). | Leia o `title`, corrija os dados. |
 | `429` | Too Many Requests | Limite de requisições excedido. | Espere e repita com backoff. |
-| `500` | Internal Server Error | Erro inesperado na DeliveryVip (`"title": "Internal server error"`). | Repita com backoff; se persistir, avise no Discord. |
+| `500` | Internal Server Error | Erro inesperado na DeliveryVip (`"title": "Internal server error"`). | Repita com backoff; se persistir, confira o [status da plataforma](https://status.deliveryvip.com.br) e avise no Discord. |
 
 <Info>
 **Sucesso sem corpo.** `204 No Content` não é erro: o polling sem eventos novos e as listagens sem resultados respondem `204`, sem corpo. Não tente fazer parse do JSON nesses casos.

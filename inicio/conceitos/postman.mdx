@@ -1,16 +1,40 @@
 ---
 title: Postman
-description: Importe as specs OpenAPI da DeliveryVip no Postman e configure o OAuth2 para explorar a API sem escrever código.
+description: Baixe as coleções prontas da DeliveryVip, ou importe as specs OpenAPI, e chame a API pelo Postman sem escrever código.
 icon: paper-plane
 ---
 
-As APIs da DeliveryVip são descritas em specs OpenAPI públicas. O Postman importa essas specs e gera uma coleção com todas as rotas, prontas para chamar.
+Há duas formas de começar: baixar as **coleções prontas**, com pastas em português e o OAuth2 já configurado, ou importar as **specs OpenAPI** e configurar a autenticação você mesmo.
 
 ## Antes de começar
 
 * Uma conta no [Postman](https://www.postman.com) (a gratuita basta).
 * Um app no [painel de developers](/inicio/primeiros-passos) com `client_id` e `client_secret`.
 * Uma loja com o app instalado. Não há sandbox: as chamadas vão para produção, então use a **loja de teste** pedida no [Discord](https://discord.gg/AJF8Yha4).
+
+## Coleções prontas
+
+| Arquivo | Conteúdo |
+| --- | --- |
+| [Merchant API V3](https://github.com/DeliveryVip/developer-docs/blob/main/postman/deliveryvip-merchant-api.postman_collection.json) | Autenticação, eventos, pedidos, catálogo, descontos, comandas, mesas e fidelidade. |
+| [Partner API V2](https://github.com/DeliveryVip/developer-docs/blob/main/postman/deliveryvip-partner-api.postman_collection.json) | Autenticação, cadastro, planos, faturas, lojas e revendas. |
+| [Open Delivery](https://github.com/DeliveryVip/developer-docs/blob/main/postman/deliveryvip-open-delivery.postman_collection.json) | Token, versões, eventos, pedidos e merchant. |
+| [Ambiente DeliveryVip](https://github.com/DeliveryVip/developer-docs/blob/main/postman/deliveryvip.postman_environment.json) | Variáveis `clientId`, `clientSecret` (secreta), `merchantId`, `partnerId` e `orderId`. |
+
+<Steps>
+<Step title="Importe a coleção e o ambiente">
+Baixe os arquivos e arraste-os para o Postman, ou use **Import**.
+</Step>
+<Step title="Preencha o ambiente">
+Selecione o ambiente **DeliveryVip** e preencha `clientId`, `clientSecret` e o `merchantId` (ou `partnerId`). No Open Delivery, o `clientSecret` é o da loja.
+</Step>
+<Step title="Gere o token">
+Abra a coleção, vá em **Authorization** e clique em **Get New Access Token** e depois em **Use Token**. O scope já vem preenchido nas variáveis da coleção (`od.all` ou `dv.partner`).
+</Step>
+<Step title="Faça uma chamada">
+Os IDs das rotas usam as variáveis do ambiente (`{{merchantId}}`, `{{orderId}}`). Comece por **Consultar token atual**, na pasta Autenticação.
+</Step>
+</Steps>
 
 ## Specs disponíveis
 
@@ -22,7 +46,7 @@ As APIs da DeliveryVip são descritas em specs OpenAPI públicas. O Postman impo
 | [opendelivery.yaml](https://app.deliveryvip.com.br/swaggers/opendelivery.yaml) | Rotas Open Delivery em `od.deliveryvip.com.br`. |
 | [loyalty\_operator.yaml](https://app.deliveryvip.com.br/swaggers/loyalty_operator.yaml) | Contrato que o **operador de fidelidade** implementa. Útil para gerar um mock do seu lado. |
 
-## Importando
+## Importando a partir das specs
 
 <Steps>
 <Step title="Copie a URL da spec">
