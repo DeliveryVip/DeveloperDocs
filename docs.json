@@ -929,15 +929,15 @@
         "items": [
           {
             "label": "Jornada do Developer",
-            "href": "/inicio/primeiros-passos/jornada-do-developer"
+            "href": "/docs/inicio/primeiros-passos/jornada-do-developer"
           },
           {
             "label": "Postman",
-            "href": "/inicio/conceitos/postman"
+            "href": "/docs/inicio/conceitos/postman"
           },
           {
             "label": "Use com IA",
-            "href": "/inicio/conceitos/usando-com-ia"
+            "href": "/docs/inicio/conceitos/usando-com-ia"
           },
           {
             "label": "Cofrinho (exemplo de fidelidade)",
@@ -945,7 +945,7 @@
           },
           {
             "label": "Changelog",
-            "href": "/changelog"
+            "href": "/docs/changelog"
           }
         ]
       },
