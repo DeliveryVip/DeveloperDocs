@@ -970,5 +970,9 @@
       "title": "Página não encontrada",
       "description": "Volte para a [página inicial](/) ou use a busca."
     }
+  },
+  "appearance": {
+    "default": "system",
+    "strict": true
   }
 }
