@@ -974,5 +974,8 @@
   "appearance": {
     "default": "system",
     "strict": true
+  },
+  "fonts": {
+    "family": "Geist"
   }
 }
