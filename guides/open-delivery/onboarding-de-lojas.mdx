@@ -1,0 +1,123 @@
+---
+title: Onboarding de lojas
+description: Registre por loja o merchantId do seu sistema, a URL de webhook e o endpoint de catálogo no padrão Open Delivery.
+icon: store
+---
+
+O onboarding registra a configuração da integração Open Delivery **por loja**: qual é o identificador da loja no seu sistema, para onde enviar os webhooks de pedido e onde a DeliveryVip busca os dados da loja no padrão OD.
+
+Use o token emitido com o `client_secret` **daquela loja**: é ele que determina qual loja está sendo configurada. Veja [Primeiros passos](/guides/open-delivery/primeiros-passos).
+
+<Info>
+**Também disponível pelo painel.** Esses mesmos dados podem ser preenchidos no painel de developers ([https://developer.deliveryvip.com.br/](https://developer.deliveryvip.com.br/)), no formulário **"Dados da integração da loja"**, sem chamar a API. O endpoint `merchantOnboarding` é útil para automatizar o cadastro quando você integra muitas lojas.
+</Info>
+
+## Request
+
+```
+PUT https://od.deliveryvip.com.br/v1/merchantOnboarding?merchantId={merchantId}
+```
+
+O `merchantId` vai na **query string**; o restante no corpo, em camelCase, conforme a spec OD.
+
+<ParamField query="merchantId" type="string" required>
+O identificador da loja **no seu sistema**. A partir do onboarding, ele passa a ser o `merchantId` usado nos eventos e nas URLs da integração.
+</ParamField>
+
+<ParamField body="ordersWebhookURL" type="string">
+URL que receberá os webhooks de pedido **desta loja**. Veja [Recebendo eventos](/guides/open-delivery/recebendo-eventos).
+</ParamField>
+
+<ParamField body="getMerchantURL" type="object">
+Onde a DeliveryVip busca os dados da loja no padrão OD Merchant.
+
+<Expandable title="propriedades">
+<ParamField body="baseURL" type="string">
+URL do **seu** endpoint OD Merchant. A DeliveryVip faz um `GET` exatamente nesta URL; veja [Catálogo](/guides/open-delivery/catalogo).
+</ParamField>
+<ParamField body="apiKey" type="string">
+Chave que a DeliveryVip envia no header `X-API-KEY` ao chamar o seu endpoint. Fica guardada criptografada.
+</ParamField>
+</Expandable>
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl --request PUT 'https://od.deliveryvip.com.br/v1/merchantOnboarding?merchantId=loja-centro-001' \
+  --header 'Authorization: Bearer {token}' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "ordersWebhookURL": "https://pdv.exemplo.com.br/webhooks/deliveryvip",
+    "getMerchantURL": {
+      "baseURL": "https://pdv.exemplo.com.br/opendelivery/merchant",
+      "apiKey": "{sua api key}"
+    }
+  }'
+```
+
+```js Node.js
+const url = new URL('https://od.deliveryvip.com.br/v1/merchantOnboarding')
+url.searchParams.set('merchantId', 'loja-centro-001')
+
+const response = await fetch(url, {
+  method: 'PUT',
+  headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    ordersWebhookURL: 'https://pdv.exemplo.com.br/webhooks/deliveryvip',
+    getMerchantURL: {
+      baseURL: 'https://pdv.exemplo.com.br/opendelivery/merchant',
+      apiKey: process.env.MERCHANT_API_KEY,
+    },
+  }),
+})
+console.log(response.status) // 201 ou 204
+```
+
+```python Python
+import os
+import requests
+
+response = requests.put(
+    "https://od.deliveryvip.com.br/v1/merchantOnboarding",
+    params={"merchantId": "loja-centro-001"},
+    headers={"Authorization": f"Bearer {token}"},
+    json={
+        "ordersWebhookURL": "https://pdv.exemplo.com.br/webhooks/deliveryvip",
+        "getMerchantURL": {
+            "baseURL": "https://pdv.exemplo.com.br/opendelivery/merchant",
+            "apiKey": os.environ["MERCHANT_API_KEY"],
+        },
+    },
+)
+print(response.status_code)  # 201 ou 204
+```
+</CodeGroup>
+
+Só o `merchantId` é obrigatório. Os campos do corpo que você não enviar ficam sem configuração: a loja fica sem webhook próprio ou sem endpoint de catálogo até você informá-los.
+
+## Response
+
+| Código | Quando |
+| ------ | ------ |
+| `201 Created` | A configuração da loja foi criada. |
+| `204 No Content` | A configuração da loja foi atualizada. Como a configuração nasce na instalação do app (junto com o `client_secret` da loja), espere `204` já no primeiro envio. |
+| `400 Bad Request` | `merchantId` ausente ou URL inválida. Nada é gravado. A mensagem vem em `title`. |
+| `401 Unauthorized` | Token ausente, inválido ou expirado. |
+| `422 Unprocessable Content` | O app não declara a extensão Open Delivery (`open_delivery_extension_not_declared`). |
+
+<Check>
+Trate `201` e `204` como sucesso. Depois do onboarding, chame o [`merchantUpdate`](/guides/open-delivery/catalogo#re-sincronização-merchantupdate) para disparar a primeira importação do catálogo: o onboarding apenas registra a configuração.
+</Check>
+
+## Reenviar o onboarding
+
+O onboarding é um **upsert** que **substitui** a configuração da loja: cada envio regrava `merchantId`, `ordersWebhookURL` e `getMerchantURL` com o que veio no corpo. Envie sempre a configuração completa; um campo omitido no reenvio é apagado.
+
+Ao reenviar:
+
+* o `client_secret` da loja é **preservado**: você não precisa reconfigurar a credencial;
+* o circuito de webhooks da loja é **religado**, se estiver suspenso. Reenviar o onboarding é uma das formas de reativar as entregas; veja [Recebendo eventos](/guides/open-delivery/recebendo-eventos#reentrega-e-suspensão).
+
+## O `merchantId` da integração
+
+O `merchantId` informado no onboarding passa a ser **o** identificador da loja em toda a integração: é o valor que chega nos eventos (campo `merchantId` e header `X-App-MerchantId` dos webhooks) e o que você informa em [`merchantStatus`](/guides/open-delivery/catalogo#acompanhando-o-processamento-merchantstatus). Se a loja não tiver um `merchantId` configurado, a integração usa o **id interno** da loja na DeliveryVip.

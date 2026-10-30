@@ -1,0 +1,19 @@
+---
+title: Faturas
+description: Endpoints para consultar as faturas mensais das lojas e o resumo por revenda.
+icon: file-invoice-dollar
+---
+
+Endpoints de faturas. Exigem [autenticação](/reference/partner/v2/authentication) com o scope `dv.partner` e aceitam `year` e `month` na query. Veja o guia de [Faturas](/guides/partner/invoices).
+
+A DeliveryVip fecha as faturas no **penúltimo dia de cada mês**. Antes do fechamento, a consulta do mês corrente responde `204 No Content`.
+
+| Endpoint | Traz | Quem chama | Guia |
+| --- | --- | --- | --- |
+| `GET /{partnerId}/invoices` | Uma fatura por loja, diretas e de revendas. | Parceiro ou revenda | [Listando faturas](/guides/partner/invoices/utilizando-a-api/listando-invoices) |
+| `GET /{partnerId}/merchants/invoices` | Só as lojas atendidas diretamente. | Parceiro ou revenda | [Lojas diretas](/guides/partner/invoices/utilizando-a-api/listando-merchants-invoices) |
+| `GET /{partnerId}/resales/invoices` | Um resumo por revenda, com totais por plano e item. | Só parceiro | [Resumo por revenda](/guides/partner/invoices/utilizando-a-api/listando-resales-invoices) |
+
+<Warning>
+O bloco `RECEIVABLE` de `totalPrice` só aparece quando a tabela de preços de recebíveis está habilitada para o parceiro. Procure os blocos pelo campo `type`, nunca pela posição.
+</Warning>

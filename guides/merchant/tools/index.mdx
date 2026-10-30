@@ -1,0 +1,21 @@
+---
+title: Ferramentas
+sidebarTitle: Visão geral
+description: Endpoints auxiliares para calcular a taxa de entrega de um endereço e consultar se a loja está aberta.
+icon: compass
+---
+
+Endpoints de apoio para o dia a dia do seu sistema: cotar a entrega antes de lançar um pedido por telefone ou no balcão, e saber se a loja está aberta e em quais horários atende.
+
+<CardGroup cols={2}>
+<Card title="Obter taxa de entrega" icon="route" href="/guides/merchant/tools/obter-taxa-de-entrega">
+Informe latitude e longitude e receba se a loja entrega ali, a distância e a taxa.
+</Card>
+<Card title="Obter status do merchant" icon="store" href="/guides/merchant/tools/obter-status-do-merchant">
+Veja se a loja está aberta ou fechada e os horários de funcionamento da semana.
+</Card>
+</CardGroup>
+
+<Info>
+Os dois endpoints usam o `merchantId` da loja no caminho e exigem um token com acesso a ela. Uma loja que o token não alcança responde `404`.
+</Info>

@@ -1,0 +1,18 @@
+---
+title: Planos
+description: Endpoints para consultar os planos de cobrança usados nas assinaturas das lojas.
+icon: layer-group
+---
+
+Endpoints de planos, só leitura. Exigem [autenticação](/reference/partner/v2/authentication) com o scope `dv.partner`. Com o ID de uma revenda no `partnerId`, só os planos `PUBLIC` e `RESALE` do parceiro aparecem. Veja o guia de [Planos](/guides/partner/plans).
+
+| Endpoint | Para quê | Guia |
+| --- | --- | --- |
+| `GET /{partnerId}/plans` | Listar os planos visíveis para o parceiro ou a revenda. | [Listar planos](/guides/partner/plans/utilizando-a-api/listar-planos) |
+| `GET /{partnerId}/plans/{planId}` | Detalhes de um plano: recursos incluídos e cobrados à parte. | [Obter detalhes](/guides/partner/plans/utilizando-a-api/obter-detalhes-do-plano) |
+
+O uso típico é escolher o `planId` antes de [ativar ou atualizar a assinatura de uma loja](/guides/partner/merchant/utilizando-a-api/gerenciar-assinatura-dos-merchants). Os planos são criados e editados no painel do parceiro; campos, `visibility` e tipos de recurso estão em [Definições](/guides/partner/plans/definicoes).
+
+<Tip>
+A listagem traz planos em qualquer status. Só os `AVAILABLE` são aceitos em assinaturas.
+</Tip>

@@ -1,0 +1,132 @@
+---
+title: Cadastrar uma revenda
+description: Crie uma revenda abaixo do seu parceiro, com teste de 10 dias e loja de demonstração.
+icon: plus
+---
+
+`POST /partner/v2/{partnerId}/resales` cria a revenda com assinatura em `TRIAL` por 10 dias. Junto com ela são criados:
+
+* os preços da revenda, copiados da tabela que o parceiro definiu para revendas;
+* uma **loja de demonstração** com assinatura `DEMO`, usando os dados da própria revenda.
+
+<Info>
+O `partnerId` precisa ser o ID de um **parceiro**. Revendas não criam outras revendas: com o ID de uma revenda (ou com token de revenda) a resposta é `403`.
+</Info>
+
+## Corpo
+
+<ParamField body="name" type="string" required>Nome fantasia.</ParamField>
+<ParamField body="corporateName" type="string" required>Razão social.</ParamField>
+<ParamField body="identifier" type="string" required>CNPJ ou CPF, com ou sem formatação. Precisa ser válido e único entre as revendas do parceiro.</ParamField>
+<ParamField body="email" type="string" required>E-mail da revenda.</ParamField>
+<ParamField body="phone.number" type="string" required>Telefone da revenda.</ParamField>
+
+<ParamField body="personResponsible" type="object" required>
+Responsável pela revenda.
+
+<Expandable title="propriedades">
+<ParamField body="name" type="string" required>Nome.</ParamField>
+<ParamField body="email" type="string" required>E-mail.</ParamField>
+<ParamField body="phone.number" type="string" required>Telefone.</ParamField>
+<ParamField body="document" type="string">CPF do responsável. Atenção: aqui o campo é `document`, não `identifier` como nas lojas.</ParamField>
+</Expandable>
+</ParamField>
+
+<ParamField body="address" type="object" required>
+Endereço. Todos os campos são obrigatórios: `postalCode`, `street`, `number`, `district`, `city` e `state`.
+</ParamField>
+
+## Requisição
+
+<CodeGroup>
+```bash cURL
+curl --request POST 'https://api.deliveryvip.com.br/partner/v2/{partnerId}/resales' \
+  --header 'Authorization: Bearer {token}' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "name": "Revenda Sul",
+    "corporateName": "Revenda Sul LTDA",
+    "identifier": "11222333000144",
+    "email": "contato@revendasul.com.br",
+    "phone": { "number": "51999998888" },
+    "personResponsible": {
+      "name": "Carlos Lima",
+      "email": "carlos@revendasul.com.br",
+      "phone": { "number": "51988887777" },
+      "document": "12345678909"
+    },
+    "address": {
+      "postalCode": "90020-000",
+      "street": "Rua dos Andradas",
+      "number": "100",
+      "district": "Centro Histórico",
+      "city": "Porto Alegre",
+      "state": "RS"
+    }
+  }'
+```
+
+```js Node.js
+const response = await fetch(`https://api.deliveryvip.com.br/partner/v2/${partnerId}/resales`, {
+  method: 'POST',
+  headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    name: 'Revenda Sul',
+    corporateName: 'Revenda Sul LTDA',
+    identifier: '11222333000144',
+    email: 'contato@revendasul.com.br',
+    phone: { number: '51999998888' },
+    personResponsible: {
+      name: 'Carlos Lima',
+      email: 'carlos@revendasul.com.br',
+      phone: { number: '51988887777' },
+    },
+    address: {
+      postalCode: '90020-000',
+      street: 'Rua dos Andradas',
+      number: '100',
+      district: 'Centro Histórico',
+      city: 'Porto Alegre',
+      state: 'RS',
+    },
+  }),
+})
+const resale = await response.json()
+```
+
+```python Python
+response = requests.post(
+    f"https://api.deliveryvip.com.br/partner/v2/{partner_id}/resales",
+    headers={"Authorization": f"Bearer {token}"},
+    json={
+        "name": "Revenda Sul",
+        "corporateName": "Revenda Sul LTDA",
+        "identifier": "11222333000144",
+        "email": "contato@revendasul.com.br",
+        "phone": {"number": "51999998888"},
+        "personResponsible": {
+            "name": "Carlos Lima",
+            "email": "carlos@revendasul.com.br",
+            "phone": {"number": "51988887777"},
+        },
+        "address": {
+            "postalCode": "90020-000",
+            "street": "Rua dos Andradas",
+            "number": "100",
+            "district": "Centro Histórico",
+            "city": "Porto Alegre",
+            "state": "RS",
+        },
+    },
+)
+resale = response.json()
+```
+</CodeGroup>
+
+## Respostas
+
+| Status | Quando |
+| --- | --- |
+| `201 Created` | Revenda criada, no formato de [Obter detalhes](/guides/partner/resale/utilizando-a-api/obter-detalhes-da-resale), com `subscription.status: TRIAL`. |
+| `403 Forbidden` | `partnerId` é de uma revenda ou está fora do alcance do token. |
+| `422 Unprocessable Content` | Dados inválidos. O `title` traz os erros por campo, com nomes internos em snake\_case. |

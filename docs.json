@@ -1,0 +1,943 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "DeliveryVip Developers",
+  "colors": {
+    "primary": "#EC681B",
+    "light": "#F4A476",
+    "dark": "#EC681B"
+  },
+  "favicon": "/favicon.png",
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "navbar": {
+    "primary": {
+      "type": "button",
+      "label": "Painel do developer",
+      "href": "https://developer.deliveryvip.com.br"
+    }
+  },
+  "navigation": {
+    "languages": [
+      {
+        "language": "pt-BR",
+        "tabs": [
+          {
+            "tab": "Início",
+            "groups": [
+              {
+                "group": "Início",
+                "pages": [
+                  "index"
+                ],
+                "icon": "house"
+              },
+              {
+                "group": "Primeiros passos",
+                "pages": [
+                  "inicio/primeiros-passos/index",
+                  "inicio/primeiros-passos/jornada-do-developer",
+                  "inicio/primeiros-passos/distribuicao-direta",
+                  "inicio/primeiros-passos/distribuicao-interativa",
+                  "inicio/primeiros-passos/instalando-app-na-loja"
+                ],
+                "icon": "rocket"
+              },
+              {
+                "group": "Conceitos",
+                "pages": [
+                  "inicio/conceitos/index",
+                  "inicio/conceitos/autenticacao",
+                  "inicio/conceitos/erros",
+                  "inicio/conceitos/paginacao",
+                  "inicio/conceitos/datas-e-horarios",
+                  "inicio/conceitos/rate-limiting",
+                  "inicio/conceitos/postman"
+                ],
+                "icon": "book"
+              },
+              {
+                "group": "Produção",
+                "icon": "rocket",
+                "pages": [
+                  "inicio/testes-e-producao"
+                ]
+              },
+              {
+                "group": "Referência",
+                "pages": [
+                  {
+                    "group": "Autenticação",
+                    "pages": [
+                      "reference/merchant/v3/authentication",
+                      "POST /authentication/v1/oauth/token",
+                      "POST /authentication/v1/oauth/revoke",
+                      "POST /authentication/v1/oauth/introspect",
+                      "GET /authentication/v1/oauth/token/info"
+                    ],
+                    "openapi": "https://app.deliveryvip.com.br/swaggers/authentication.yaml",
+                    "icon": "key"
+                  }
+                ],
+                "icon": "code"
+              }
+            ],
+            "icon": "house"
+          },
+          {
+            "tab": "Merchant API",
+            "groups": [
+              {
+                "group": "Visão geral",
+                "pages": [
+                  "guides/merchant/index",
+                  "guides/merchant/events",
+                  "guides/merchant/webhooks"
+                ],
+                "icon": "compass"
+              },
+              {
+                "group": "Pedidos",
+                "pages": [
+                  "guides/merchant/order/index",
+                  "guides/merchant/order/definicoes",
+                  "guides/merchant/order/listar-pedidos",
+                  {
+                    "group": "Fluxo de integração",
+                    "pages": [
+                      "guides/merchant/order/fluxo-de-integracao/index",
+                      "guides/merchant/order/fluxo-de-integracao/recepcao-de-pedidos",
+                      "guides/merchant/order/fluxo-de-integracao/consultar-novos-pedidos",
+                      "guides/merchant/order/fluxo-de-integracao/eventos-de-pedidos",
+                      "guides/merchant/order/fluxo-de-integracao/acknowledgment-de-eventos",
+                      "guides/merchant/order/fluxo-de-integracao/acoes-de-pedidos",
+                      "guides/merchant/order/fluxo-de-integracao/obter-detalhes-do-pedido"
+                    ]
+                  }
+                ],
+                "icon": "receipt"
+              },
+              {
+                "group": "Catálogo",
+                "pages": [
+                  "guides/merchant/catalog-and-services/index",
+                  "guides/merchant/catalog-and-services/details",
+                  {
+                    "group": "Ações",
+                    "pages": [
+                      "guides/merchant/catalog-and-services/actions/index",
+                      "guides/merchant/catalog-and-services/actions/update",
+                      "guides/merchant/catalog-and-services/actions/upsert",
+                      "guides/merchant/catalog-and-services/actions/force"
+                    ]
+                  }
+                ],
+                "icon": "utensils"
+              },
+              {
+                "group": "Indoor",
+                "pages": [
+                  "guides/merchant/indoor/index",
+                  {
+                    "group": "Fluxo de integração",
+                    "pages": [
+                      "guides/merchant/indoor/fluxo-de-integracao/index",
+                      "guides/merchant/indoor/fluxo-de-integracao/consultar-novos-eventos",
+                      "guides/merchant/indoor/fluxo-de-integracao/eventos-de-indoor",
+                      "guides/merchant/indoor/fluxo-de-integracao/acknowledgment-de-eventos"
+                    ]
+                  },
+                  {
+                    "group": "Comandas",
+                    "pages": [
+                      "guides/merchant/indoor/comanda-api/index",
+                      "guides/merchant/indoor/comanda-api/listar-comandas",
+                      "guides/merchant/indoor/comanda-api/obter-detalhes-da-comanda",
+                      "guides/merchant/indoor/comanda-api/adicionar-uma-comanda",
+                      "guides/merchant/indoor/comanda-api/atualizar-uma-comanda",
+                      "guides/merchant/indoor/comanda-api/remover-uma-comanda",
+                      {
+                        "group": "Ações das comandas",
+                        "pages": [
+                          "guides/merchant/indoor/comanda-api/acoes-das-comandas/index",
+                          "guides/merchant/indoor/comanda-api/acoes-das-comandas/ativar-uma-comanda",
+                          "guides/merchant/indoor/comanda-api/acoes-das-comandas/desativar-uma-comanda",
+                          "guides/merchant/indoor/comanda-api/acoes-das-comandas/abrir-para-consumo-uma-comanda",
+                          "guides/merchant/indoor/comanda-api/acoes-das-comandas/fechar-para-consumo-uma-comanda"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "group": "Mesas (places)",
+                    "pages": [
+                      "guides/merchant/indoor/places-api/index",
+                      "guides/merchant/indoor/places-api/listar-places",
+                      {
+                        "group": "Ações das mesas",
+                        "pages": [
+                          "guides/merchant/indoor/places-api/acoes-de-places/index",
+                          "guides/merchant/indoor/places-api/acoes-de-places/abrir-para-consumo-um-place",
+                          "guides/merchant/indoor/places-api/acoes-de-places/fechar-para-consumo-um-place"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "icon": "chair"
+              },
+              {
+                "group": "Descontos",
+                "pages": [
+                  "guides/merchant/discount/index",
+                  "guides/merchant/discount/listar-descontos",
+                  "guides/merchant/discount/obter-detalhes-do-desconto",
+                  "guides/merchant/discount/obter-estatistica-do-desconto",
+                  "guides/merchant/discount/adicionar-um-desconto",
+                  "guides/merchant/discount/atualizar-um-desconto",
+                  "guides/merchant/discount/remover-um-desconto",
+                  {
+                    "group": "Ações dos descontos",
+                    "pages": [
+                      "guides/merchant/discount/acoes-dos-descontos/index",
+                      "guides/merchant/discount/acoes-dos-descontos/ativar-um-desconto",
+                      "guides/merchant/discount/acoes-dos-descontos/desativar-um-desconto"
+                    ]
+                  }
+                ],
+                "icon": "tag"
+              },
+              {
+                "group": "Ferramentas",
+                "pages": [
+                  "guides/merchant/tools/index",
+                  "guides/merchant/tools/obter-taxa-de-entrega",
+                  "guides/merchant/tools/obter-status-do-merchant"
+                ],
+                "icon": "wrench"
+              },
+              {
+                "group": "Referência",
+                "pages": [
+                  "reference/merchant/v3/index",
+                  {
+                    "group": "Pedidos",
+                    "pages": [
+                      "reference/merchant/v3/orders",
+                      {
+                        "group": "Eventos",
+                        "openapi": "https://app.deliveryvip.com.br/swaggers/merchant.yaml",
+                        "pages": [
+                          "GET /merchant/v3/events:polling",
+                          "POST /merchant/v3/events/acknowledgment"
+                        ]
+                      },
+                      {
+                        "group": "Listagem",
+                        "openapi": "https://app.deliveryvip.com.br/swaggers/merchant.yaml",
+                        "pages": [
+                          "GET /merchant/v3/{merchantId}/orders"
+                        ]
+                      },
+                      {
+                        "group": "Detalhes",
+                        "openapi": "https://app.deliveryvip.com.br/swaggers/merchant.yaml",
+                        "pages": [
+                          "GET /merchant/v3/orders/{orderId}"
+                        ]
+                      },
+                      {
+                        "group": "Ações",
+                        "openapi": "https://app.deliveryvip.com.br/swaggers/merchant.yaml",
+                        "pages": [
+                          "POST /merchant/v3/orders/{orderId}/confirm",
+                          "POST /merchant/v3/orders/{orderId}/preparing",
+                          "POST /merchant/v3/orders/{orderId}/readyForPickup",
+                          "POST /merchant/v3/orders/{orderId}/dispatch",
+                          "POST /merchant/v3/orders/{orderId}/pickedUp",
+                          "POST /merchant/v3/orders/{orderId}/delivered",
+                          "POST /merchant/v3/orders/{orderId}/requestCancellation",
+                          "POST /merchant/v3/orders/{orderId}/acceptCancellation",
+                          "POST /merchant/v3/orders/{orderId}/denyCancellation",
+                          "POST /merchant/v3/orders/{orderId}/tracking"
+                        ]
+                      }
+                    ],
+                    "icon": "receipt"
+                  },
+                  {
+                    "group": "Catálogo",
+                    "pages": [
+                      "reference/merchant/v3/catalog-and-services",
+                      {
+                        "group": "Detalhes",
+                        "openapi": "https://app.deliveryvip.com.br/swaggers/merchant.yaml",
+                        "pages": [
+                          "GET /merchant/v3/{merchantId}"
+                        ]
+                      },
+                      {
+                        "group": "Ações",
+                        "openapi": "https://app.deliveryvip.com.br/swaggers/merchant.yaml",
+                        "pages": [
+                          "POST /merchant/v3/{merchantId}/merchantUpdate",
+                          "POST /merchant/v3/{merchantId}/merchantUpsert",
+                          "POST /merchant/v3/{merchantId}/merchantForce"
+                        ]
+                      },
+                      {
+                        "group": "Status",
+                        "openapi": "https://app.deliveryvip.com.br/swaggers/merchant.yaml",
+                        "pages": [
+                          "GET /merchant/v3/{merchantId}/status"
+                        ]
+                      }
+                    ],
+                    "icon": "utensils"
+                  },
+                  {
+                    "group": "Indoor",
+                    "pages": [
+                      "reference/merchant/v3/indoor",
+                      {
+                        "group": "Eventos",
+                        "openapi": "https://app.deliveryvip.com.br/swaggers/merchant.yaml",
+                        "pages": [
+                          "GET /merchant/v3/events:polling",
+                          "POST /merchant/v3/events/acknowledgment"
+                        ]
+                      },
+                      {
+                        "group": "Listagem",
+                        "openapi": "https://app.deliveryvip.com.br/swaggers/merchant.yaml",
+                        "pages": [
+                          "GET /merchant/v3/{merchantId}/tabs",
+                          "GET /merchant/v3/{merchantId}/places"
+                        ]
+                      },
+                      {
+                        "group": "Detalhes",
+                        "openapi": "https://app.deliveryvip.com.br/swaggers/merchant.yaml",
+                        "pages": [
+                          "GET /merchant/v3/{merchantId}/tabs/{tabId}"
+                        ]
+                      },
+                      {
+                        "group": "Ações de comandas",
+                        "openapi": "https://app.deliveryvip.com.br/swaggers/merchant.yaml",
+                        "pages": [
+                          "POST /merchant/v3/{merchantId}/tabs",
+                          "PATCH /merchant/v3/{merchantId}/tabs/{tabId}",
+                          "DELETE /merchant/v3/{merchantId}/tabs/{tabId}",
+                          "POST /merchant/v3/{merchantId}/tabs/{tabId}/available",
+                          "POST /merchant/v3/{merchantId}/tabs/{tabId}/unavailable",
+                          "POST /merchant/v3/{merchantId}/tabs/{tabId}/opened",
+                          "POST /merchant/v3/{merchantId}/tabs/{tabId}/closed"
+                        ]
+                      },
+                      {
+                        "group": "Ações das mesas",
+                        "openapi": "https://app.deliveryvip.com.br/swaggers/merchant.yaml",
+                        "pages": [
+                          "POST /merchant/v3/{merchantId}/places/{placeId}/opened",
+                          "POST /merchant/v3/{merchantId}/places/{placeId}/closed"
+                        ]
+                      }
+                    ],
+                    "icon": "chair"
+                  },
+                  {
+                    "group": "Descontos",
+                    "pages": [
+                      "reference/merchant/v3/discounts",
+                      {
+                        "group": "Listagem",
+                        "openapi": "https://app.deliveryvip.com.br/swaggers/merchant.yaml",
+                        "pages": [
+                          "GET /merchant/v3/{merchantId}/discounts"
+                        ]
+                      },
+                      {
+                        "group": "Detalhes",
+                        "openapi": "https://app.deliveryvip.com.br/swaggers/merchant.yaml",
+                        "pages": [
+                          "GET /merchant/v3/{merchantId}/discounts/{discountId}",
+                          "GET /merchant/v3/{merchantId}/discounts/{discountId}/stats"
+                        ]
+                      },
+                      {
+                        "group": "Ações",
+                        "openapi": "https://app.deliveryvip.com.br/swaggers/merchant.yaml",
+                        "pages": [
+                          "POST /merchant/v3/{merchantId}/discounts",
+                          "PATCH /merchant/v3/{merchantId}/discounts/{discountId}",
+                          "DELETE /merchant/v3/{merchantId}/discounts/{discountId}",
+                          "POST /merchant/v3/{merchantId}/discounts/{discountId}/available",
+                          "POST /merchant/v3/{merchantId}/discounts/{discountId}/unavailable"
+                        ]
+                      }
+                    ],
+                    "icon": "tag"
+                  },
+                  {
+                    "group": "Ferramentas",
+                    "pages": [
+                      "reference/merchant/v3/tools",
+                      "GET /merchant/v3/{merchantId}/delivery-fee/{latitude}/{longitude}"
+                    ],
+                    "openapi": "https://app.deliveryvip.com.br/swaggers/merchant.yaml",
+                    "icon": "wrench"
+                  }
+                ],
+                "icon": "code"
+              }
+            ],
+            "icon": "store"
+          },
+          {
+            "tab": "Open Delivery",
+            "groups": [
+              {
+                "group": "Visão geral",
+                "pages": [
+                  "guides/open-delivery/index",
+                  "guides/open-delivery/primeiros-passos",
+                  "guides/open-delivery/primeiro-pedido"
+                ],
+                "icon": "compass"
+              },
+              {
+                "group": "Guias",
+                "pages": [
+                  "guides/open-delivery/onboarding-de-lojas",
+                  "guides/open-delivery/catalogo",
+                  "guides/open-delivery/recebendo-eventos",
+                  "guides/open-delivery/ciclo-de-vida-do-pedido"
+                ],
+                "icon": "map"
+              },
+              {
+                "group": "Referência",
+                "pages": [
+                  "guides/open-delivery/referencia-rapida",
+                  {
+                    "group": "Autenticação",
+                    "openapi": "https://app.deliveryvip.com.br/swaggers/opendelivery.yaml",
+                    "icon": "key",
+                    "pages": [
+                      "POST /oauth/token"
+                    ]
+                  },
+                  {
+                    "group": "Versões",
+                    "openapi": "https://app.deliveryvip.com.br/swaggers/opendelivery.yaml",
+                    "icon": "code-branch",
+                    "pages": [
+                      "GET /v1/versions/orderingApp",
+                      "GET /v1/versions/merchant"
+                    ]
+                  },
+                  {
+                    "group": "Eventos",
+                    "openapi": "https://app.deliveryvip.com.br/swaggers/opendelivery.yaml",
+                    "icon": "bell",
+                    "pages": [
+                      "GET /v1/events:polling",
+                      "POST /v1/events/acknowledgment"
+                    ]
+                  },
+                  {
+                    "group": "Pedidos",
+                    "openapi": "https://app.deliveryvip.com.br/swaggers/opendelivery.yaml",
+                    "icon": "receipt",
+                    "pages": [
+                      "GET /v1/orders/{orderId}",
+                      "POST /v1/orders/{orderId}/confirm",
+                      "POST /v1/orders/{orderId}/preparing",
+                      "POST /v1/orders/{orderId}/readyForPickup",
+                      "POST /v1/orders/{orderId}/pickedUp",
+                      "POST /v1/orders/{orderId}/dispatch",
+                      "POST /v1/orders/{orderId}/delivered",
+                      "POST /v1/orders/{orderId}/requestCancellation",
+                      "POST /v1/orders/{orderId}/acceptCancellation",
+                      "POST /v1/orders/{orderId}/denyCancellation",
+                      "POST /v1/orders/{orderId}/tracking"
+                    ]
+                  },
+                  {
+                    "group": "Merchant",
+                    "openapi": "https://app.deliveryvip.com.br/swaggers/opendelivery.yaml",
+                    "icon": "store",
+                    "pages": [
+                      "PUT /v1/merchantOnboarding",
+                      "GET /v1/merchantStatus",
+                      "POST /v1/merchantUpdate"
+                    ]
+                  }
+                ],
+                "icon": "code"
+              }
+            ],
+            "icon": "right-left"
+          },
+          {
+            "tab": "Fidelidade",
+            "groups": [
+              {
+                "group": "Visão geral",
+                "pages": [
+                  "guides/merchant/loyalty/index",
+                  "guides/merchant/loyalty/primeiros-passos",
+                  "guides/merchant/loyalty/operador-minimo"
+                ],
+                "icon": "compass"
+              },
+              {
+                "group": "Guias",
+                "pages": [
+                  "guides/merchant/loyalty/ativando-o-programa",
+                  "guides/merchant/loyalty/acumulo"
+                ],
+                "icon": "map"
+              },
+              {
+                "group": "Contrato do operador",
+                "pages": [
+                  "guides/merchant/loyalty/contrato-do-operador/index",
+                  "guides/merchant/loyalty/contrato-do-operador/vinculo-e-pin",
+                  "guides/merchant/loyalty/contrato-do-operador/resgate-e-estorno"
+                ],
+                "icon": "file-contract"
+              },
+              {
+                "group": "Referência",
+                "pages": [
+                  "guides/merchant/loyalty/referencia-rapida",
+                  {
+                    "group": "Configuração do programa",
+                    "pages": [
+                      "reference/merchant/v3/loyalty",
+                      {
+                        "group": "Push da configuração",
+                        "openapi": "https://app.deliveryvip.com.br/swaggers/merchant.yaml",
+                        "pages": [
+                          "PUT /merchant/v3/{merchantId}/loyalty/config"
+                        ]
+                      },
+                      {
+                        "group": "Remoção da configuração",
+                        "openapi": "https://app.deliveryvip.com.br/swaggers/merchant.yaml",
+                        "pages": [
+                          "DELETE /merchant/v3/{merchantId}/loyalty/config"
+                        ]
+                      }
+                    ],
+                    "icon": "sliders"
+                  },
+                  {
+                    "group": "Rotas do operador",
+                    "openapi": "https://app.deliveryvip.com.br/swaggers/loyalty_operator.yaml",
+                    "pages": [
+                      "GET /v1/loyalty/ping",
+                      "POST /v1/loyalty/accounts:link",
+                      "GET /v1/loyalty/accounts/{accountId}",
+                      "POST /v1/loyalty/redemptions",
+                      "POST /v1/loyalty/redemptions/{redemptionId}/reversal"
+                    ],
+                    "icon": "server"
+                  }
+                ],
+                "icon": "code"
+              }
+            ],
+            "icon": "gift"
+          },
+          {
+            "tab": "Partner API",
+            "groups": [
+              {
+                "group": "Visão geral",
+                "pages": [
+                  "guides/partner/index"
+                ],
+                "icon": "compass"
+              },
+              {
+                "group": "Lojas",
+                "pages": [
+                  "guides/partner/merchant/index",
+                  "guides/partner/merchant/definicoes",
+                  {
+                    "group": "Endpoints",
+                    "pages": [
+                      "guides/partner/merchant/utilizando-a-api/index",
+                      "guides/partner/merchant/utilizando-a-api/listar-merchants",
+                      "guides/partner/merchant/utilizando-a-api/listar-vendas-dos-merchants",
+                      "guides/partner/merchant/utilizando-a-api/listar-faturas-dos-merchants",
+                      "guides/partner/merchant/utilizando-a-api/obter-detalhes-do-merchant",
+                      "guides/partner/merchant/utilizando-a-api/adicionar-um-merchant",
+                      "guides/partner/merchant/utilizando-a-api/membros-do-merchant",
+                      "guides/partner/merchant/utilizando-a-api/gerenciar-assinatura-dos-merchants",
+                      "guides/partner/merchant/utilizando-a-api/gerenciar-recursos-dos-merchants",
+                      "guides/partner/merchant/utilizando-a-api/gerenciar-permissao-de-aplicativos-dos-merchants"
+                    ]
+                  }
+                ],
+                "icon": "shop"
+              },
+              {
+                "group": "Revendas",
+                "pages": [
+                  "guides/partner/resale/index",
+                  "guides/partner/resale/definicoes",
+                  {
+                    "group": "Endpoints",
+                    "pages": [
+                      "guides/partner/resale/utilizando-a-api/index",
+                      "guides/partner/resale/utilizando-a-api/listar-resales",
+                      "guides/partner/resale/utilizando-a-api/listar-faturas-das-revendas",
+                      "guides/partner/resale/utilizando-a-api/obter-detalhes-da-resale",
+                      "guides/partner/resale/utilizando-a-api/adicionar-um-resale",
+                      "guides/partner/resale/utilizando-a-api/membros-da-revenda",
+                      "guides/partner/resale/utilizando-a-api/gerenciar-assinatura-das-revendas",
+                      "guides/partner/resale/utilizando-a-api/gerenciar-permissao-de-aplicativos-das-revendas"
+                    ]
+                  }
+                ],
+                "icon": "users"
+              },
+              {
+                "group": "Planos",
+                "pages": [
+                  "guides/partner/plans/index",
+                  "guides/partner/plans/definicoes",
+                  {
+                    "group": "Endpoints",
+                    "pages": [
+                      "guides/partner/plans/utilizando-a-api/index",
+                      "guides/partner/plans/utilizando-a-api/listar-planos",
+                      "guides/partner/plans/utilizando-a-api/obter-detalhes-do-plano"
+                    ]
+                  }
+                ],
+                "icon": "layer-group"
+              },
+              {
+                "group": "Faturas",
+                "pages": [
+                  "guides/partner/invoices/index",
+                  "guides/partner/invoices/definicoes",
+                  {
+                    "group": "Endpoints",
+                    "pages": [
+                      "guides/partner/invoices/utilizando-a-api/index",
+                      "guides/partner/invoices/utilizando-a-api/listando-invoices",
+                      "guides/partner/invoices/utilizando-a-api/listando-merchants-invoices",
+                      "guides/partner/invoices/utilizando-a-api/listando-resales-invoices"
+                    ]
+                  }
+                ],
+                "icon": "file-invoice-dollar"
+              },
+              {
+                "group": "Cadastro",
+                "pages": [
+                  "guides/partner/signup/index"
+                ],
+                "icon": "user-plus"
+              },
+              {
+                "group": "Referência",
+                "pages": [
+                  "reference/partner/v2/index",
+                  "reference/partner/v2/authentication",
+                  {
+                    "group": "Lojas",
+                    "pages": [
+                      "reference/partner/v2/merchant",
+                      {
+                        "group": "Listagens",
+                        "openapi": "https://app.deliveryvip.com.br/swaggers/partner.yaml",
+                        "pages": [
+                          "GET /partner/v2/merchants",
+                          "GET /partner/v2/merchants/sales",
+                          "GET /partner/v2/merchants/invoices",
+                          "GET /partner/v2/merchants/{merchantId}/members"
+                        ]
+                      },
+                      {
+                        "group": "Detalhes",
+                        "openapi": "https://app.deliveryvip.com.br/swaggers/partner.yaml",
+                        "pages": [
+                          "GET /partner/v2/merchants/{merchantId}"
+                        ]
+                      },
+                      {
+                        "group": "Cadastro",
+                        "openapi": "https://app.deliveryvip.com.br/swaggers/partner.yaml",
+                        "pages": [
+                          "POST /partner/v2/{partnerId}/merchants"
+                        ],
+                        "icon": "user-plus"
+                      },
+                      {
+                        "group": "Membros",
+                        "openapi": "https://app.deliveryvip.com.br/swaggers/partner.yaml",
+                        "pages": [
+                          "POST /partner/v2/merchants/{merchantId}/members",
+                          "PATCH /partner/v2/merchants/{merchantId}/members/{memberId}",
+                          "DELETE /partner/v2/merchants/{merchantId}/members/{memberId}",
+                          "POST /partner/v2/merchants/{merchantId}/members/{memberId}/magic-link"
+                        ]
+                      },
+                      {
+                        "group": "Assinatura",
+                        "openapi": "https://app.deliveryvip.com.br/swaggers/partner.yaml",
+                        "pages": [
+                          "POST /partner/v2/merchants/{merchantId}/activate",
+                          "POST /partner/v2/merchants/{merchantId}/cancel",
+                          "POST /partner/v2/merchants/{merchantId}/warning",
+                          "POST /partner/v2/merchants/{merchantId}/unwarning",
+                          "POST /partner/v2/merchants/{merchantId}/block",
+                          "POST /partner/v2/merchants/{merchantId}/unblock",
+                          "PUT /partner/v2/merchants/{merchantId}/subscription"
+                        ]
+                      },
+                      {
+                        "group": "Recursos",
+                        "openapi": "https://app.deliveryvip.com.br/swaggers/partner.yaml",
+                        "pages": [
+                          "POST /partner/v2/merchants/{merchantId}/features/activate",
+                          "POST /partner/v2/merchants/{merchantId}/features/cancel"
+                        ]
+                      },
+                      {
+                        "group": "Permissão de aplicativos",
+                        "openapi": "https://app.deliveryvip.com.br/swaggers/partner.yaml",
+                        "pages": [
+                          "POST /partner/v2/merchants/{merchantId}/applications",
+                          "DELETE /partner/v2/merchants/{merchantId}/applications/{applicationId}"
+                        ]
+                      }
+                    ],
+                    "icon": "shop"
+                  },
+                  {
+                    "group": "Revendas",
+                    "pages": [
+                      "reference/partner/v2/resale",
+                      {
+                        "group": "Listagens",
+                        "openapi": "https://app.deliveryvip.com.br/swaggers/partner.yaml",
+                        "pages": [
+                          "GET /partner/v2/resales",
+                          "GET /partner/v2/resales/{resaleId}/members",
+                          "GET /partner/v2/resales/invoices"
+                        ]
+                      },
+                      {
+                        "group": "Detalhes",
+                        "openapi": "https://app.deliveryvip.com.br/swaggers/partner.yaml",
+                        "pages": [
+                          "GET /partner/v2/resales/{resaleId}"
+                        ]
+                      },
+                      {
+                        "group": "Cadastro",
+                        "openapi": "https://app.deliveryvip.com.br/swaggers/partner.yaml",
+                        "pages": [
+                          "POST /partner/v2/{partnerId}/resales"
+                        ],
+                        "icon": "user-plus"
+                      },
+                      {
+                        "group": "Membros",
+                        "openapi": "https://app.deliveryvip.com.br/swaggers/partner.yaml",
+                        "pages": [
+                          "POST /partner/v2/resales/{resaleId}/members",
+                          "PATCH /partner/v2/resales/{resaleId}/members/{memberId}",
+                          "DELETE /partner/v2/resales/{resaleId}/members/{memberId}",
+                          "POST /partner/v2/resales/{resaleId}/members/{memberId}/magic-link"
+                        ]
+                      },
+                      {
+                        "group": "Assinatura",
+                        "openapi": "https://app.deliveryvip.com.br/swaggers/partner.yaml",
+                        "pages": [
+                          "POST /partner/v2/resales/{resaleId}/activate",
+                          "POST /partner/v2/resales/{resaleId}/cancel",
+                          "POST /partner/v2/resales/{resaleId}/warning",
+                          "POST /partner/v2/resales/{resaleId}/unwarning",
+                          "POST /partner/v2/resales/{resaleId}/block",
+                          "POST /partner/v2/resales/{resaleId}/unblock",
+                          "PUT /partner/v2/resales/{resaleId}/subscription"
+                        ]
+                      },
+                      {
+                        "group": "Permissão de aplicativos",
+                        "openapi": "https://app.deliveryvip.com.br/swaggers/partner.yaml",
+                        "pages": [
+                          "POST /partner/v2/resales/{resaleId}/applications",
+                          "DELETE /partner/v2/resales/{resaleId}/applications/{applicationId}"
+                        ]
+                      }
+                    ],
+                    "icon": "users"
+                  },
+                  {
+                    "group": "Planos",
+                    "pages": [
+                      "reference/partner/v2/plans",
+                      {
+                        "group": "Listagem",
+                        "openapi": "https://app.deliveryvip.com.br/swaggers/partner.yaml",
+                        "pages": [
+                          "GET /partner/v2/{partnerId}/plans"
+                        ]
+                      },
+                      {
+                        "group": "Detalhes",
+                        "openapi": "https://app.deliveryvip.com.br/swaggers/partner.yaml",
+                        "pages": [
+                          "GET /partner/v2/{partnerId}/plans/{planId}"
+                        ]
+                      }
+                    ],
+                    "icon": "layer-group"
+                  },
+                  {
+                    "group": "Faturas",
+                    "pages": [
+                      "reference/partner/v2/invoices",
+                      "GET /partner/v2/{partnerId}/invoices",
+                      "GET /partner/v2/{partnerId}/merchants/invoices",
+                      "GET /partner/v2/{partnerId}/resales/invoices"
+                    ],
+                    "openapi": "https://app.deliveryvip.com.br/swaggers/partner.yaml",
+                    "icon": "file-invoice-dollar"
+                  },
+                  {
+                    "group": "Cadastro",
+                    "pages": [
+                      "reference/partner/v2/signup",
+                      "POST /partner/v2/{partnerId}/signup"
+                    ],
+                    "openapi": "https://app.deliveryvip.com.br/swaggers/partner.yaml",
+                    "icon": "user-plus"
+                  }
+                ],
+                "icon": "code"
+              }
+            ],
+            "icon": "handshake"
+          },
+          {
+            "tab": "Changelog",
+            "groups": [
+              {
+                "group": "Changelog",
+                "pages": [
+                  "changelog",
+                  "deprecations"
+                ],
+                "icon": "clock-rotate-left"
+              }
+            ],
+            "icon": "clock-rotate-left"
+          }
+        ]
+      }
+    ]
+  },
+  "redirects": [
+    {
+      "source": "/inicio/primeiros-passos/distribuicao-manual",
+      "destination": "/inicio/primeiros-passos/distribuicao-direta"
+    },
+    {
+      "source": "/inicio/primeiros-passos/distribuicao-automatica",
+      "destination": "/inicio/primeiros-passos/distribuicao-interativa"
+    },
+    {
+      "source": "/reference/merchant",
+      "destination": "/reference/merchant/v3"
+    },
+    {
+      "source": "/reference/partner",
+      "destination": "/reference/partner/v2"
+    }
+  ],
+  "description": "Documentação das APIs da DeliveryVip: Merchant API, Open Delivery, Fidelidade e Partner API, com guias, tutoriais e referência.",
+  "seo": {
+    "metatags": {
+      "og:site_name": "DeliveryVip Developers",
+      "og:locale": "pt_BR",
+      "twitter:card": "summary_large_image"
+    }
+  },
+  "search": {
+    "prompt": "Pesquisar na documentação..."
+  },
+  "contextual": {
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "cursor",
+      "vscode",
+      "mcp"
+    ],
+    "display": "header"
+  },
+  "markdown": {
+    "instructions": "Documentação das APIs da DeliveryVip, em português. Regras que mais quebram integrações: (1) Merchant API: faça polling em GET /merchant/v3/events:polling no máximo a cada 30 s por token; confirme todo evento recebido com POST /merchant/v3/events/acknowledgment e corpo [{\"id\": \"<eventId>\"}] (o campo lido é id, não eventId), inclusive eventos repetidos ou que o sistema não trata; deduplique por eventId; o evento é só um aviso, busque o pedido na orderURL. (2) Tokens client_credentials valem 24 h e não têm refresh_token: peça outro ao receber 401. (3) Webhooks: valide a assinatura HMAC sobre o corpo bruto e responda 2xx rápido; o polling é a reconciliação. (4) Open Delivery: host od.deliveryvip.com.br, um client_secret por loja, datas em UTC. (5) Fidelidade: o operador implementa 5 rotas assinadas com HMAC e chama o config push; o estorno precisa ser idempotente. (6) Partner API: scope dv.partner. Não invente endpoints: use a referência gerada das specs OpenAPI."
+  },
+  "footer": {
+    "socials": {
+      "discord": "https://discord.gg/AJF8Yha4",
+      "website": "https://deliveryvip.com.br"
+    },
+    "links": [
+      {
+        "header": "Desenvolvedores",
+        "items": [
+          {
+            "label": "Painel do developer",
+            "href": "https://developer.deliveryvip.com.br"
+          },
+          {
+            "label": "Jornada do Developer",
+            "href": "/inicio/primeiros-passos/jornada-do-developer"
+          },
+          {
+            "label": "Changelog",
+            "href": "/changelog"
+          }
+        ]
+      },
+      {
+        "header": "Suporte",
+        "items": [
+          {
+            "label": "Discord",
+            "href": "https://discord.gg/AJF8Yha4"
+          },
+          {
+            "label": "Agendar uma reunião",
+            "href": "https://calendar.app.google/EchaXk57y7xp8Hyx6"
+          }
+        ]
+      }
+    ]
+  },
+  "errors": {
+    "404": {
+      "redirect": false,
+      "title": "Página não encontrada",
+      "description": "Volte para a [página inicial](/) ou use a busca."
+    }
+  }
+}

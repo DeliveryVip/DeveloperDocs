@@ -1,0 +1,21 @@
+---
+title: Descontos
+description: Endpoints para listar, criar, atualizar, ativar e remover descontos e consultar estatísticas.
+icon: tags
+---
+
+Endpoints para listar, consultar, criar, atualizar, ativar, desativar e remover cupons e descontos automáticos, e para consultar as estatísticas de uso de cada um. Todos exigem [autenticação](/reference/merchant/v3/authentication) com o scope `od.all`. Para exemplos e regras, veja o guia de [Descontos](/guides/merchant/discount).
+
+| Endpoint | Para quê | Guia |
+| --- | --- | --- |
+| `GET /{merchantId}/discounts` | Listar os descontos da loja. | [Listar descontos](/guides/merchant/discount/listar-descontos) |
+| `GET /{merchantId}/discounts/{discountId}` | Detalhes de um desconto. | [Obter detalhes](/guides/merchant/discount/obter-detalhes-do-desconto) |
+| `POST /{merchantId}/discounts` | Criar um desconto `SMART` ou um cupom (`COUPON`). | [Adicionar](/guides/merchant/discount/adicionar-um-desconto) |
+| `PATCH /{merchantId}/discounts/{discountId}` | Alterar um desconto. | [Atualizar](/guides/merchant/discount/atualizar-um-desconto) |
+| `POST .../available` e `unavailable` | Ligar ou desligar na hora. | [Ações](/guides/merchant/discount/acoes-dos-descontos) |
+| `DELETE /{merchantId}/discounts/{discountId}` | Remover. | [Remover](/guides/merchant/discount/remover-um-desconto) |
+| `GET /{merchantId}/discounts/{discountId}/stats` | Quanto o desconto vendeu. | [Estatística](/guides/merchant/discount/obter-estatistica-do-desconto) |
+
+<Note>
+A API de descontos está em **beta** e ainda pode mudar. O `status` (`SCHEDULED`, `ACTIVE`, `OVERDUE`) é calculado pelas datas, não enviado.
+</Note>

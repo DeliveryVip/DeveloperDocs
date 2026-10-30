@@ -1,0 +1,151 @@
+---
+title: Obter detalhes do desconto
+sidebarTitle: Obter um desconto
+description: Busque um desconto pelo id para ver regras, período e status atual.
+icon: magnifying-glass
+---
+
+Retorna um desconto pelo `discountId`, com as regras e o `status` calculado no momento da consulta.
+
+## Requisição
+
+<ParamField path="merchantId" type="uuid" required>
+A loja.
+</ParamField>
+
+<ParamField path="discountId" type="uuid" required>
+O `id` do desconto.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl 'https://api.deliveryvip.com.br/merchant/v3/{merchantId}/discounts/{discountId}' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+const response = await fetch(
+  `https://api.deliveryvip.com.br/merchant/v3/${merchantId}/discounts/${discountId}`,
+  { headers: { Authorization: `Bearer ${token}` } },
+)
+const discount = await response.json()
+```
+
+```python Python
+response = requests.get(
+    f"https://api.deliveryvip.com.br/merchant/v3/{merchant_id}/discounts/{discount_id}",
+    headers={"Authorization": f"Bearer {token}"},
+)
+discount = response.json()
+```
+</CodeGroup>
+
+## Resposta
+
+Este é o objeto desconto, o mesmo devolvido pela listagem, pelo cadastro, pela atualização e pelas ações.
+
+<ResponseField name="id" type="uuid">
+Identificador do desconto.
+</ResponseField>
+<ResponseField name="createdAt" type="datetime">
+Quando o desconto foi cadastrado.
+</ResponseField>
+<ResponseField name="startsAt" type="datetime">
+A partir de quando o desconto vale.
+</ResponseField>
+<ResponseField name="endsAt" type="datetime">
+Até quando o desconto vale. Só vem quando o desconto tem data de fim.
+</ResponseField>
+<ResponseField name="type" type="string">
+`SMART` ou `COUPON`.
+</ResponseField>
+<ResponseField name="name" type="string">
+Nome do desconto. Só vem em `SMART`.
+</ResponseField>
+<ResponseField name="code" type="string">
+Código do cupom. Só vem em `COUPON`.
+</ResponseField>
+<ResponseField name="status" type="string">
+`SCHEDULED`, `ACTIVE` ou `OVERDUE`, calculado a partir das datas. Veja [status](/guides/merchant/discount#status).
+</ResponseField>
+<ResponseField name="rules" type="object">
+<Expandable title="propriedades">
+<ResponseField name="valueType" type="string">
+`PERCENTAGE` ou `FIXED_AMOUNT`.
+</ResponseField>
+<ResponseField name="value" type="number">
+Valor do desconto.
+</ResponseField>
+<ResponseField name="minimumOrderValue" type="number">
+Valor mínimo dos produtos na sacola. `0` não exige mínimo.
+</ResponseField>
+<ResponseField name="usageLimit" type="integer">
+Limite total de usos. `0` é ilimitado.
+</ResponseField>
+<ResponseField name="usagePerCustomer" type="string">
+`MANY`, `ONCE` ou `FIRST_ORDER`.
+</ResponseField>
+<ResponseField name="discountType" type="string">
+`SUBTOTAL`, `TOTAL` ou `DELIVERY`.
+</ResponseField>
+</Expandable>
+</ResponseField>
+<ResponseField name="options" type="string[]">
+`NON_PROMOTION_PRODUCTS` e `CUMULATIVE_WITH_SMART`. Só vem quando alguma opção está ligada.
+</ResponseField>
+
+O significado de cada regra e opção está em [adicionar um desconto](/guides/merchant/discount/adicionar-um-desconto#requisição).
+
+<Tabs>
+<Tab title="SMART">
+```json
+{
+  "id": "157d21eb-2055-4429-9162-ad824d4a764d",
+  "createdAt": "2023-08-02T20:32:47-03:00",
+  "startsAt": "2024-04-28T17:18:00-03:00",
+  "type": "SMART",
+  "name": "Desconto 10%",
+  "status": "ACTIVE",
+  "rules": {
+    "valueType": "PERCENTAGE",
+    "value": 10.0,
+    "minimumOrderValue": 32.0,
+    "usageLimit": 0,
+    "usagePerCustomer": "MANY",
+    "discountType": "SUBTOTAL"
+  },
+  "options": ["NON_PROMOTION_PRODUCTS"]
+}
+```
+</Tab>
+
+<Tab title="COUPON">
+```json
+{
+  "id": "8a3e1f20-6c4b-4d8e-9b71-2f5c0d9e4a16",
+  "createdAt": "2023-08-02T20:32:47-03:00",
+  "startsAt": "2024-04-28T17:18:00-03:00",
+  "endsAt": "2024-04-30T17:18:00-03:00",
+  "type": "COUPON",
+  "code": "10OFF",
+  "status": "OVERDUE",
+  "rules": {
+    "valueType": "FIXED_AMOUNT",
+    "value": 10.0,
+    "minimumOrderValue": 32.0,
+    "usageLimit": 0,
+    "usagePerCustomer": "ONCE",
+    "discountType": "TOTAL"
+  },
+  "options": ["CUMULATIVE_WITH_SMART", "NON_PROMOTION_PRODUCTS"]
+}
+```
+</Tab>
+</Tabs>
+
+## Erros
+
+| Status | Quando |
+| --- | --- |
+| `403 Forbidden` | A loja não contratou o módulo de descontos. |
+| `404 Not Found` | O `merchantId` não autorizou o seu app, ou o desconto não existe ou foi removido. |

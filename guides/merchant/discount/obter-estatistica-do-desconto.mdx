@@ -1,0 +1,96 @@
+---
+title: Obter estatística do desconto
+sidebarTitle: Estatísticas
+description: Veja quanto um desconto custou, quanto vendeu e quantos clientes trouxe ou reativou.
+icon: chart-line
+---
+
+Retorna o desempenho acumulado de um desconto desde o cadastro: valor concedido, faturamento dos pedidos, ticket médio e clientes novos e reativados.
+
+## Requisição
+
+<ParamField path="merchantId" type="uuid" required>
+A loja.
+</ParamField>
+
+<ParamField path="discountId" type="uuid" required>
+O `id` do desconto.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl 'https://api.deliveryvip.com.br/merchant/v3/{merchantId}/discounts/{discountId}/stats' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+const response = await fetch(
+  `https://api.deliveryvip.com.br/merchant/v3/${merchantId}/discounts/${discountId}/stats`,
+  { headers: { Authorization: `Bearer ${token}` } },
+)
+const stats = await response.json()
+```
+
+```python Python
+response = requests.get(
+    f"https://api.deliveryvip.com.br/merchant/v3/{merchant_id}/discounts/{discount_id}/stats",
+    headers={"Authorization": f"Bearer {token}"},
+)
+stats = response.json()
+```
+</CodeGroup>
+
+## Resposta
+
+Os valores em dinheiro vêm como objeto com `value` e `currency` (sempre `BRL`), com até 4 casas decimais.
+
+<ResponseField name="id" type="uuid">
+O `id` do desconto.
+</ResponseField>
+
+<ResponseField name="totalDiscount" type="object">
+Soma do desconto concedido nos pedidos que usaram este desconto.
+<Expandable title="propriedades">
+<ResponseField name="value" type="number">Valor.</ResponseField>
+<ResponseField name="currency" type="string">`BRL`.</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseField name="totalOrder" type="object">
+Soma do total desses pedidos. Mesmo formato de `totalDiscount`.
+</ResponseField>
+
+<ResponseField name="totalOrderAverage" type="object">
+Ticket médio: `totalOrder` dividido por `totalOrderCount`. `0` quando não há pedidos. Mesmo formato de `totalDiscount`.
+</ResponseField>
+
+<ResponseField name="totalOrderCount" type="integer">
+Quantos pedidos usaram o desconto.
+</ResponseField>
+
+<ResponseField name="totalNewCustomers" type="integer">
+Clientes cujo **primeiro pedido na loja** usou este desconto.
+</ResponseField>
+
+<ResponseField name="totalReactivatedCustomers" type="integer">
+Clientes que usaram o desconto num pedido feito mais de 30 dias depois de um pedido anterior deles.
+</ResponseField>
+
+```json 200 OK
+{
+  "id": "4b4012e5-2555-4f35-91cf-f87e4cb61353",
+  "totalDiscount": { "value": 3602.14, "currency": "BRL" },
+  "totalOrder": { "value": 33136.26, "currency": "BRL" },
+  "totalOrderAverage": { "value": 142.2157, "currency": "BRL" },
+  "totalOrderCount": 233,
+  "totalNewCustomers": 209,
+  "totalReactivatedCustomers": 94
+}
+```
+
+## Erros
+
+| Status | Quando |
+| --- | --- |
+| `403 Forbidden` | A loja não contratou o módulo de descontos. |
+| `404 Not Found` | O `merchantId` não autorizou o seu app, ou o desconto não existe ou foi removido. |

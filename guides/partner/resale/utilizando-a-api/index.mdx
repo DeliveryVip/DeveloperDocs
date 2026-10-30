@@ -1,0 +1,27 @@
+---
+title: Utilizando a API de revendas
+sidebarTitle: Utilizando a API
+description: Mapa de todos os endpoints de revendas da Partner API V2.
+icon: code
+---
+
+Todas as rotas ficam em `https://api.deliveryvip.com.br/partner/v2` e exigem um token **de parceiro** com o scope `dv.partner`. Com um token de revenda, as listagens voltam vazias e as demais rotas respondem `404` ou `403`.
+
+| Endpoint | O que faz |
+| --- | --- |
+| `GET /resales` | [Listar revendas](/guides/partner/resale/utilizando-a-api/listar-resales) com filtros. |
+| `GET /resales/{resaleId}` | [Obter detalhes](/guides/partner/resale/utilizando-a-api/obter-detalhes-da-resale) de uma revenda. |
+| `POST /{partnerId}/resales` | [Cadastrar uma revenda](/guides/partner/resale/utilizando-a-api/adicionar-um-resale). |
+| `GET/POST/PATCH/DELETE /resales/{resaleId}/members` | [Membros](/guides/partner/resale/utilizando-a-api/membros-da-revenda) e magic link. |
+| `POST /resales/{resaleId}/activate` e afins | [Assinatura](/guides/partner/resale/utilizando-a-api/gerenciar-assinatura-das-revendas). |
+| `POST/DELETE /resales/{resaleId}/applications` | [Apps autorizados](/guides/partner/resale/utilizando-a-api/gerenciar-permissao-de-aplicativos-das-revendas) na revenda. |
+| `GET /resales/invoices` | [Faturas (descontinuado)](/guides/partner/resale/utilizando-a-api/listar-faturas-das-revendas). Use [Faturas](/guides/partner/invoices). |
+
+<CardGroup cols={2}>
+<Card title="Listar revendas" icon="list" href="/guides/partner/resale/utilizando-a-api/listar-resales">
+Filtre por status, contrato, CNPJ/CPF e parceiro.
+</Card>
+<Card title="Cadastrar uma revenda" icon="plus" href="/guides/partner/resale/utilizando-a-api/adicionar-um-resale">
+Crie a revenda com teste de 10 dias e loja de demonstração.
+</Card>
+</CardGroup>

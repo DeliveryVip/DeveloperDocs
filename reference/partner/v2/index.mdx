@@ -1,0 +1,34 @@
+---
+title: Partner API V2
+sidebarTitle: Visão geral
+description: Referência completa da Partner API V2, organizada por recurso.
+icon: compass
+---
+
+Todas as rotas ficam em `https://api.deliveryvip.com.br/partner/v2` e exigem um token com o scope `dv.partner`. Há dois formatos de caminho:
+
+| Formato | Exemplo | Alcance |
+| --- | --- | --- |
+| Pelo recurso | `/merchants/{merchantId}`, `/resales/{resaleId}` | Tudo o que o token alcança; filtre listagens com o header `x-partners`. |
+| Pelo parceiro | `/{partnerId}/plans`, `/{partnerId}/invoices` | O parceiro ou a revenda informada no caminho, que precisa estar no alcance do token. |
+
+<CardGroup cols={2}>
+<Card title="Autenticação" icon="key" href="/reference/partner/v2/authentication">
+Scope, alcance do token, `x-partners` e erros comuns.
+</Card>
+<Card title="Lojas" icon="store" href="/reference/partner/v2/merchant">
+Listagem, cadastro, assinatura, recursos, membros e apps.
+</Card>
+<Card title="Revendas" icon="people-group" href="/reference/partner/v2/resale">
+Listagem, cadastro, assinatura, membros e apps.
+</Card>
+<Card title="Planos" icon="layer-group" href="/reference/partner/v2/plans">
+Consulta dos planos de cobrança.
+</Card>
+<Card title="Faturas" icon="file-invoice-dollar" href="/reference/partner/v2/invoices">
+Faturas por loja e resumo por revenda.
+</Card>
+<Card title="Cadastro" icon="user-plus" href="/reference/partner/v2/signup">
+Cadastro público de loja e proprietário.
+</Card>
+</CardGroup>

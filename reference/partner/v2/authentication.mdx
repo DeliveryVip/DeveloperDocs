@@ -1,0 +1,89 @@
+---
+title: Autenticação
+description: Como autenticar as chamadas da Partner API V2, o alcance do token e o header x-partners.
+icon: key
+---
+
+Todo endpoint da Partner API V2 exige um token OAuth2 com o scope **`dv.partner`** no header `Authorization`. O passo a passo para obter e renovar o token está em [Autenticação](/inicio/conceitos/autenticacao).
+
+Peça o token com `client_credentials` e `scope=dv.partner`, depois que o parceiro ou a revenda autorizou o seu app, e envie-o em toda chamada:
+
+<CodeGroup>
+```bash cURL
+curl --request POST 'https://api.deliveryvip.com.br/authentication/v1/oauth/token' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'grant_type=client_credentials' \
+  --data-urlencode 'client_id=<clientId>' \
+  --data-urlencode 'client_secret=<clientSecret>' \
+  --data-urlencode 'scope=dv.partner'
+
+curl 'https://api.deliveryvip.com.br/partner/v2/merchants' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+const tokenResponse = await fetch('https://api.deliveryvip.com.br/authentication/v1/oauth/token', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+  body: new URLSearchParams({
+    grant_type: 'client_credentials',
+    client_id: process.env.DV_CLIENT_ID,
+    client_secret: process.env.DV_CLIENT_SECRET,
+    scope: 'dv.partner',
+  }),
+})
+const { access_token } = await tokenResponse.json()
+
+const response = await fetch('https://api.deliveryvip.com.br/partner/v2/merchants', {
+  headers: { Authorization: `Bearer ${access_token}` },
+})
+```
+
+```python Python
+import os
+import requests
+
+token_response = requests.post(
+    "https://api.deliveryvip.com.br/authentication/v1/oauth/token",
+    data={
+        "grant_type": "client_credentials",
+        "client_id": os.environ["DV_CLIENT_ID"],
+        "client_secret": os.environ["DV_CLIENT_SECRET"],
+        "scope": "dv.partner",
+    },
+)
+access_token = token_response.json()["access_token"]
+
+response = requests.get(
+    "https://api.deliveryvip.com.br/partner/v2/merchants",
+    headers={"Authorization": f"Bearer {access_token}"},
+)
+```
+</CodeGroup>
+
+## Alcance do token
+
+O token enxerga os parceiros e as revendas que autorizaram o seu app, e tudo o que está abaixo deles.
+
+| Quem autorizou | Lojas | Revendas | `partnerId` aceito nas rotas `/{partnerId}/...` |
+| --- | --- | --- | --- |
+| Parceiro | Todas, diretas e de revendas | Todas do parceiro | O do parceiro e o de qualquer revenda dele |
+| Revenda | Só as da revenda | Nenhuma | Só o da revenda |
+
+`POST /{partnerId}/resales` e `GET /{partnerId}/resales/invoices` são exclusivos de parceiro: com o ID de uma revenda, respondem `403`.
+
+## Header x-partners
+
+Nas rotas pelo recurso (`/merchants`, `/merchants/sales`, `/resales` e afins), o header `x-partners` restringe a resposta a parceiros ou revendas específicos. Aceita IDs separados por vírgula ou headers repetidos. Se algum ID estiver fora do alcance do token, a resposta é `403` com os IDs no `title`. Veja [Filtrar por Partners](/guides/partner/merchant/utilizando-a-api/listar-merchants#filtrar-por-partners).
+
+## Erros
+
+Os erros seguem o formato `{"status": "<código>", "title": "<mensagem ou erros por campo>"}`.
+
+| Status | Quando |
+| --- | --- |
+| `401 Unauthorized` | Token ausente, inválido ou expirado. |
+| `403 Forbidden` | Token sem o scope `dv.partner`; `x-partners` ou `partnerId` fora do alcance; `subscriptionStatus` inválido; parceiro sem domínio de painel (membros, magic link e cadastro). |
+| `404 Not Found` | Loja, revenda, membro, plano ou app inexistente ou fora do alcance do token. |
+| `406 Not Acceptable` | Contratação ou cancelamento de recurso recusado. |
+| `422 Unprocessable Content` | Dados inválidos ou transição de assinatura não permitida. |

@@ -1,0 +1,109 @@
+---
+title: Obter detalhes da revenda
+sidebarTitle: Obter detalhes
+description: Consulte cadastro, responsável, endereço e assinatura de uma revenda.
+icon: magnifying-glass
+---
+
+`GET /partner/v2/resales/{resaleId}` devolve a revenda completa. É o mesmo objeto de cada item de [Listar revendas](/guides/partner/resale/utilizando-a-api/listar-resales) e da resposta do cadastro.
+
+| Status | Quando |
+| --- | --- |
+| `200 OK` | A revenda. |
+| `404 Not Found` | A revenda não existe ou não pertence a um parceiro que autorizou o app. |
+
+## Requisição
+
+<CodeGroup>
+```bash cURL
+curl 'https://api.deliveryvip.com.br/partner/v2/resales/{resaleId}' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+const response = await fetch(`https://api.deliveryvip.com.br/partner/v2/resales/${resaleId}`, {
+  headers: { Authorization: `Bearer ${token}` },
+})
+const resale = await response.json()
+```
+
+```python Python
+response = requests.get(
+    f"https://api.deliveryvip.com.br/partner/v2/resales/{resale_id}",
+    headers={"Authorization": f"Bearer {token}"},
+)
+resale = response.json()
+```
+</CodeGroup>
+
+```json Resposta (200)
+{
+  "id": "ea5705df-5537-4b1b-b291-3536839d3d6f",
+  "name": "Revenda Sul",
+  "corporateName": "Revenda Sul LTDA",
+  "identifier": "11.222.333/0001-44",
+  "email": "contato@revendasul.com.br",
+  "phone": { "number": "5551999998888" },
+  "createdAt": "2025-09-30T17:35:03-03:00",
+  "updatedAt": "2025-10-02T10:12:41-03:00",
+  "personResponsible": {
+    "name": "Carlos Lima",
+    "email": "carlos@revendasul.com.br",
+    "phone": { "number": "5551988887777" },
+    "document": "123.456.789-09"
+  },
+  "address": {
+    "country": "Brasil",
+    "state": "RS",
+    "city": "Porto Alegre",
+    "district": "Centro Histórico",
+    "street": "Rua dos Andradas",
+    "number": "100",
+    "postalCode": "90020-000",
+    "formattedAddress": "Rua dos Andradas, 100 - Centro Histórico, Porto Alegre - RS",
+    "coordinates": { "latitude": -30.0277, "longitude": -51.2287 }
+  },
+  "subscription": {
+    "status": "ACTIVATED",
+    "warning": false,
+    "blocked": false,
+    "agreementCode": "123456",
+    "lastActivationAt": "2025-10-01T09:00:00-03:00"
+  },
+  "partnerId": "32eeaefa-6a31-487f-9402-fd9a41683830"
+}
+```
+
+## Campos
+
+Campos opcionais vazios não são enviados.
+
+<ResponseField name="id" type="uuid">ID da revenda.</ResponseField>
+<ResponseField name="name" type="string">Nome fantasia.</ResponseField>
+<ResponseField name="corporateName" type="string">Razão social.</ResponseField>
+<ResponseField name="identifier" type="string">CNPJ ou CPF, formatado.</ResponseField>
+<ResponseField name="email" type="string">E-mail da revenda.</ResponseField>
+<ResponseField name="phone" type="object">Telefone em `phone.number` (E.164 sem `+`).</ResponseField>
+<ResponseField name="createdAt" type="datetime">Data do cadastro.</ResponseField>
+<ResponseField name="updatedAt" type="datetime">Data da última alteração.</ResponseField>
+
+<ResponseField name="personResponsible" type="object">
+Responsável pela revenda.
+
+<Expandable title="propriedades">
+<ResponseField name="name" type="string">Nome.</ResponseField>
+<ResponseField name="email" type="string">E-mail.</ResponseField>
+<ResponseField name="phone.number" type="string">Telefone, em E.164 sem `+`.</ResponseField>
+<ResponseField name="document" type="string">CPF do responsável. Nas lojas, o mesmo dado se chama `identifier`.</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseField name="address" type="object">
+Endereço, com os mesmos campos do [endereço da loja](/guides/partner/merchant/utilizando-a-api/obter-detalhes-do-merchant#campos).
+</ResponseField>
+
+<ResponseField name="subscription" type="object">
+Assinatura da revenda. Mesmos campos da [assinatura da loja](/guides/partner/merchant/utilizando-a-api/obter-detalhes-do-merchant#campos), sem `planId`: revendas não têm plano.
+</ResponseField>
+
+<ResponseField name="partnerId" type="uuid">ID do parceiro da revenda.</ResponseField>

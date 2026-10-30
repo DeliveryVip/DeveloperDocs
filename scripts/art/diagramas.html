@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="kit.css">
+<script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<script src="kit.js"></script>
+</head>
+<body>
+<div class="art" id="recepcao-de-pedidos"></div>
+<div class="art" id="ciclo-assinatura-loja"></div>
+<div class="art" id="fidelidade-duas-metades"></div>
+<script>
+document.fonts.ready.then(() => {
+  render("recepcao-de-pedidos", "sequence", {
+    width: 1100,
+    participants: [
+      { id: "pdv", label: "Seu PDV", sub: "o seu sistema", icon: "monitor", tone: "blue" },
+      { id: "api", label: "API DeliveryVip", sub: "api.deliveryvip.com.br", icon: "cloud", tone: "orange" }
+    ],
+    steps: [
+      { from: "pdv", to: "api", text: "<code>POST /authentication/v1/oauth/token</code>" },
+      { from: "api", to: "pdv", text: "access_token (24 h)", reply: true },
+      { loop: "a cada 30 segundos", steps: [
+        { from: "pdv", to: "api", text: "<code>GET /merchant/v3/events:polling</code>" },
+        { from: "api", to: "pdv", text: "eventos (até 100) ou 204", reply: true },
+        { from: "pdv", to: "api", text: "<code>GET orderURL</code> do evento CREATED" },
+        { from: "api", to: "pdv", text: "detalhes do pedido", reply: true },
+        { from: "pdv", to: "api", text: "<code>POST /merchant/v3/orders/{orderId}/confirm</code>" },
+        { from: "pdv", to: "api", text: "<code>POST /merchant/v3/events/acknowledgment</code>" }
+      ] }
+    ]
+  })
+
+  render("ciclo-assinatura-loja", "graph", {
+    colWidth: 330, rowHeight: 170, nodeWidth: 250,
+    nodes: [
+      { id: "s", start: true, col: 0, row: 0 },
+      { id: "trial", label: "TRIAL", sub: "período de teste", icon: "hourglass", tone: "blue", col: 0.5, row: 0 },
+      { id: "expired", label: "TRIAL_EXPIRED", sub: "teste acabou", icon: "timer-off", tone: "gray", col: 0.5, row: 1 },
+      { id: "activated", label: "ACTIVATED", sub: "assinatura ativa", icon: "badge-check", tone: "green", col: 2, row: 0 },
+      { id: "cancelled", label: "CANCELLED", sub: "assinatura cancelada", icon: "circle-x", tone: "red", col: 2, row: 1 }
+    ],
+    edges: [
+      { from: "s", to: "trial" },
+      { from: "trial", to: "expired", label: "o teste expira", dashed: true },
+      { from: "trial", to: "activated", label: "<code>activate</code>" },
+      { from: "expired", to: "activated", label: "<code>activate</code>" },
+      { from: "activated", to: "cancelled", label: "<code>cancel</code>", offset: -40 },
+      { from: "cancelled", to: "activated", label: "<code>activate</code>", offset: 40 }
+    ]
+  })
+
+  render("fidelidade-duas-metades", "graph", {
+    colWidth: 610, rowHeight: 210, nodeWidth: 330,
+    nodes: [
+      { id: "cli", label: "Cliente HTTP", sub: "o seu código que chama a API", icon: "send", tone: "orange", col: 0, row: 0 },
+      { id: "srv", label: "Servidor do contrato", sub: "na sua <code>api_base_url</code>", icon: "server", tone: "orange", col: 0, row: 1 },
+      { id: "api", label: "Merchant API V3", sub: "api.deliveryvip.com.br", icon: "cloud", tone: "blue", col: 1, row: 0 },
+      { id: "chk", label: "Checkout", sub: "onde o cliente adere e resgata", icon: "shopping-cart", tone: "blue", col: 1, row: 1 }
+    ],
+    groups: [
+      { label: "Seu sistema (operador)", tone: "orange", nodes: ["cli", "srv"] },
+      { label: "DeliveryVip", tone: "blue", nodes: ["api", "chk"] }
+    ],
+    edges: [
+      { from: "cli", to: "api", label: "<b>Você chama</b><br>OAuth Bearer<br>config push e pedidos" },
+      { from: "chk", to: "srv", label: "<b>A DeliveryVip chama</b><br>HMAC · ping, vínculo,<br>saldo, resgate e estorno" },
+      { from: "api", to: "srv", label: "eventos de pedido<br>(webhook)", dashed: true }
+    ]
+  })
+
+  const you = (label = "Seu sistema", sub = "") => ({ id: "op", label, sub, icon: "monitor", tone: "blue" })
+  const dv = { id: "dv", label: "DeliveryVip", sub: "", icon: "cloud", tone: "orange" }
+  const customer = { id: "c", label: "Cliente", sub: "no checkout", icon: "user", tone: "green" }
+
+  render("deprecations-linha-do-tempo", "timeline", {
+    width: 1100,
+    items: [
+      { date: "22/04/2025", text: "Início da deprecação da Partner v1, Merchant v1/v2, invoices sem <code>partnerId</code> e <code>agreementCode</code>", tone: "orange", icon: "flag" },
+      { date: "17/06/2025", text: "Início da deprecação de Tabs <code>available</code>/<code>unavailable</code>", tone: "orange", icon: "flag" },
+      { date: "30/06/2026", text: "Prazo adiado para 01/08/2026 e Partner v1 removida", tone: "gray", icon: "calendar-clock" },
+      { date: "01/08/2026", text: "Fim do prazo de todas as rotas em deprecação", tone: "red", icon: "calendar-x" }
+    ]
+  })
+
+  render("catalogo-force-listas", "graph", {
+    colWidth: 380, rowHeight: 120, nodeWidth: 310,
+    nodes: [
+      { id: "k", label: "A chave veio no corpo?", icon: "circle-help", tone: "gray", col: 0, row: 1, w: 290 },
+      { id: "a", label: "Tipo fica como está", icon: "minus", tone: "gray", col: 1.25, row: 0 },
+      { id: "b", label: "Cria e altera os enviados", sub: "e remove os demais", icon: "refresh-cw", tone: "blue", col: 1.25, row: 1 },
+      { id: "c", label: "Remove todos daquele tipo", icon: "trash-2", tone: "red", col: 1.25, row: 2 }
+    ],
+    edges: [
+      { from: "k", to: "a", label: "Não" },
+      { from: "k", to: "b", label: "Sim, com objetos" },
+      { from: "k", to: "c", label: "Sim, vazia <code>[]</code>" }
+    ]
+  })
+
+  render("catalogo-estrutura", "graph", {
+    colWidth: 330, rowHeight: 150, nodeWidth: 270,
+    nodes: [
+      { id: "cat", label: "Categoria", sub: "<code>CATEGORY</code>", icon: "folder", tone: "blue", col: 0, row: 0 },
+      { id: "item", label: "Produto", sub: "<code>ITEM</code>", icon: "package", tone: "blue", col: 1, row: 0 },
+      { id: "mod", label: "Modificador", sub: "<code>modifiers</code> do produto", icon: "sliders-horizontal", tone: "teal", col: 2, row: 0 },
+      { id: "group", label: "Grupo de opções", sub: "<code>OPTION_GROUP</code>", icon: "list", tone: "teal", col: 2, row: 1 },
+      { id: "option", label: "Opção", sub: "<code>OPTION</code>", icon: "circle-dot", tone: "teal", col: 1, row: 1 }
+    ],
+    edges: [
+      { from: "cat", to: "item", label: "contém" },
+      { from: "item", to: "mod", label: "tem" },
+      { from: "mod", to: "group", label: "usa" },
+      { from: "group", to: "option", label: "contém" }
+    ]
+  })
+
+  render("desconto-status", "graph", {
+    colWidth: 320, rowHeight: 170, nodeWidth: 240,
+    nodes: [
+      { id: "s", start: true, col: -0.3, row: 0.62 },
+      { id: "scheduled", label: "SCHEDULED", sub: "começa no futuro", icon: "clock", tone: "blue", col: 0.65, row: 0 },
+      { id: "active", label: "ACTIVE", sub: "valendo agora", icon: "circle-check", tone: "green", col: 0.65, row: 1.25 },
+      { id: "overdue", label: "OVERDUE", sub: "fora do período", icon: "calendar-x", tone: "gray", col: 2.1, row: 1.25 }
+    ],
+    edges: [
+      { from: "s", to: "scheduled", label: "<code>startsAt</code> no futuro", labelAt: [-10, -14] },
+      { from: "s", to: "active", label: "<code>startsAt</code> no passado", labelAt: [-10, 14] },
+      { from: "scheduled", to: "active", label: "chega <code>startsAt</code> ou<br><code>POST available</code>", fromSide: "bottom", toSide: "top" },
+      { from: "active", to: "overdue", label: "passa <code>endsAt</code> ou <code>POST unavailable</code>", offset: -24, labelAt: [0, -22] },
+      { from: "overdue", to: "active", label: "<code>POST available</code>", offset: 24, labelAt: [0, 22] }
+    ]
+  })
+
+  render("eventos-polling", "sequence", {
+    width: 1000,
+    participants: [you(), dv],
+    steps: [
+      { loop: "a cada 30 segundos", steps: [
+        { from: "op", to: "dv", text: "<code>GET /merchant/v3/events:polling</code>" },
+        { alt: [
+          { label: "há eventos", steps: [
+            { from: "dv", to: "op", text: "200 com até 100 eventos", reply: true },
+            { self: "op", text: "processa e descarta <code>eventId</code> repetido" },
+            { from: "op", to: "dv", text: "<code>POST /merchant/v3/events/acknowledgment</code>" },
+            { from: "dv", to: "op", text: "202 Accepted", reply: true }
+          ] },
+          { label: "fila vazia", steps: [
+            { from: "dv", to: "op", text: "204 No Content", reply: true }
+          ] }
+        ] }
+      ] }
+    ]
+  })
+
+  render("comanda-abrir-fechar", "graph", {
+    colWidth: 360, rowHeight: 150, nodeWidth: 250,
+    nodes: [
+      { id: "opened", label: "OPENED", sub: "aberta para consumo", icon: "door-open", tone: "green", col: 0, row: 0 },
+      { id: "closed", label: "CLOSED", sub: "fechada para consumo", icon: "door-closed", tone: "gray", col: 1.5, row: 0 }
+    ],
+    edges: [
+      { from: "opened", to: "closed", label: "<code>POST closed</code>", offset: -20, labelAt: [0, -22] },
+      { from: "closed", to: "opened", label: "<code>POST opened</code>", offset: 20, labelAt: [0, 22] }
+    ]
+  })
+
+  render("comanda-ciclo", "graph", {
+    colWidth: 330, rowHeight: 160, nodeWidth: 250,
+    nodes: [
+      { id: "s", start: true, col: -0.25, row: 0.15 },
+      { id: "opened", label: "OPENED", sub: "aberta para consumo", icon: "door-open", tone: "green", col: 0.7, row: 0 },
+      { id: "closed", label: "CLOSED", sub: "fechada para consumo", icon: "door-closed", tone: "gray", col: 0.7, row: 1.2 },
+      { id: "e", end: true, col: 2, row: 0.75 }
+    ],
+    edges: [
+      { from: "s", to: "opened", label: "cadastro (<code>POST</code>)", labelAt: [0, -20] },
+      { from: "opened", to: "closed", label: "<code>POST closed</code>", offset: -36, fromSide: "bottom", toSide: "top", labelAt: [-70, 0] },
+      { from: "closed", to: "opened", label: "<code>POST opened</code>", offset: 36, fromSide: "top", toSide: "bottom", labelAt: [70, 0] },
+      { from: "opened", to: "e", label: "<code>DELETE</code>" },
+      { from: "closed", to: "e", label: "<code>DELETE</code>" }
+    ]
+  })
+
+  render("indoor-aberta-fechada", "graph", {
+    colWidth: 340, rowHeight: 150, nodeWidth: 250,
+    nodes: [
+      { id: "s", start: true, col: -0.3, row: 0.15 },
+      { id: "open", label: "Aberta", sub: "recebe pedidos", icon: "door-open", tone: "green", col: 0.6, row: 0 },
+      { id: "closed", label: "Fechada", sub: "não recebe pedidos", icon: "door-closed", tone: "gray", col: 2, row: 0 }
+    ],
+    edges: [
+      { from: "s", to: "open", label: "cadastro", labelAt: [0, -20] },
+      { from: "open", to: "closed", label: "<code>POST .../closed</code>", offset: -20, labelAt: [0, -22] },
+      { from: "closed", to: "open", label: "<code>POST .../opened</code>", offset: 20, labelAt: [0, 22] }
+    ]
+  })
+
+  render("place-status", "graph", {
+    colWidth: 360, rowHeight: 180, nodeWidth: 250,
+    nodes: [
+      { id: "available", label: "AVAILABLE", sub: "mesa livre", icon: "circle-check", tone: "green", col: 0, row: 0 },
+      { id: "busy", label: "BUSY", sub: "mesa em uso", icon: "utensils", tone: "orange", col: 1.7, row: 0 },
+      { id: "closed", label: "CLOSED", sub: "fechada para consumo", icon: "lock", tone: "gray", col: 0, row: 1.1 }
+    ],
+    edges: [
+      { from: "available", to: "busy", label: "pedido em andamento", offset: -18, labelAt: [0, -22] },
+      { from: "busy", to: "available", label: "pedidos finalizados", offset: 18, labelAt: [0, 22] },
+      { from: "available", to: "closed", label: "<code>POST closed</code>", offset: -40, labelAt: [-80, 0] },
+      { from: "closed", to: "available", label: "<code>POST opened</code>", offset: 40, labelAt: [80, 0] },
+      { from: "busy", to: "closed", label: "<code>POST closed</code>", fromSide: "bottom", toSide: "right" }
+    ]
+  })
+
+  render("fidelidade-acumulo", "sequence", {
+    width: 1000,
+    participants: [you(), dv],
+    steps: [
+      { from: "dv", to: "op", text: "Evento <code>CONCLUDED</code> (webhook ou polling)" },
+      { from: "op", to: "dv", text: "2xx rápido", reply: true },
+      { from: "op", to: "dv", text: "<code>GET orderURL</code> (Bearer, <code>od.all</code>)" },
+      { from: "dv", to: "op", text: "pedido com o total e o bloco <code>loyalty</code>", reply: true },
+      { note: "Calcula a base e credita no ledger", over: "op" },
+      { from: "dv", to: "op", text: "Evento <code>CANCELLED</code> (se acontecer)" },
+      { note: "Desfaz o acúmulo daquele pedido", over: "op" }
+    ]
+  })
+
+  render("fidelidade-ativacao", "sequence", {
+    width: 1000,
+    participants: [you(), dv],
+    steps: [
+      { from: "op", to: "dv", text: "<code>PUT /merchant/v3/{merchantId}/loyalty/config</code>" },
+      { from: "dv", to: "op", text: "<code>GET {api_base_url}/v1/loyalty/ping</code> (HMAC)" },
+      { alt: [
+        { label: "ping 2xx", steps: [
+          { from: "op", to: "dv", text: "204", reply: true },
+          { note: "Grava a configuração", over: "dv" },
+          { from: "dv", to: "op", text: "200 com a configuração gravada", reply: true }
+        ] },
+        { label: "timeout, não-2xx ou assinatura rejeitada", steps: [
+          { from: "op", to: "dv", text: "erro", reply: true },
+          { note: "Nada é gravado", over: "dv" },
+          { from: "dv", to: "op", text: "422", reply: true }
+        ] }
+      ] }
+    ]
+  })
+
+  render("fidelidade-contrato-rotas", "graph", {
+    colWidth: 560, rowHeight: 104, nodeWidth: 470,
+    nodes: [
+      { id: "t1", label: "Config push", sub: "handshake na ativação", icon: "sliders-horizontal", tone: "orange", col: 0, row: 0, w: 330 },
+      { id: "t2", label: "Cliente adere ao programa", icon: "user-plus", tone: "green", col: 0, row: 1, w: 330 },
+      { id: "t3", label: "Cliente vê o saldo", icon: "wallet", tone: "green", col: 0, row: 2, w: 330 },
+      { id: "t4", label: "Cliente fecha o pedido com resgate", icon: "shopping-cart", tone: "green", col: 0, row: 3, w: 330 },
+      { id: "t5", label: "Pedido cancelado, rejeitado ou não pago", icon: "circle-x", tone: "orange", col: 0, row: 4, w: 330 },
+      { id: "r1", label: "<code>GET /v1/loyalty/ping</code>", tone: "blue", col: 1, row: 0 },
+      { id: "r2", label: "<code>POST /v1/loyalty/accounts:link</code>", tone: "blue", col: 1, row: 1 },
+      { id: "r3", label: "<code>GET /v1/loyalty/accounts/{accountId}</code>", tone: "blue", col: 1, row: 2 },
+      { id: "r4", label: "<code>POST /v1/loyalty/redemptions</code>", tone: "blue", col: 1, row: 3 },
+      { id: "r5", label: "<code>POST /v1/loyalty/redemptions/{id}/reversal</code>", tone: "blue", col: 1, row: 4 }
+    ],
+    groups: [
+      { label: "Na DeliveryVip", tone: "orange", nodes: ["t1", "t2", "t3", "t4", "t5"] },
+      { label: "No seu sistema: api_base_url", tone: "blue", nodes: ["r1", "r2", "r3", "r4", "r5"] }
+    ],
+    edges: [1, 2, 3, 4, 5].map((i) => ({ from: `t${i}`, to: `r${i}` }))
+  })
+
+  render("fidelidade-resgate-estorno", "sequence", {
+    width: 1150,
+    participants: [customer, dv, you()],
+    steps: [
+      { from: "c", to: "dv", text: "Fecha o pedido com resgate" },
+      { note: "Transação de criação do pedido", over: "dv" },
+      { from: "dv", to: "op", text: "<code>POST /v1/loyalty/redemptions</code>" },
+      { alt: [
+        { label: "201 com redemptionId", steps: [
+          { from: "op", to: "dv", text: "<code>{ redemptionId }</code>", reply: true },
+          { note: "Pedido criado", over: "dv" }
+        ] },
+        { label: "409, 422, timeout ou erro", steps: [
+          { from: "op", to: "dv", text: "recusa", reply: true },
+          { note: "Rollback: o pedido não nasce", over: "dv" },
+          { from: "dv", to: "c", text: "Aviso: o checkout segue sem o desconto" }
+        ] }
+      ] },
+      { note: "Mais tarde: pedido cancelado, rejeitado ou não pago", over: "dv" },
+      { from: "dv", to: "op", text: "<code>POST .../redemptions/{redemptionId}/reversal</code>" },
+      { from: "op", to: "dv", text: "2xx (idempotente)", reply: true }
+    ]
+  })
+
+  render("fidelidade-vinculo-pin", "sequence", {
+    width: 1150,
+    participants: [customer, dv, you()],
+    steps: [
+      { from: "c", to: "dv", text: "Clica em \"participar\" no checkout" },
+      { from: "dv", to: "op", text: "<code>POST /v1/loyalty/accounts:link</code>" },
+      { alt: [
+        { label: "se o programa exige PIN", steps: [
+          { from: "op", to: "dv", text: "200 <code>{ challenge: { type: \"pin\" } }</code>", reply: true },
+          { from: "dv", to: "c", text: "Pede o PIN" },
+          { from: "c", to: "dv", text: "Digita o PIN" },
+          { from: "dv", to: "op", text: "<code>accounts:link</code> + <code>challenge.answer</code>" }
+        ] }
+      ] },
+      { from: "op", to: "dv", text: "200 <code>{ id, programId, balanceType }</code>", reply: true },
+      { from: "dv", to: "op", text: "<code>GET .../accounts/{accountId}</code>" },
+      { from: "op", to: "dv", text: "200 <code>{ balance, currency }</code>", reply: true },
+      { from: "dv", to: "c", text: "Mostra o saldo disponível" }
+    ]
+  })
+
+  render("fidelidade-ponta-a-ponta", "sequence", {
+    width: 1150,
+    participants: [you(), dv, customer],
+    steps: [
+      { from: "op", to: "dv", text: "<code>PUT .../{merchantId}/loyalty/config</code>" },
+      { from: "dv", to: "op", text: "<code>GET /v1/loyalty/ping</code> (assinado)" },
+      { from: "op", to: "dv", text: "204", reply: true },
+      { from: "dv", to: "op", text: "200: programa ativo na loja", reply: true },
+      { from: "c", to: "dv", text: "Adere no checkout" },
+      { from: "dv", to: "op", text: "<code>POST /v1/loyalty/accounts:link</code>" },
+      { from: "op", to: "dv", text: "200 <code>{ id }</code>", reply: true },
+      { from: "dv", to: "op", text: "<code>GET .../accounts/{accountId}</code>" },
+      { from: "op", to: "dv", text: "200 <code>{ balance }</code>", reply: true },
+      { from: "c", to: "dv", text: "Fecha o pedido com resgate" },
+      { from: "dv", to: "op", text: "<code>POST /v1/loyalty/redemptions</code>" },
+      { from: "op", to: "dv", text: "201 <code>{ redemptionId }</code>", reply: true },
+      { from: "dv", to: "op", text: "Evento <code>CONCLUDED</code> (webhook ou polling)", reply: true },
+      { from: "op", to: "dv", text: "<code>GET /merchant/v3/orders/{id}</code>" },
+      { from: "dv", to: "op", text: "pedido com o bloco <code>loyalty</code>", reply: true },
+      { note: "Acumula no seu ledger", over: "op" }
+    ]
+  })
+
+  render("od-catalogo", "sequence", {
+    width: 1000,
+    participants: [you("Seu sistema", "PDV/ERP"), dv],
+    steps: [
+      { from: "op", to: "dv", text: "<code>POST /v1/merchantUpdate</code>" },
+      { from: "dv", to: "op", text: "204", reply: true },
+      { note: "Agenda a importação (agrupa avisos em 10 s)", over: "dv" },
+      { from: "dv", to: "op", text: "<code>GET getMerchantURL.baseURL</code> (X-API-KEY)" },
+      { from: "op", to: "dv", text: "snapshot da loja (spec Merchant)", reply: true },
+      { note: "Valida, importa e registra o resultado", over: "dv" },
+      { from: "op", to: "dv", text: "<code>GET /v1/merchantStatus?merchantId=...</code>" },
+      { from: "dv", to: "op", text: "<code>{ status: SUCCESS | PROCESSING | FAIL }</code>", reply: true }
+    ]
+  })
+
+  render("od-ciclo-do-pedido", "sequence", {
+    width: 1000,
+    participants: [you("Seu PDV"), dv],
+    steps: [
+      { from: "dv", to: "op", text: "Evento <code>CREATED</code>", reply: true },
+      { from: "op", to: "dv", text: "<code>GET orderURL</code>" },
+      { from: "dv", to: "op", text: "pedido (spec Order 1.3.0)", reply: true },
+      { from: "op", to: "dv", text: "<code>POST /v1/orders/{orderId}/confirm</code>" },
+      { from: "dv", to: "op", text: "202 + evento <code>CONFIRMED</code>", reply: true },
+      { from: "op", to: "dv", text: "<code>POST .../preparing</code>, <code>readyForPickup</code>, <code>dispatch</code>..." },
+      { from: "dv", to: "op", text: "202 + eventos correspondentes", reply: true },
+      { note: "<code>delivered</code> gera <code>DELIVERED</code> e <code>CONCLUDED</code>", over: "dv" }
+    ]
+  })
+
+  render("od-visao-geral", "graph", {
+    colWidth: 620, rowHeight: 140, nodeWidth: 320,
+    nodes: [
+      { id: "cli", label: "Cliente HTTP", sub: "o seu código que chama a API", icon: "send", tone: "blue", col: 0, row: 0 },
+      { id: "wh", label: "ordersWebhookURL", sub: "recebe os eventos", icon: "bell", tone: "blue", col: 0, row: 1 },
+      { id: "mer", label: "getMerchantURL", sub: "expõe o seu catálogo", icon: "book-open", tone: "blue", col: 0, row: 2 },
+      { id: "api", label: "API Open Delivery", sub: "od.deliveryvip.com.br", icon: "cloud", tone: "orange", col: 1, row: 1 }
+    ],
+    groups: [
+      { label: "Seu PDV/ERP", tone: "blue", nodes: ["cli", "wh", "mer"] },
+      { label: "DeliveryVip", tone: "orange", nodes: ["api"] }
+    ],
+    edges: [
+      { from: "cli", to: "api", label: "token, onboarding, polling,<br>pedidos e merchantUpdate" },
+      { from: "api", to: "wh", label: "eventos de pedido (HMAC)", dashed: true },
+      { from: "api", to: "mer", label: "importação do catálogo (X-API-KEY)", dashed: true }
+    ]
+  })
+
+  render("od-recebendo-eventos", "sequence", {
+    width: 1000,
+    participants: [you(), dv],
+    steps: [
+      { from: "dv", to: "op", text: "<code>POST ordersWebhookURL</code> (evento assinado)" },
+      { from: "op", to: "dv", text: "2xx em até 5 s", reply: true },
+      { note: "Valida a assinatura, deduplica por <code>eventId</code> e processa de forma assíncrona", over: "op" },
+      { loop: "reconciliação", steps: [
+        { from: "op", to: "dv", text: "<code>GET /v1/events:polling</code>" },
+        { from: "dv", to: "op", text: "eventos não confirmados (até 100) ou 204", reply: true },
+        { from: "op", to: "dv", text: "<code>POST /v1/events/acknowledgment</code>" }
+      ] }
+    ]
+  })
+
+  const down = { fromSide: "bottom", toSide: "top" }
+  render("partner-hierarquia", "graph", {
+    colWidth: 250, rowHeight: 150, nodeWidth: 215,
+    nodes: [
+      { id: "p", label: "Parceiro", sub: "white label", icon: "building-2", tone: "purple", col: 1.5, row: 0 },
+      { id: "r1", label: "Revenda A", icon: "users", tone: "blue", col: 0.5, row: 1 },
+      { id: "r2", label: "Revenda B", icon: "users", tone: "blue", col: 2, row: 1 },
+      { id: "m1", label: "Loja direta", sub: "atendida pelo parceiro", icon: "store", tone: "green", col: 3.2, row: 1 },
+      { id: "m2", label: "Loja", sub: "da revenda A", icon: "store", tone: "green", col: 0, row: 2 },
+      { id: "m3", label: "Loja", sub: "da revenda A", icon: "store", tone: "green", col: 1, row: 2 },
+      { id: "m4", label: "Loja", sub: "da revenda B", icon: "store", tone: "green", col: 2, row: 2 }
+    ],
+    edges: [["p", "r1"], ["p", "r2"], ["p", "m1"], ["r1", "m2"], ["r1", "m3"], ["r2", "m4"]].map(([from, to]) => ({ from, to, ...down }))
+  })
+
+  render("partner-signup", "graph", {
+    colWidth: 300, rowHeight: 120, nodeWidth: 270,
+    nodes: [
+      { id: "a", label: "Visitante envia o formulário", icon: "file-text", tone: "gray", col: 0, row: 0 },
+      { id: "b", label: "Seu backend chama", sub: "<code>POST signup</code>", icon: "send", tone: "blue", col: 1, row: 0 },
+      { id: "c", label: "O e-mail já tem conta?", icon: "circle-help", tone: "gray", col: 2.3, row: 0 },
+      { id: "d", label: "Conta e loja criadas", icon: "store", tone: "green", col: 1.6, row: 1.2 },
+      { id: "e", label: "201 com <code>entryUrl</code>", sub: "e <code>merchantId</code>", icon: "circle-check", tone: "green", col: 1.6, row: 2.2 },
+      { id: "f", label: "Redirecione para o <code>entryUrl</code>", icon: "external-link", tone: "green", col: 1.6, row: 3.2 },
+      { id: "g", label: "Nada é criado", icon: "circle-slash", tone: "orange", col: 3, row: 1.2 },
+      { id: "h", label: "E-mail para o dono da conta", icon: "mail", tone: "orange", col: 3, row: 2.2 },
+      { id: "i", label: "201 só com <code>message</code>", icon: "message-square", tone: "orange", col: 3, row: 3.2 },
+      { id: "j", label: "Mostre a mesma mensagem de sucesso", icon: "smile", tone: "orange", col: 3, row: 4.2 }
+    ],
+    edges: [
+      { from: "a", to: "b" },
+      { from: "b", to: "c" },
+      { from: "c", to: "d", label: "Não", fromSide: "bottom", toSide: "top" },
+      { from: "c", to: "g", label: "Sim", fromSide: "bottom", toSide: "top" },
+      { from: "d", to: "e", ...down }, { from: "e", to: "f", ...down },
+      { from: "g", to: "h", ...down }, { from: "h", to: "i", ...down }, { from: "i", to: "j", ...down }
+    ]
+  })
+
+  render("distribuicao-direta", "sequence", {
+    width: 1150,
+    participants: [
+      { id: "dev", label: "Você", sub: "developer", icon: "laptop", tone: "blue" },
+      { id: "loja", label: "Lojista", sub: "Delivery Store", icon: "store", tone: "green" },
+      dv
+    ],
+    steps: [
+      { from: "dev", to: "dv", text: "Cria o app (painel de developers)" },
+      { from: "dev", to: "loja", text: "Envia o token de autorização" },
+      { from: "loja", to: "dv", text: "Instala o app na Delivery Store" },
+      { from: "loja", to: "dev", text: "Envia o <code>merchantId</code>" },
+      { from: "dev", to: "dv", text: "<code>POST /authentication/v1/oauth/token</code> (client_credentials)" },
+      { from: "dv", to: "dev", text: "access_token (24 h)", reply: true }
+    ]
+  })
+
+  render("distribuicao-interativa", "sequence", {
+    width: 1150,
+    participants: [
+      { id: "loja", label: "Lojista", sub: "Delivery Store", icon: "store", tone: "green" },
+      dv,
+      { id: "app", label: "Seu app", sub: "dentro ou fora do painel", icon: "app-window", tone: "blue" }
+    ],
+    steps: [
+      { from: "loja", to: "dv", text: "Cola o token de autorização" },
+      { from: "dv", to: "app", text: "Abre a URL do app (<code>merchant_id</code>...)" },
+      { from: "app", to: "dv", text: "Redireciona para a tela de autorização" },
+      { from: "loja", to: "dv", text: "Aprova as permissões" },
+      { from: "dv", to: "app", text: "Redirect URI com <code>?code=...</code>" },
+      { from: "app", to: "dv", text: "<code>POST /oauth/token</code> (authorization_code)" },
+      { from: "dv", to: "app", text: "access_token (24 h) + refresh_token", reply: true }
+    ]
+  })
+})
+</script>
+</body>
+</html>

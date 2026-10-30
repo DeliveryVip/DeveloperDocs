@@ -1,0 +1,108 @@
+---
+title: Listar descontos
+description: Busque os descontos de uma loja, do mais recente para o mais antigo, com paginação.
+icon: list
+---
+
+Retorna os descontos da loja, automáticos e cupons, ordenados do cadastro mais recente para o mais antigo. Descontos removidos não aparecem; os vencidos (`OVERDUE`) aparecem.
+
+| Resposta | Quando |
+| --- | --- |
+| `200 OK` | Há descontos na página. O corpo é um array. |
+| `204 No Content` | A loja não tem descontos. A resposta vem sem corpo. |
+
+## Requisição
+
+<ParamField path="merchantId" type="uuid" required>
+A loja.
+</ParamField>
+
+<ParamField query="per_page" type="integer" default="30">
+Quantos descontos por página, de `30` a `250`. Valores fora dessa faixa são ajustados para o limite mais próximo.
+</ParamField>
+
+<ParamField query="next" type="string">
+Cursor da próxima página, vindo do header `X-Next-Cursor` ou do `Link` da resposta anterior.
+</ParamField>
+
+<ParamField query="previous" type="string">
+Cursor da página anterior, vindo do header `X-Previous-Cursor`. Não envie junto com `next`: a API responde `400`.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl --include 'https://api.deliveryvip.com.br/merchant/v3/{merchantId}/discounts?per_page=50' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+const discounts = []
+let cursor = null
+
+do {
+  const url = new URL(`https://api.deliveryvip.com.br/merchant/v3/${merchantId}/discounts`)
+  url.searchParams.set('per_page', '50')
+  if (cursor) url.searchParams.set('next', cursor)
+
+  const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+  if (response.status === 204) break
+
+  discounts.push(...(await response.json()))
+  cursor = response.headers.get('X-Next-Cursor')
+} while (cursor)
+```
+
+```python Python
+discounts, cursor = [], None
+
+while True:
+    params = {"per_page": 50, **({"next": cursor} if cursor else {})}
+    response = requests.get(
+        f"https://api.deliveryvip.com.br/merchant/v3/{merchant_id}/discounts",
+        headers={"Authorization": f"Bearer {token}"},
+        params=params,
+    )
+    if response.status_code == 204:
+        break
+    discounts.extend(response.json())
+    cursor = response.headers.get("X-Next-Cursor")
+    if not cursor:
+        break
+```
+</CodeGroup>
+
+Sem `X-Next-Cursor` na resposta, você chegou à última página. Mais detalhes em [paginação](/inicio/conceitos/paginacao).
+
+## Resposta
+
+Cada item é um [objeto desconto](/guides/merchant/discount/obter-detalhes-do-desconto#resposta).
+
+```json 200 OK
+[
+  {
+    "id": "157d21eb-2055-4429-9162-ad824d4a764d",
+    "createdAt": "2023-08-02T20:32:47-03:00",
+    "startsAt": "2024-04-28T17:18:00-03:00",
+    "type": "SMART",
+    "name": "Desconto 10%",
+    "status": "ACTIVE",
+    "rules": {
+      "valueType": "PERCENTAGE",
+      "value": 10.0,
+      "minimumOrderValue": 32.0,
+      "usageLimit": 0,
+      "usagePerCustomer": "MANY",
+      "discountType": "SUBTOTAL"
+    },
+    "options": ["NON_PROMOTION_PRODUCTS"]
+  }
+]
+```
+
+## Erros
+
+| Status | Quando |
+| --- | --- |
+| `400 Bad Request` | `next` e `previous` enviados juntos. |
+| `403 Forbidden` | A loja não contratou o módulo de descontos. |
+| `404 Not Found` | O `merchantId` não autorizou o seu app. |

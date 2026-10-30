@@ -1,0 +1,133 @@
+---
+title: Consultar novos eventos
+sidebarTitle: Consultar eventos
+description: Faça o polling dos eventos de chamar garçom e fechar conta, drene a fila e filtre por tipo e loja.
+icon: bell
+---
+
+Os eventos de indoor chegam pelo mesmo endpoint de polling dos pedidos. Chame-o **a cada 30 segundos**.
+
+| Resposta | Quando |
+| --- | --- |
+| `200 OK` | Há eventos novos: uma lista com **até 100**, do mais antigo para o mais recente. |
+| `204 No Content` | Não há eventos novos. A resposta vem sem corpo. |
+
+<Tip>
+Chamar garçom é urgente. Use o [webhook](/guides/merchant/webhooks) para receber cada evento no momento em que ele acontece, e mantenha o polling como reconciliação.
+</Tip>
+
+## Requisição
+
+Para receber só os eventos do salão, filtre por `eventType`.
+
+<CodeGroup>
+```bash cURL
+curl 'https://api.deliveryvip.com.br/merchant/v3/events:polling?eventType=CALL_WAITER&eventType=CLOSE_ACCOUNT' \
+  --header 'Authorization: Bearer {token}' \
+  --header 'x-polling-merchants: {merchantId}'
+```
+
+```js Node.js
+const url = new URL('https://api.deliveryvip.com.br/merchant/v3/events:polling')
+url.searchParams.append('eventType', 'CALL_WAITER')
+url.searchParams.append('eventType', 'CLOSE_ACCOUNT')
+
+const response = await fetch(url, {
+  headers: { Authorization: `Bearer ${token}`, 'x-polling-merchants': merchantId },
+})
+const events = response.status === 204 ? [] : await response.json()
+```
+
+```python Python
+response = requests.get(
+    "https://api.deliveryvip.com.br/merchant/v3/events:polling",
+    params={"eventType": ["CALL_WAITER", "CLOSE_ACCOUNT"]},
+    headers={"Authorization": f"Bearer {token}", "x-polling-merchants": merchant_id},
+)
+events = [] if response.status_code == 204 else response.json()
+```
+</CodeGroup>
+
+```json Resposta (200)
+[
+  {
+    "eventId": "78b58a39-e222-44a4-a2c4-083c4837ed7d",
+    "createdAt": "2025-06-13T09:44:37-03:00",
+    "merchantId": "86fb4f52-573e-4869-9764-87238bcbad01",
+    "eventType": "CALL_WAITER",
+    "metadata": {
+      "placeName": "Mesa 20",
+      "placeId": "indoor_qrcode_a7f4a8b1-8e6d-4614-be9a-b81b10a0de99"
+    },
+    "placeName": "Mesa 20",
+    "placeId": "indoor_qrcode_a7f4a8b1-8e6d-4614-be9a-b81b10a0de99"
+  }
+]
+```
+
+Os campos de cada evento estão em [eventos de indoor](/guides/merchant/indoor/fluxo-de-integracao/eventos-de-indoor).
+
+## A fila de eventos
+
+Eventos sem acknowledgment continuam voltando nas próximas chamadas até serem confirmados ou saírem da janela de 24 horas.
+
+<Steps>
+<Step title="Polling">
+Chame o polling e processe os eventos recebidos.
+</Step>
+<Step title="Acknowledgment">
+Envie o [acknowledgment](/guides/merchant/indoor/fluxo-de-integracao/acknowledgment-de-eventos) de todos os eventos recebidos.
+</Step>
+<Step title="Próximo lote">
+Chame o polling de novo: os eventos confirmados saem da fila e vem o próximo lote.
+</Step>
+</Steps>
+
+<Warning>
+**Lote cheio = fila acumulada.** Se a resposta vier com 100 eventos, há mais esperando. Envie o acknowledgment e chame o polling de novo **sem esperar os 30 segundos**, até receber menos de 100 eventos ou `204`.
+</Warning>
+
+<Danger>
+Sem acknowledgment, a sua integração recebe sempre os mesmos eventos, os mais antigos primeiro, e nunca chega aos novos.
+</Danger>
+
+## Filtros
+
+Os filtros podem ser combinados. Um valor inválido em qualquer filtro retorna **`403 Forbidden`**.
+
+<ParamField query="eventType" type="string[]">
+Tipos de evento a receber. Repita o parâmetro para cada valor, sem colchetes (`style: form`, `explode: true`). Os tipos de indoor são `CALL_WAITER` e `CLOSE_ACCOUNT`; os demais valores aceitos estão em [consultar novos pedidos](/guides/merchant/order/fluxo-de-integracao/consultar-novos-pedidos#filtros).
+
+```text
+/merchant/v3/events:polling?eventType=CALL_WAITER&eventType=CLOSE_ACCOUNT
+```
+</ParamField>
+
+<ParamField query="orderType" type="string[]">
+Filtra eventos pelo tipo do pedido (`DELIVERY`, `TAKEOUT` ou `INDOOR`).
+</ParamField>
+
+<Warning>
+**`orderType` esconde os eventos de indoor.** Esse filtro só deixa passar eventos ligados a um pedido, e `CALL_WAITER` e `CLOSE_ACCOUNT` não pertencem a pedido nenhum. Até `orderType=INDOOR` os exclui. Se a sua integração filtra por `orderType`, faça uma chamada separada com `eventType=CALL_WAITER&eventType=CLOSE_ACCOUNT` ou use o webhook.
+</Warning>
+
+<ParamField header="x-polling-merchants" type="string[]">
+Lojas das quais receber eventos. Sem ele, o polling traz os eventos de **todas** as lojas que o token alcança. Envie um header por loja. Se o token não tiver acesso a alguma delas, a resposta é `403` e lista as lojas sem acesso; veja [como resolver](/guides/merchant/order/fluxo-de-integracao/consultar-novos-pedidos#filtros).
+
+```text
+x-polling-merchants: 0a0000aa-0aa0-00aa-aa00-0000aa000001
+x-polling-merchants: 0a0000aa-0aa0-00aa-aa00-0000aa000002
+```
+</ParamField>
+
+<AccordionGroup>
+<Accordion title="Por quanto tempo os eventos ficam disponíveis?" icon="clock">
+Por **24 horas a partir da criação do evento**. Depois disso, ele não volta mais no polling, mesmo sem acknowledgment.
+</Accordion>
+<Accordion title="Qual é o intervalo mínimo entre chamadas?" icon="gauge-high">
+Uma chamada a cada **30 segundos** por token. Acima disso a API pode responder `429` e bloquear o cliente temporariamente. A única exceção é drenar uma fila acumulada (lote com 100 eventos).
+</Accordion>
+<Accordion title="Recebo eventos de várias lojas misturados" icon="store">
+Sem `x-polling-merchants`, o lote traz eventos de todas as lojas do token. Use o header, ou separe os eventos pelo `merchantId` de cada um.
+</Accordion>
+</AccordionGroup>

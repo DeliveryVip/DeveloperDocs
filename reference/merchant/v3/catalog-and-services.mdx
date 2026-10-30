@@ -1,0 +1,19 @@
+---
+title: Catálogo
+description: Endpoints para consultar a loja, sincronizar o catálogo e ver o status de funcionamento.
+icon: book-open
+---
+
+Endpoints para consultar os dados e o catálogo da loja, sincronizar produtos, opções e serviços (`merchantUpdate`, `merchantUpsert`, `merchantForce`) e consultar o status de funcionamento. Todos exigem [autenticação](/reference/merchant/v3/authentication) com o scope `od.all`.
+
+Para escolher entre as três formas de sincronização, veja o guia de [Catálogo](/guides/merchant/catalog-and-services/actions).
+
+| Endpoint | Para quê | Guia |
+| --- | --- | --- |
+| `GET /{merchantId}` | Ler a loja, os serviços, as formas de pagamento e o catálogo completo. | [Detalhes](/guides/merchant/catalog-and-services/details) |
+| `POST /{merchantId}/merchantUpdate` | Alterar objetos que já existem: preço, status, tempo de preparo. | [Update](/guides/merchant/catalog-and-services/actions/update) |
+| `POST /{merchantId}/merchantUpsert` | Criar ou alterar objetos de um tipo, sem mexer no resto. | [Upsert](/guides/merchant/catalog-and-services/actions/upsert) |
+| `POST /{merchantId}/merchantForce` | Reescrever o catálogo inteiro: o que não vier é removido. | [Force](/guides/merchant/catalog-and-services/actions/force) |
+| `GET /{merchantId}/status` | Ver se a loja está aberta e os horários da semana. | [Status do merchant](/guides/merchant/tools/obter-status-do-merchant) |
+
+O fluxo típico é uma carga inicial com `merchantForce` (ou `merchantUpsert` tipo a tipo) e, no dia a dia, `merchantUpsert` para produtos novos e `merchantUpdate` para mudanças pontuais.

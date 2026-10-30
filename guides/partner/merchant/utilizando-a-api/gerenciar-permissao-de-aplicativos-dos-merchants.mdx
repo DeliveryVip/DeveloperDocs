@@ -1,0 +1,84 @@
+---
+title: Gerenciar apps autorizados nas lojas
+sidebarTitle: Gerenciar apps autorizados
+description: Autorize ou revogue o acesso de um app (PDV, integrador) à Merchant API de uma loja, sem passar pelo lojista.
+icon: plug
+---
+
+Em vez de pedir ao lojista que autorize um app no painel, o parceiro pode autorizar direto pela API. É assim que você instala, por exemplo, o PDV parceiro em todas as lojas novas.
+
+| Ação | Endpoint | Sucesso |
+| --- | --- | --- |
+| [Adicionar permissão](#adicionar-permissão) | `POST /partner/v2/merchants/{merchantId}/applications` | `202` |
+| [Remover permissão](#remover-permissão) | `DELETE /partner/v2/merchants/{merchantId}/applications/{applicationId}` | `202` |
+
+## Adicionar Permissão
+
+<ParamField body="permission.applicationId" type="uuid" required>
+ID do app a autorizar. O app precisa ser de [distribuição direta](/inicio/primeiros-passos/distribuicao-direta).
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl --request POST 'https://api.deliveryvip.com.br/partner/v2/merchants/{merchantId}/applications' \
+  --header 'Authorization: Bearer {token}' \
+  --header 'Content-Type: application/json' \
+  --data '{ "permission": { "applicationId": "161be0be-38d1-44a0-84ea-161093886253" } }'
+```
+
+```js Node.js
+await fetch(`https://api.deliveryvip.com.br/partner/v2/merchants/${merchantId}/applications`, {
+  method: 'POST',
+  headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+  body: JSON.stringify({ permission: { applicationId } }),
+})
+```
+
+```python Python
+requests.post(
+    f"https://api.deliveryvip.com.br/partner/v2/merchants/{merchant_id}/applications",
+    headers={"Authorization": f"Bearer {token}"},
+    json={"permission": {"applicationId": application_id}},
+)
+```
+</CodeGroup>
+
+```json Resposta (202)
+{ "applicationId": "161be0be-38d1-44a0-84ea-161093886253" }
+```
+
+<Info>
+Os scopes não são escolhidos na chamada: a loja recebe os scopes que o app declara, limitados a `od.all` e `dv.loyalty`. Um campo `scopes` no corpo é ignorado. Chamar de novo para um app já autorizado não cria uma segunda permissão.
+</Info>
+
+| Status | Quando |
+| --- | --- |
+| `404 Not Found` | App ou loja não encontrados. |
+| `422 Unprocessable Content` | `application_must_be_manual_type`: o app é de distribuição interativa; ou `permission_failed`. |
+
+## Remover Permissão
+
+Revoga todos os tokens do app para essa loja. A integração deixa de acessar a loja na hora.
+
+<CodeGroup>
+```bash cURL
+curl --request DELETE 'https://api.deliveryvip.com.br/partner/v2/merchants/{merchantId}/applications/{applicationId}' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+await fetch(`https://api.deliveryvip.com.br/partner/v2/merchants/${merchantId}/applications/${applicationId}`, {
+  method: 'DELETE',
+  headers: { Authorization: `Bearer ${token}` },
+})
+```
+
+```python Python
+requests.delete(
+    f"https://api.deliveryvip.com.br/partner/v2/merchants/{merchant_id}/applications/{application_id}",
+    headers={"Authorization": f"Bearer {token}"},
+)
+```
+</CodeGroup>
+
+Responde `202` com o `applicationId`, ou `404` se o app não está autorizado na loja.

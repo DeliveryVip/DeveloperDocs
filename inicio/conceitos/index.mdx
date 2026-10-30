@@ -1,0 +1,40 @@
+---
+title: Conceitos
+sidebarTitle: Visão geral
+description: As regras que valem para todas as APIs da DeliveryVip, de autenticação a paginação e limites.
+icon: compass
+---
+
+Autenticação, formato de erros, paginação, datas e limites funcionam do mesmo jeito em todas as APIs. Entender essas regras antes de integrar evita os problemas mais comuns em produção.
+
+<CardGroup cols={2}>
+<Card title="Autenticação" icon="key" href="/inicio/conceitos/autenticacao">
+Fluxos OAuth2, scopes, expiração, renovação e revogação do token.
+</Card>
+<Card title="Erros" icon="circle-exclamation" href="/inicio/conceitos/erros">
+O corpo de erro, as exceções ao formato e o que fazer com cada status.
+</Card>
+<Card title="Paginação" icon="arrow-right-arrow-left" href="/inicio/conceitos/paginacao">
+Cursores `next` e `previous`, header `Link` e `per_page`.
+</Card>
+<Card title="Datas e horários" icon="clock" href="/inicio/conceitos/datas-e-horarios">
+RFC 3339 com offset: UTC-3 na API própria, UTC no Open Delivery.
+</Card>
+<Card title="Rate limiting" icon="gauge-high" href="/inicio/conceitos/rate-limiting">
+O limite de requisições e como reagir ao `429`.
+</Card>
+<Card title="Postman" icon="paper-plane" href="/inicio/conceitos/postman">
+Importe as specs e chame a API sem escrever código.
+</Card>
+</CardGroup>
+
+## Em resumo
+
+| Tema | Regra |
+| --- | --- |
+| Host | `https://api.deliveryvip.com.br` (Open Delivery: `https://od.deliveryvip.com.br`) |
+| Autenticação | `Authorization: Bearer {token}`, token OAuth2 válido por 24 horas |
+| Formato | JSON; `204 No Content` sem corpo quando não há resultado |
+| Erros | `{ "status": "422", "title": "..." }`, com exceções para `401`, `403` e o endpoint de token |
+| Datas | RFC 3339 com offset (`-03:00` ou `Z`) |
+| Ambiente | Só produção; testes em uma loja de teste pedida no [Discord](https://discord.gg/AJF8Yha4) |

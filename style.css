@@ -1,0 +1,5 @@
+/* Site em um idioma só (pt-BR): o idioma em navigation.languages traduz a interface, mas o seletor não tem utilidade. */
+[data-component-part="localization-select-trigger"],
+#localization-select-trigger {
+  display: none !important;
+}

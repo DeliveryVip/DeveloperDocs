@@ -1,0 +1,168 @@
+---
+title: Cadastrar uma loja
+description: Crie uma loja vinculada ao seu parceiro ou a uma das suas revendas.
+icon: plus
+---
+
+`POST /partner/v2/{partnerId}/merchants` cria a loja já pronta para uso: domínio padrão, formas de pagamento, áreas de entrega e assinatura em `TRIAL` por 10 dias, no plano padrão (`standard`) do parceiro.
+
+<Info>
+O `partnerId` define a quem a loja pertence:
+
+* **ID do parceiro**: a loja é atendida diretamente pelo parceiro.
+* **ID de uma revenda**: a loja nasce na revenda (`resaleId`), abaixo do parceiro dela.
+
+Um token de parceiro aceita o próprio ID e o de qualquer revenda dele. Um token de revenda aceita só o ID da revenda. Qualquer outro ID retorna `403`. O ID do parceiro aparece em `partnerId` nas respostas de [Listar lojas](/guides/partner/merchant/utilizando-a-api/listar-merchants).
+</Info>
+
+<Warning>
+A loja recebe o plano marcado como `standard` do parceiro. Confira em [Listar planos](/guides/partner/plans/utilizando-a-api/listar-planos) se existe um plano padrão disponível antes de cadastrar.
+</Warning>
+
+## Corpo
+
+<ParamField body="name" type="string" required>Nome fantasia.</ParamField>
+<ParamField body="corporateName" type="string" required>Razão social.</ParamField>
+<ParamField body="identifier" type="string" required>CNPJ ou CPF da loja, com ou sem formatação. Precisa ser válido.</ParamField>
+<ParamField body="email" type="string" required>E-mail da loja.</ParamField>
+
+<ParamField body="personResponsible" type="object" required>
+Responsável pela loja.
+
+<Expandable title="propriedades">
+<ParamField body="name" type="string" required>Nome.</ParamField>
+<ParamField body="email" type="string" required>E-mail.</ParamField>
+<ParamField body="phone.number" type="string" required>Telefone.</ParamField>
+<ParamField body="identifier" type="string">CPF do responsável.</ParamField>
+</Expandable>
+</ParamField>
+
+<ParamField body="address" type="object" required>
+Endereço da loja. Todos os campos são obrigatórios.
+
+<Expandable title="propriedades">
+<ParamField body="postalCode" type="string" required>CEP.</ParamField>
+<ParamField body="street" type="string" required>Rua.</ParamField>
+<ParamField body="number" type="string" required>Número.</ParamField>
+<ParamField body="district" type="string" required>Bairro.</ParamField>
+<ParamField body="city" type="string" required>Cidade.</ParamField>
+<ParamField body="state" type="string" required>UF.</ParamField>
+</Expandable>
+</ParamField>
+
+## Requisição
+
+<CodeGroup>
+```bash cURL
+curl --request POST 'https://api.deliveryvip.com.br/partner/v2/{partnerId}/merchants' \
+  --header 'Authorization: Bearer {token}' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "name": "Cantina da Maria",
+    "corporateName": "Cantina da Maria LTDA",
+    "identifier": "11222333000144",
+    "email": "contato@cantinadamaria.com.br",
+    "personResponsible": {
+      "name": "Maria Silva",
+      "email": "maria@exemplo.com.br",
+      "phone": { "number": "11999998888" },
+      "identifier": "12345678909"
+    },
+    "address": {
+      "postalCode": "01310-100",
+      "street": "Avenida Paulista",
+      "number": "1000",
+      "district": "Bela Vista",
+      "city": "São Paulo",
+      "state": "SP"
+    }
+  }'
+```
+
+```js Node.js
+const response = await fetch(`https://api.deliveryvip.com.br/partner/v2/${partnerId}/merchants`, {
+  method: 'POST',
+  headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    name: 'Cantina da Maria',
+    corporateName: 'Cantina da Maria LTDA',
+    identifier: '11222333000144',
+    email: 'contato@cantinadamaria.com.br',
+    personResponsible: {
+      name: 'Maria Silva',
+      email: 'maria@exemplo.com.br',
+      phone: { number: '11999998888' },
+    },
+    address: {
+      postalCode: '01310-100',
+      street: 'Avenida Paulista',
+      number: '1000',
+      district: 'Bela Vista',
+      city: 'São Paulo',
+      state: 'SP',
+    },
+  }),
+})
+const merchant = await response.json()
+```
+
+```python Python
+response = requests.post(
+    f"https://api.deliveryvip.com.br/partner/v2/{partner_id}/merchants",
+    headers={"Authorization": f"Bearer {token}"},
+    json={
+        "name": "Cantina da Maria",
+        "corporateName": "Cantina da Maria LTDA",
+        "identifier": "11222333000144",
+        "email": "contato@cantinadamaria.com.br",
+        "personResponsible": {
+            "name": "Maria Silva",
+            "email": "maria@exemplo.com.br",
+            "phone": {"number": "11999998888"},
+        },
+        "address": {
+            "postalCode": "01310-100",
+            "street": "Avenida Paulista",
+            "number": "1000",
+            "district": "Bela Vista",
+            "city": "São Paulo",
+            "state": "SP",
+        },
+    },
+)
+merchant = response.json()
+```
+</CodeGroup>
+
+## Respostas
+
+| Status | Quando |
+| --- | --- |
+| `201 Created` | Loja criada. O corpo é a loja completa, no formato de [Obter detalhes](/guides/partner/merchant/utilizando-a-api/obter-detalhes-do-merchant). |
+| `403 Forbidden` | `partnerId` fora do alcance do token. |
+| `422 Unprocessable Content` | Dados inválidos. O `title` traz os erros por campo, com os nomes internos em snake\_case. |
+
+```json Resposta (201, resumida)
+{
+  "id": "466caa37-ab0b-4f9d-b583-896681627367",
+  "name": "Cantina da Maria",
+  "identifier": "11.222.333/0001-44",
+  "subscription": {
+    "status": "TRIAL",
+    "trialExpiresAt": "2025-10-10T17:35:03-03:00",
+    "planId": "aa67c98c-d81f-5a9c-b0bc-26caa0051aea"
+  },
+  "partnerId": "32eeaefa-6a31-487f-9402-fd9a41683830"
+}
+```
+
+## Próximos passos
+
+<CardGroup cols={2}>
+<Card title="Adicionar membros" icon="user-plus" href="/guides/partner/merchant/utilizando-a-api/membros-do-merchant">
+Dê acesso ao painel para o lojista.
+</Card>
+<Card title="Ativar a assinatura" icon="circle-check" href="/guides/partner/merchant/utilizando-a-api/gerenciar-assinatura-dos-merchants">
+Saia do teste com contrato e plano.
+</Card>
+</CardGroup>

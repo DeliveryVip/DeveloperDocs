@@ -1,0 +1,63 @@
+---
+title: Desativar uma comanda
+sidebarTitle: Desativar (descontinuado)
+description: Rota em deprecação que marca a comanda como indisponível e fechada. Migre para closed.
+icon: ban
+---
+
+<Warning>
+**Em deprecação.** Use [`POST /tabs/{tabId}/closed`](/guides/merchant/indoor/comanda-api/acoes-das-comandas/fechar-para-consumo-uma-comanda). Esta rota ainda responde, mas pode ser desligada a qualquer momento. Cada resposta traz os headers `Deprecation: true` e `Sunset` com a data de desligamento. Veja [deprecations](/deprecations).
+</Warning>
+
+`POST /merchant/v3/{merchantId}/tabs/{tabId}/unavailable` muda o `status` da comanda para `UNAVAILABLE` e a `situation` para `CLOSED`, nos dois casos de uma vez.
+
+## Como migrar
+
+Troque `unavailable` por `closed` na URL. O resto da chamada e a resposta são iguais.
+
+```diff
+- POST /merchant/v3/{merchantId}/tabs/{tabId}/unavailable
++ POST /merchant/v3/{merchantId}/tabs/{tabId}/closed
+```
+
+<Warning>
+As duas rotas não são equivalentes no `status`. `closed` deixa o `status` como está, e só `available` (também descontinuada) volta uma comanda `UNAVAILABLE` para `AVAILABLE`. Depois de migrar, abra e feche comandas só com `opened` e `closed`.
+</Warning>
+
+## Requisição
+
+<CodeGroup>
+```bash cURL
+curl --request POST 'https://api.deliveryvip.com.br/merchant/v3/{merchantId}/tabs/{tabId}/unavailable' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+await fetch(`https://api.deliveryvip.com.br/merchant/v3/${merchantId}/tabs/${tabId}/unavailable`, {
+  method: 'POST',
+  headers: { Authorization: `Bearer ${token}` },
+})
+```
+
+```python Python
+requests.post(
+    f"https://api.deliveryvip.com.br/merchant/v3/{merchant_id}/tabs/{tab_id}/unavailable",
+    headers={"Authorization": f"Bearer {token}"},
+)
+```
+</CodeGroup>
+
+## Resposta
+
+```http
+HTTP/1.1 202 Accepted
+Deprecation: true
+Sunset: Mon, 01 Dec 2025 00:00:00 GMT
+Content-Type: application/json
+
+{ "id": "6b7cd994-d8ff-4d12-8064-251becc39b08" }
+```
+
+| Status | Quando |
+| --- | --- |
+| `404 Not Found` | O `merchantId` não autorizou o seu app, ou a comanda não existe ou foi removida. |

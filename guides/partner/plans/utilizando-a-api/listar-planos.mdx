@@ -1,0 +1,69 @@
+---
+title: Listar planos
+description: Liste os planos de cobrança visíveis para o parceiro ou para a revenda.
+icon: list
+---
+
+`GET /partner/v2/{partnerId}/plans` lista os planos do parceiro, do mais recente para o mais antigo, em qualquer status.
+
+| `partnerId` | Planos retornados |
+| --- | --- |
+| ID do parceiro | Todos, com visibilidade `PUBLIC`, `RESALE` ou `DIRECT_MERCHANT`. |
+| ID de uma revenda | Os planos do parceiro da revenda com visibilidade `PUBLIC` ou `RESALE`: os que valem para as lojas dela. |
+
+| Status | Quando |
+| --- | --- |
+| `200 OK` | Lista de planos. |
+| `204 No Content` | Nenhum plano. |
+| `403 Forbidden` | `partnerId` fora do alcance do token (`Invalid partnerId ...`). |
+
+## Requisição
+
+<CodeGroup>
+```bash cURL
+curl 'https://api.deliveryvip.com.br/partner/v2/{partnerId}/plans' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+const response = await fetch(`https://api.deliveryvip.com.br/partner/v2/${partnerId}/plans`, {
+  headers: { Authorization: `Bearer ${token}` },
+})
+const plans = response.status === 204 ? [] : await response.json()
+const usable = plans.filter((plan) => plan.status === 'AVAILABLE')
+```
+
+```python Python
+response = requests.get(
+    f"https://api.deliveryvip.com.br/partner/v2/{partner_id}/plans",
+    headers={"Authorization": f"Bearer {token}"},
+)
+plans = [] if response.status_code == 204 else response.json()
+usable = [plan for plan in plans if plan["status"] == "AVAILABLE"]
+```
+</CodeGroup>
+
+```json Resposta (200)
+[
+  {
+    "id": "aa67c98c-d81f-5a9c-b0bc-26caa0051aea",
+    "name": "Plano Base",
+    "standard": true,
+    "code": "HSAROW",
+    "status": "AVAILABLE",
+    "visibility": "PUBLIC",
+    "features": [
+      { "featureType": "DELIVERY_TAKEOUT", "inclusionType": "INCLUDED" },
+      { "featureType": "INDOOR_VIEWER", "inclusionType": "INCLUDED" },
+      { "featureType": "DELIVERYBOT_ASSISTANT", "inclusionType": "ADDITIONAL" },
+      { "featureType": "INDOOR_QRCODE", "inclusionType": "ADDITIONAL" }
+    ]
+  }
+]
+```
+
+Os campos estão em [Definições de planos](/guides/partner/plans/definicoes).
+
+<Tip>
+A listagem traz também planos `DRAFT` e `UNAVAILABLE`. Filtre por `status: AVAILABLE` antes de oferecer um plano para assinatura.
+</Tip>

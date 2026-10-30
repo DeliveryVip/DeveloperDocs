@@ -1,0 +1,116 @@
+---
+title: Eventos de pedidos
+description: A estrutura de um evento e todos os tipos que um pedido pode gerar.
+icon: bell
+---
+
+Um evento é um aviso de que algo mudou num pedido. Ele não traz os dados do pedido: para isso, faça um `GET` na `orderURL`.
+
+## Estrutura do evento
+
+<ResponseField name="eventId" type="uuid" required>
+Identificador único do evento. Use-o para descartar eventos repetidos e no [acknowledgment](/guides/merchant/order/fluxo-de-integracao/acknowledgment-de-eventos).
+</ResponseField>
+
+<ResponseField name="eventType" type="string" required>
+O que aconteceu. Veja os [tipos de evento](#tipos-de-evento).
+</ResponseField>
+
+<ResponseField name="orderId" type="uuid" required>
+O pedido ao qual o evento pertence.
+</ResponseField>
+
+<ResponseField name="orderURL" type="string" required>
+URL para buscar os detalhes do pedido.
+</ResponseField>
+
+<ResponseField name="orderType" type="string" required>
+`DELIVERY`, `TAKEOUT` ou `INDOOR`.
+</ResponseField>
+
+<ResponseField name="merchantId" type="uuid" required>
+A loja do pedido.
+</ResponseField>
+
+<ResponseField name="createdAt" type="datetime" required>
+Quando o evento foi criado.
+</ResponseField>
+
+<ResponseField name="metadata" type="object">
+Dados extras de alguns eventos, como o motivo de um cancelamento. Só vem quando há conteúdo.
+</ResponseField>
+
+<CodeGroup>
+```json CREATED
+{
+  "eventId": "9a24ea9e-5743-4957-9b83-7a4b4f2a4597",
+  "eventType": "CREATED",
+  "orderId": "64939842-b9d7-44d1-a0fd-f68d18d410a6",
+  "orderURL": "https://api.deliveryvip.com.br/merchant/v3/orders/64939842-b9d7-44d1-a0fd-f68d18d410a6",
+  "orderType": "DELIVERY",
+  "merchantId": "8158198a-4bb7-430e-9746-87cd02dfedda",
+  "createdAt": "2022-08-16T16:01:21-03:00"
+}
+```
+
+```json CANCELLED
+{
+  "eventId": "1c2f6a4e-0d5b-4f7e-9a51-3b8e2f6c9d10",
+  "eventType": "CANCELLED",
+  "orderId": "64939842-b9d7-44d1-a0fd-f68d18d410a6",
+  "orderURL": "https://api.deliveryvip.com.br/merchant/v3/orders/64939842-b9d7-44d1-a0fd-f68d18d410a6",
+  "orderType": "DELIVERY",
+  "merchantId": "8158198a-4bb7-430e-9746-87cd02dfedda",
+  "createdAt": "2022-08-16T16:20:02-03:00",
+  "metadata": {
+    "reason": "Reason for the cancellation",
+    "code": "CONSUMER_CANCELLATION_REQUESTED"
+  }
+}
+```
+</CodeGroup>
+
+## Tipos de evento
+
+### Ciclo do pedido
+
+| Evento | Significado |
+| --- | --- |
+| `CREATED` | Pedido criado. É o gatilho para buscar o pedido e confirmá-lo. |
+| `CONFIRMED` | Pedido confirmado. |
+| `PREPARING` | Pedido em preparo. |
+| `READY_FOR_PICKUP` | Pedido pronto para retirada. |
+| `PICKED_UP` | Pedido retirado. |
+| `DISPATCHED` | Pedido despachado para entrega. |
+| `DELIVERED` | Pedido entregue. |
+| `CONCLUDED` | Pedido concluído. Fim do ciclo. |
+
+### Cancelamento
+
+| Evento | Significado |
+| --- | --- |
+| `CANCELLED` | Pedido cancelado, pela loja, pelo seu sistema ou pela plataforma. O motivo vem em `metadata.reason` e `metadata.code`. |
+
+### Previstos na especificação
+
+Estes tipos existem na especificação e são aceitos no filtro `eventType`, mas **a DeliveryVip ainda não os emite**. Trate-os como desconhecidos: confirme o recebimento e siga em frente.
+
+| Evento | Significado na especificação |
+| --- | --- |
+| `PICKUP_AREA_ASSIGNED` | Área de retirada atribuída (`TAKEOUT` no modo `PICKUP_AREA`). |
+| `CANCELLATION_REQUESTED` | Cancelamento solicitado pelo sistema do PDV. |
+| `CANCELLATION_REQUEST_DENIED` | Solicitação de cancelamento negada. |
+| `ORDER_CANCELLATION_REQUEST` | Cancelamento solicitado pela plataforma de pedidos. |
+
+### Indoor
+
+`CALL_WAITER` e `CLOSE_ACCOUNT` são eventos de comanda e mesa, não de pedido. Veja [eventos de indoor](/guides/merchant/indoor/fluxo-de-integracao/eventos-de-indoor).
+
+## Eventos repetidos
+
+<Warning>
+A API pode entregar o mesmo evento mais de uma vez. Trate a unicidade pelo `eventId`:
+
+1. Antes de processar, verifique se aquele `eventId` já foi processado. Se foi, descarte.
+2. **Mesmo assim, envie o acknowledgment dele.** Sempre confirme todos os eventos que recebeu, repetidos ou não.
+</Warning>

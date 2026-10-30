@@ -1,0 +1,98 @@
+---
+title: Ciclo de vida do pedido
+description: Busque os detalhes do pedido pela orderURL e transicione o status do preparo à entrega, ou cancele.
+icon: arrows-rotate
+---
+
+O fluxo típico: você recebe um evento `CREATED` (via [webhook ou polling](/guides/open-delivery/recebendo-eventos)), busca os detalhes do pedido pela `orderURL` do evento e vai transicionando o status conforme o pedido avança no seu PDV. Cada transição gera um evento, que chega pelo mesmo canal.
+
+<Frame caption="O pedido do evento CREATED à entrega">
+  <img className="block dark:hidden" src="/images/od-ciclo-do-pedido.png" alt="Evento CREATED, busca do pedido, confirmação e as demais ações, cada uma respondida com 202 e o evento correspondente" />
+  <img className="hidden dark:block" src="/images/od-ciclo-do-pedido-dark.png" alt="Evento CREATED, busca do pedido, confirmação e as demais ações, cada uma respondida com 202 e o evento correspondente" />
+</Frame>
+
+## Obter detalhes do pedido
+
+<CodeGroup>
+```bash cURL
+curl --request GET 'https://od.deliveryvip.com.br/v1/orders/{orderId}' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+const response = await fetch(event.orderURL, {
+  headers: { Authorization: `Bearer ${token}` },
+})
+const order = await response.json()
+```
+
+```python Python
+response = requests.get(event["orderURL"], headers={"Authorization": f"Bearer {token}"})
+order = response.json()
+```
+</CodeGroup>
+
+O formato do objeto de pedido segue a spec **Order `1.3.0`** do [Open Delivery](https://www.opendelivery.com.br); consulte a spec oficial para o schema completo. As datas vêm em UTC.
+
+<Info>
+Prefira usar a `orderURL` que chega no evento em vez de montar a URL manualmente. Pedidos ainda aguardando pagamento online (ou que expiraram sem pagamento) não são expostos: a API responde `404` para eles.
+</Info>
+
+## Transicionar o status
+
+As transições são feitas via `POST /v1/orders/{orderId}/{ação}`, sem corpo (exceto o rastreio):
+
+<CodeGroup>
+```bash cURL
+curl --request POST 'https://od.deliveryvip.com.br/v1/orders/{orderId}/confirm' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+const response = await fetch(`https://od.deliveryvip.com.br/v1/orders/${orderId}/confirm`, {
+  method: 'POST',
+  headers: { Authorization: `Bearer ${token}` },
+})
+console.log(response.status) // 202; 422 se o pedido não aceita a ação
+```
+
+```python Python
+response = requests.post(
+    f"https://od.deliveryvip.com.br/v1/orders/{order_id}/confirm",
+    headers={"Authorization": f"Bearer {token}"},
+)
+print(response.status_code)  # 202; 422 se o pedido não aceita a ação
+```
+</CodeGroup>
+
+| Ação | Descrição | Resposta | Evento gerado |
+| ---- | --------- | -------- | ------------- |
+| `confirm` | Confirma o pedido. | `202` | `CONFIRMED` |
+| `preparing` | Pedido em preparo. | `202` | `PREPARING` |
+| `readyForPickup` | Pedido pronto para retirada. | `202` | `READY_FOR_PICKUP` |
+| `dispatch` | Pedido saiu para entrega. | `202` | `DISPATCHED` em pedidos de entrega; `CONCLUDED` nos demais |
+| `pickedUp` | Pedido retirado. | `202` | `PICKED_UP` |
+| `delivered` | Pedido entregue. | `202` | `DELIVERED` e `CONCLUDED` |
+| `requestCancellation` | Cancela o pedido. | `200` | `CANCELLED` |
+| `acceptCancellation` | Compatibilidade com a spec. | `200` | - |
+| `denyCancellation` | Compatibilidade com a spec. | `200` | - |
+| `tracking` | Envia dados de rastreio da entrega. | `202` | - |
+
+As respostas de sucesso trazem o `id` do pedido: `{"id": "64939842-..."}`. Uma ação que o estado atual do pedido não aceita (por exemplo, despachar um pedido já cancelado) responde `422`.
+
+## Fluxo de cancelamento
+
+* **Você quer cancelar**: envie `requestCancellation`. O pedido é **cancelado na hora**, a resposta é `200` e o evento `CANCELLED` é emitido. Não há etapa de aprovação.
+* **Cancelamento do lado da plataforma**: quando a loja ou a plataforma cancela, você recebe direto o evento `CANCELLED`.
+
+<Note>
+`acceptCancellation` e `denyCancellation` existem por compatibilidade com a spec e respondem `200` sem alterar o pedido. Hoje a DeliveryVip não emite `ORDER_CANCELLATION_REQUEST`, então você não precisa chamá-los.
+</Note>
+
+## Rastreio da entrega
+
+O `tracking` recebe os dados de rastreio no formato da spec: último evento da entrega, problemas, veículo, previsão de chegada, entregador e localização. É o mesmo formato da API Merchant V3; veja os campos em [Tracking](/guides/merchant/order/fluxo-de-integracao/acoes-de-pedidos#tracking). Um corpo fora do schema responde `422`.
+
+## Eventos emitidos pela plataforma
+
+Além dos eventos que refletem as suas ações, a plataforma emite eventos originados do lado dela, como `CREATED` (novo pedido), `CONCLUDED` e `CANCELLED`. A lista completa de tipos está em [Recebendo eventos](/guides/open-delivery/recebendo-eventos#tipos-de-evento). Confirme cada um com o [acknowledgment](/guides/open-delivery/recebendo-eventos#acknowledgment) se você também usa o polling.

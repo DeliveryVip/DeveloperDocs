@@ -1,0 +1,84 @@
+---
+title: Obter detalhes da comanda
+sidebarTitle: Obter uma comanda
+description: Busque uma comanda pelo id para conferir a situação ou recuperar o QR Code.
+icon: magnifying-glass
+---
+
+Retorna uma comanda pelo `tabId`. Útil para conferir se ela está aberta antes de lançar algo no PDV, ou para reimprimir o QR Code.
+
+## Requisição
+
+<ParamField path="merchantId" type="uuid" required>
+A loja.
+</ParamField>
+
+<ParamField path="tabId" type="uuid" required>
+O `id` da comanda.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl 'https://api.deliveryvip.com.br/merchant/v3/{merchantId}/tabs/{tabId}' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+const response = await fetch(
+  `https://api.deliveryvip.com.br/merchant/v3/${merchantId}/tabs/${tabId}`,
+  { headers: { Authorization: `Bearer ${token}` } },
+)
+const tab = await response.json()
+```
+
+```python Python
+response = requests.get(
+    f"https://api.deliveryvip.com.br/merchant/v3/{merchant_id}/tabs/{tab_id}",
+    headers={"Authorization": f"Bearer {token}"},
+)
+tab = response.json()
+```
+</CodeGroup>
+
+## Resposta
+
+<ResponseField name="id" type="uuid">
+Identificador da comanda.
+</ResponseField>
+<ResponseField name="createdAt" type="datetime">
+Quando a comanda foi cadastrada.
+</ResponseField>
+<ResponseField name="name" type="string">
+Identificação que a equipe vê.
+</ResponseField>
+<ResponseField name="code" type="string">
+Código da comanda, único na loja.
+</ResponseField>
+<ResponseField name="qrcode" type="string">
+URL que o QR Code da comanda deve conter.
+</ResponseField>
+<ResponseField name="status" type="string">
+`AVAILABLE` ou `UNAVAILABLE` (campo legado).
+</ResponseField>
+<ResponseField name="situation" type="string">
+`OPENED` ou `CLOSED`: se a comanda aceita consumo.
+</ResponseField>
+
+```json 200 OK
+{
+  "id": "bd806fca-f2f8-4dcc-b71f-643f9d5bc2a7",
+  "createdAt": "2023-02-07T16:23:44-03:00",
+  "name": "0010",
+  "code": "SA51LWb3wCZWCHHgpVRnRZwu",
+  "qrcode": "https://qrcode.dvstore.com/qrcode/indoor_tab_bd806fca-f2f8-4dcc-b71f-643f9d5bc2a7",
+  "status": "AVAILABLE",
+  "situation": "OPENED"
+}
+```
+
+## Erros
+
+| Status | Quando |
+| --- | --- |
+| `401 Unauthorized` | Token ausente, expirado ou inválido. |
+| `404 Not Found` | O `merchantId` não autorizou o seu app, a comanda não existe, foi removida ou o `tabId` não é um UUID válido. |

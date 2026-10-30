@@ -1,0 +1,38 @@
+---
+title: Fluxo de integração
+description: Como o seu PDV recebe e confirma os chamados do salão, como chamar garçom e pedir a conta.
+icon: diagram-project
+---
+
+Os eventos de indoor usam a mesma fila dos eventos de pedidos. O que muda são os tipos: `CALL_WAITER` quando o cliente chama o garçom e `CLOSE_ACCOUNT` quando ele pede a conta.
+
+<Steps>
+<Step title="Receba o evento" icon="bell">
+Consulte `GET /merchant/v3/events:polling` a cada 30 segundos ou receba os eventos na hora por [webhook](/guides/merchant/webhooks).
+</Step>
+<Step title="Identifique o tipo" icon="filter">
+Leia o `eventType` e os campos de mesa e comanda (`placeName`, `tabName`, `tabCode`) para saber onde atender.
+</Step>
+<Step title="Avise a equipe" icon="bell-concierge">
+Mostre o chamado no PDV. Se a conta for paga, você pode [fechar a comanda](/guides/merchant/indoor/comanda-api/acoes-das-comandas/fechar-para-consumo-uma-comanda) ou a [mesa](/guides/merchant/indoor/places-api/acoes-de-places/fechar-para-consumo-um-place) para consumo.
+</Step>
+<Step title="Confirme o recebimento" icon="check-double">
+Envie o acknowledgment em `POST /merchant/v3/events/acknowledgment` para tirar os eventos da fila.
+</Step>
+</Steps>
+
+<Info>
+Pedidos feitos no salão não são eventos de indoor: chegam como pedidos `INDOOR`, com os eventos de [pedidos](/guides/merchant/order/fluxo-de-integracao/eventos-de-pedidos) (`CREATED`, `CONFIRMED` e os demais).
+</Info>
+
+<CardGroup cols={3}>
+<Card title="Consultar novos eventos" icon="bell" href="/guides/merchant/indoor/fluxo-de-integracao/consultar-novos-eventos">
+Polling, fila e filtros.
+</Card>
+<Card title="Eventos de indoor" icon="bell-concierge" href="/guides/merchant/indoor/fluxo-de-integracao/eventos-de-indoor">
+Estrutura e exemplos de cada tipo.
+</Card>
+<Card title="Acknowledgment" icon="check-double" href="/guides/merchant/indoor/fluxo-de-integracao/acknowledgment-de-eventos">
+Tire os eventos da fila.
+</Card>
+</CardGroup>

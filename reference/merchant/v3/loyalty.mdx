@@ -1,0 +1,18 @@
+---
+title: Fidelidade
+description: Endpoints de configuração do programa de fidelidade, para apps com a extensão loyalty.
+icon: gift
+---
+
+Endpoints para publicar e remover a configuração do programa de fidelidade de uma loja, para apps que declaram a extensão **loyalty**. Exigem o scope `dv.loyalty`. Veja o guia de [Fidelidade](/guides/merchant/loyalty).
+
+| Endpoint | Para quê | Guia |
+| --- | --- | --- |
+| `PUT /merchant/v3/{merchantId}/loyalty/config` | Ativar ou atualizar o programa da loja. Antes de gravar, a DeliveryVip chama o seu `ping`; se ele falhar, nada é gravado e a resposta é `422`. | [Ativando o programa](/guides/merchant/loyalty/ativando-o-programa) |
+| `DELETE /merchant/v3/{merchantId}/loyalty/config` | Desativar o programa da loja. Idempotente, responde `204`. | [Desativando o programa](/guides/merchant/loyalty/ativando-o-programa#desativando-o-programa) |
+
+<Info>
+O acúmulo é feito lendo o pedido, e as rotas de pedido exigem `od.all`. Por isso, um operador de fidelidade pede o token com os dois scopes: `scope=od.all dv.loyalty`.
+</Info>
+
+As rotas que o **seu sistema implementa** (contrato do operador) estão especificadas em [loyalty\_operator.yaml](https://app.deliveryvip.com.br/swaggers/loyalty_operator.yaml) e documentadas no guia [Contrato do operador](/guides/merchant/loyalty/contrato-do-operador).

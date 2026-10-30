@@ -1,0 +1,156 @@
+---
+title: Eventos de indoor
+description: A estrutura dos eventos de chamar garçom e fechar conta, e quais campos vêm conforme a origem do chamado.
+icon: bell-concierge
+---
+
+Além dos [eventos de pedidos](/guides/merchant/order/fluxo-de-integracao/eventos-de-pedidos), uma loja com autoatendimento gera eventos do salão. Eles não pertencem a um pedido: dizem **onde** o cliente está para a equipe ir até ele.
+
+## Tipos de evento
+
+| Evento | Quando acontece |
+| --- | --- |
+| `CALL_WAITER` | O cliente tocou em "chamar garçom" no cardápio da mesa, do tablet ou da comanda. |
+| `CLOSE_ACCOUNT` | O cliente pediu para fechar a conta. |
+
+<Info>
+O mesmo dispositivo só gera um novo `CALL_WAITER` depois de **3 minutos** do anterior. Chamados repetidos dentro desse intervalo não viram eventos.
+</Info>
+
+## Estrutura do evento
+
+Ao contrário dos eventos de pedido, eventos de indoor não têm `orderId`, `orderURL` nem `orderType`. Os campos de mesa e comanda só vêm quando têm valor.
+
+<ResponseField name="eventId" type="uuid" required>
+Identificador único do evento. Use-o para descartar repetidos e no [acknowledgment](/guides/merchant/indoor/fluxo-de-integracao/acknowledgment-de-eventos).
+</ResponseField>
+
+<ResponseField name="eventType" type="string" required>
+`CALL_WAITER` ou `CLOSE_ACCOUNT`.
+</ResponseField>
+
+<ResponseField name="merchantId" type="uuid" required>
+A loja do evento.
+</ResponseField>
+
+<ResponseField name="createdAt" type="datetime" required>
+Quando o evento foi criado.
+</ResponseField>
+
+<ResponseField name="placeName" type="string">
+Onde o cliente está. Num QR Code de mesa ou tablet, é o nome do [place](/guides/merchant/indoor/places-api). Numa comanda, é o local que o cliente informou (por exemplo, o número da mesa), quando a loja pede essa informação.
+</ResponseField>
+
+<ResponseField name="placeId" type="string">
+O `id` do place, como `indoor_qrcode_…` ou `indoor_tablet_…`. Só vem quando o chamado partiu de um QR Code de mesa ou tablet.
+</ResponseField>
+
+<ResponseField name="tabId" type="uuid">
+O `id` da [comanda](/guides/merchant/indoor/comanda-api).
+</ResponseField>
+
+<ResponseField name="tabCode" type="string">
+O `code` da comanda.
+</ResponseField>
+
+<ResponseField name="tabName" type="string">
+O `name` da comanda, a identificação que a equipe vê.
+</ResponseField>
+
+<ResponseField name="tab" type="string">
+Mesmo valor de `tabCode`, mantido por compatibilidade. Prefira `tabCode`.
+</ResponseField>
+
+<ResponseField name="metadata" type="object">
+Os mesmos campos de mesa e comanda acima, agrupados. Use os campos do primeiro nível.
+</ResponseField>
+
+### Quais campos vêm em cada caso
+
+| Origem do chamado | `placeName` | `placeId` | `tabId`, `tabCode`, `tabName` |
+| --- | :-: | :-: | :-: |
+| QR Code de mesa ou tablet | Sim | Sim | Só em `CLOSE_ACCOUNT` com comanda informada |
+| Comanda | Se o cliente informou | Não | Sim |
+
+## Exemplos
+
+<Tabs>
+<Tab title="CALL_WAITER (comanda)">
+```json
+{
+  "eventId": "78b58a39-e222-44a4-a2c4-083c4837ed7d",
+  "createdAt": "2025-06-13T09:44:37-03:00",
+  "merchantId": "86fb4f52-573e-4869-9764-87238bcbad01",
+  "eventType": "CALL_WAITER",
+  "metadata": {
+    "tab": "0010",
+    "tabId": "9e9f4277-dba0-44d5-93e3-9a8b9050838d",
+    "tabCode": "0010",
+    "tabName": "Comanda 10",
+    "placeName": "1"
+  },
+  "placeName": "1",
+  "tab": "0010",
+  "tabId": "9e9f4277-dba0-44d5-93e3-9a8b9050838d",
+  "tabCode": "0010",
+  "tabName": "Comanda 10"
+}
+```
+</Tab>
+
+<Tab title="CALL_WAITER (mesa)">
+```json
+{
+  "eventId": "2f1c9a77-5b0e-4d3c-8f61-0c4e7d2b9a10",
+  "createdAt": "2025-06-13T09:50:12-03:00",
+  "merchantId": "86fb4f52-573e-4869-9764-87238bcbad01",
+  "eventType": "CALL_WAITER",
+  "metadata": {
+    "placeName": "Mesa 20",
+    "placeId": "indoor_qrcode_a7f4a8b1-8e6d-4614-be9a-b81b10a0de99"
+  },
+  "placeName": "Mesa 20",
+  "placeId": "indoor_qrcode_a7f4a8b1-8e6d-4614-be9a-b81b10a0de99"
+}
+```
+</Tab>
+
+<Tab title="CLOSE_ACCOUNT (mesa com comanda)">
+```json
+{
+  "eventId": "b99a3643-b6a5-408f-9f2f-29a1a6cc3cec",
+  "createdAt": "2025-06-13T10:55:14-03:00",
+  "merchantId": "86fb4f52-573e-4869-9764-87238bcbad01",
+  "eventType": "CLOSE_ACCOUNT",
+  "metadata": {
+    "tab": "0010",
+    "tabId": "9e9f4277-dba0-44d5-93e3-9a8b9050838d",
+    "tabCode": "0010",
+    "tabName": "Comanda 10",
+    "placeName": "Mesa 20",
+    "placeId": "indoor_qrcode_a7f4a8b1-8e6d-4614-be9a-b81b10a0de99"
+  },
+  "placeName": "Mesa 20",
+  "placeId": "indoor_qrcode_a7f4a8b1-8e6d-4614-be9a-b81b10a0de99",
+  "tab": "0010",
+  "tabId": "9e9f4277-dba0-44d5-93e3-9a8b9050838d",
+  "tabCode": "0010",
+  "tabName": "Comanda 10"
+}
+```
+</Tab>
+</Tabs>
+
+## Boas práticas
+
+<Check>
+**Identifique pelo `id`, mostre pelo nome.** Use `tabId` e `placeId` para relacionar o evento ao seu cadastro, e `tabName` e `placeName` para a equipe saber onde ir.
+</Check>
+
+<Check>
+**Trate repetidos pelo `eventId`.** A API pode entregar o mesmo evento mais de uma vez. Descarte o que já foi processado, mas envie o acknowledgment mesmo assim.
+</Check>
+
+<Check>
+**Feche o que foi pago.** Depois de receber o pagamento de um `CLOSE_ACCOUNT`, você pode [fechar a comanda](/guides/merchant/indoor/comanda-api/acoes-das-comandas/fechar-para-consumo-uma-comanda) para que ela não receba novos pedidos até ser reaberta.
+</Check>

@@ -1,0 +1,105 @@
+---
+title: Listando faturas
+description: Liste a fatura do mês de cada loja, diretas e de revendas, com os blocos de preço a pagar e a receber.
+icon: list
+---
+
+`GET /partner/v2/{partnerId}/invoices` devolve uma fatura por loja para o mês consultado.
+
+| `partnerId` | Lojas na resposta |
+| --- | --- |
+| ID do parceiro | Todas: as atendidas diretamente e as das revendas (essas com `resaleId`). |
+| ID de uma revenda | Só as lojas da revenda. Preços na visão da revenda. |
+
+Um token de parceiro aceita o próprio ID e o de qualquer revenda dele; um token de revenda, só o da revenda.
+
+| Status | Quando |
+| --- | --- |
+| `200 OK` | Lista de faturas. |
+| `204 No Content` | Nenhuma fatura no período (por exemplo, mês ainda não fechado). |
+| `403 Forbidden` | `partnerId` fora do alcance do token. |
+
+## Requisição
+
+<ParamField path="partnerId" type="uuid" required>ID do parceiro ou de uma revenda.</ParamField>
+<ParamField query="year" type="integer">Ano. Sem ele, vale o ano corrente.</ParamField>
+<ParamField query="month" type="integer">Mês, de 1 a 12. Sem ele, vale o mês corrente.</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl 'https://api.deliveryvip.com.br/partner/v2/{partnerId}/invoices?year=2025&month=4' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+const response = await fetch(
+  `https://api.deliveryvip.com.br/partner/v2/${partnerId}/invoices?year=2025&month=4`,
+  { headers: { Authorization: `Bearer ${token}` } },
+)
+const invoices = response.status === 204 ? [] : await response.json()
+
+const payable = (prices) => prices?.find((price) => price.type === 'PAYABLE')
+```
+
+```python Python
+response = requests.get(
+    f"https://api.deliveryvip.com.br/partner/v2/{partner_id}/invoices",
+    params={"year": 2025, "month": 4},
+    headers={"Authorization": f"Bearer {token}"},
+)
+invoices = [] if response.status_code == 204 else response.json()
+
+def payable(prices):
+    return next((p for p in prices or [] if p["type"] == "PAYABLE"), None)
+```
+</CodeGroup>
+
+## Resposta
+
+```json Resposta (200)
+[
+  {
+    "month": "4",
+    "year": "2025",
+    "merchantId": "2a710c93-ece1-4d57-9038-6fc714c0e81b",
+    "planId": "aa67c98c-d81f-5a9c-b0bc-26caa0051aea",
+    "resaleId": "6bbf7d1e-5563-4a09-aa30-809e8aa46d96",
+    "totalPrice": [
+      { "type": "PAYABLE", "value": 180.0, "usageTimeValue": 90.0, "currency": "BRL" },
+      { "type": "RECEIVABLE", "value": 360.0, "usageTimeValue": 180.0, "currency": "BRL" }
+    ],
+    "items": [
+      {
+        "itemType": "DELIVERY_TAKEOUT",
+        "quantity": 1,
+        "totalPrice": [
+          { "type": "PAYABLE", "value": 100.0, "usageTimeValue": 50.0, "currency": "BRL" },
+          { "type": "RECEIVABLE", "value": 200.0, "usageTimeValue": 100.0, "currency": "BRL" }
+        ]
+      },
+      {
+        "itemType": "INDOOR_QRCODE",
+        "quantity": 6,
+        "totalPrice": [
+          { "type": "PAYABLE", "value": 60.0, "usageTimeValue": 30.0, "currency": "BRL" },
+          { "type": "RECEIVABLE", "value": 120.0, "usageTimeValue": 60.0, "currency": "BRL" }
+        ]
+      },
+      {
+        "itemType": "DELIVERYBOT_NOTIFICATION",
+        "quantity": 1,
+        "totalPrice": [
+          { "type": "PAYABLE", "value": 20.0, "usageTimeValue": 10.0, "currency": "BRL" },
+          { "type": "RECEIVABLE", "value": 40.0, "usageTimeValue": 20.0, "currency": "BRL" }
+        ]
+      }
+    ]
+  }
+]
+```
+
+Todos os campos estão em [Definições de faturas](/guides/partner/invoices/definicoes).
+
+<Warning>
+`RECEIVABLE` só vem quando a tabela de preços de recebíveis está habilitada para o parceiro. Procure os blocos pelo `type`, nunca pela posição. Consultando com o ID de uma revenda e sem essa tabela, as faturas vêm sem `totalPrice` e os itens sem preço.
+</Warning>

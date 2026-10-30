@@ -1,0 +1,32 @@
+---
+title: Lojas
+sidebarTitle: Visão geral
+description: Cadastre e administre as lojas (merchants) da sua rede, da assinatura aos membros do painel.
+icon: compass
+---
+
+Cada loja (merchant) da sua rede tem uma assinatura, um plano de cobrança, recursos contratados, membros com acesso ao painel e apps autorizados. Esta seção cobre o ciclo completo, do cadastro ao cancelamento.
+
+<Steps>
+<Step title="Cadastre a loja" icon="plus">
+`POST /partner/v2/{partnerId}/merchants`. A loja nasce em `TRIAL` por 10 dias, no plano padrão do parceiro.
+</Step>
+<Step title="Dê acesso ao lojista" icon="user-plus">
+Adicione membros com `POST /partner/v2/merchants/{merchantId}/members` e, se quiser, gere um magic link de acesso.
+</Step>
+<Step title="Ative a assinatura" icon="circle-check">
+`POST /partner/v2/merchants/{merchantId}/activate`, com o código do contrato e o plano.
+</Step>
+<Step title="Acompanhe" icon="chart-line">
+Consulte vendas, contrate recursos adicionais e use aviso, bloqueio e cancelamento quando precisar.
+</Step>
+</Steps>
+
+<CardGroup cols={2}>
+<Card title="Definições" icon="book-open" href="/guides/partner/merchant/definicoes">
+Status da assinatura, ciclo de vida, recursos e papéis de membros.
+</Card>
+<Card title="Utilizando a API" icon="code" href="/guides/partner/merchant/utilizando-a-api">
+Todos os endpoints de lojas, com exemplos.
+</Card>
+</CardGroup>

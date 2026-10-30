@@ -1,0 +1,63 @@
+---
+title: Ativar uma comanda
+sidebarTitle: Ativar (descontinuado)
+description: Rota em deprecação que marca a comanda como disponível e aberta. Migre para opened.
+icon: ban
+---
+
+<Warning>
+**Em deprecação.** Use [`POST /tabs/{tabId}/opened`](/guides/merchant/indoor/comanda-api/acoes-das-comandas/abrir-para-consumo-uma-comanda). Esta rota ainda responde, mas pode ser desligada a qualquer momento. Cada resposta traz os headers `Deprecation: true` e `Sunset` com a data de desligamento. Veja [deprecations](/deprecations).
+</Warning>
+
+`POST /merchant/v3/{merchantId}/tabs/{tabId}/available` muda o `status` da comanda para `AVAILABLE` e a `situation` para `OPENED`, nos dois casos de uma vez.
+
+## Como migrar
+
+Troque `available` por `opened` na URL. O resto da chamada e a resposta são iguais.
+
+```diff
+- POST /merchant/v3/{merchantId}/tabs/{tabId}/available
++ POST /merchant/v3/{merchantId}/tabs/{tabId}/opened
+```
+
+<Info>
+`opened` não mexe no `status`. Se a comanda ficou `UNAVAILABLE` por uma chamada anterior a [`unavailable`](/guides/merchant/indoor/comanda-api/acoes-das-comandas/desativar-uma-comanda), ela continua sem aceitar pedidos depois do `opened`. Use esta rota uma última vez para reativá-la, ou cadastre a comanda de novo.
+</Info>
+
+## Requisição
+
+<CodeGroup>
+```bash cURL
+curl --request POST 'https://api.deliveryvip.com.br/merchant/v3/{merchantId}/tabs/{tabId}/available' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+await fetch(`https://api.deliveryvip.com.br/merchant/v3/${merchantId}/tabs/${tabId}/available`, {
+  method: 'POST',
+  headers: { Authorization: `Bearer ${token}` },
+})
+```
+
+```python Python
+requests.post(
+    f"https://api.deliveryvip.com.br/merchant/v3/{merchant_id}/tabs/{tab_id}/available",
+    headers={"Authorization": f"Bearer {token}"},
+)
+```
+</CodeGroup>
+
+## Resposta
+
+```http
+HTTP/1.1 202 Accepted
+Deprecation: true
+Sunset: Mon, 01 Dec 2025 00:00:00 GMT
+Content-Type: application/json
+
+{ "id": "6b7cd994-d8ff-4d12-8064-251becc39b08" }
+```
+
+| Status | Quando |
+| --- | --- |
+| `404 Not Found` | O `merchantId` não autorizou o seu app, ou a comanda não existe ou foi removida. |

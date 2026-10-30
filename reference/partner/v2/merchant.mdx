@@ -1,0 +1,27 @@
+---
+title: Lojas
+description: Endpoints para listar, cadastrar e gerenciar lojas, assinaturas, recursos, membros e apps autorizados.
+icon: store
+---
+
+Endpoints de lojas (merchants). Todos exigem [autenticação](/reference/partner/v2/authentication) com o scope `dv.partner`. Para o fluxo completo, veja o guia de [Lojas](/guides/partner/merchant).
+
+| Etapa | Endpoint | Guia |
+| --- | --- | --- |
+| 1. Cadastrar | `POST /{partnerId}/merchants`: a loja nasce em `TRIAL` por 10 dias. | [Cadastrar uma loja](/guides/partner/merchant/utilizando-a-api/adicionar-um-merchant) |
+| 2. Dar acesso | `POST /merchants/{merchantId}/members` e o magic link. | [Membros](/guides/partner/merchant/utilizando-a-api/membros-do-merchant) |
+| 3. Ativar | `POST /merchants/{merchantId}/activate`, com contrato e plano. | [Assinatura](/guides/partner/merchant/utilizando-a-api/gerenciar-assinatura-dos-merchants) |
+| 4. Acompanhar | `GET /merchants`, `GET /merchants/sales`, recursos e apps autorizados. | [Listar lojas](/guides/partner/merchant/utilizando-a-api/listar-merchants) |
+
+Os status da assinatura e os papéis de membro estão em [Definições](/guides/partner/merchant/definicoes).
+
+<Info>
+**Formato do corpo.** Membros usam `member.role` em minúsculas (`owner`, `manager`, `operator`); recursos usam `feature.featureTypes`; assinatura usa `subscription.agreementCode` e `subscription.planId`. Campos opcionais vazios não são enviados nas respostas.
+</Info>
+
+<Warning>
+Descontinuados, mas ainda respondendo com os headers `Deprecation` e `Sunset` (data anunciada: 01/07/2025):
+
+* `GET /partner/v2/merchants/invoices` → use `GET /partner/v2/{partnerId}/merchants/invoices`.
+* `PUT /partner/v2/merchants/{merchantId}/agreementCode` → use `PUT /partner/v2/merchants/{merchantId}/subscription`.
+</Warning>

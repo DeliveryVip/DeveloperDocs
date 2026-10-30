@@ -1,0 +1,120 @@
+---
+title: Listar faturas das lojas (descontinuado)
+sidebarTitle: Listar faturas (descontinuado)
+description: Formato antigo das faturas das lojas, mantido por compatibilidade. Migre para as rotas com partnerId.
+icon: file-invoice
+---
+
+<Warning>
+`GET /partner/v2/merchants/invoices` está **descontinuado**. A data de desligamento anunciada foi 01/07/2025: hoje a rota ainda responde, mas toda resposta traz os headers `Deprecation: true` e `Sunset: Tue, 01 Jul 2025 00:00:00 GMT` e ela pode ser removida a qualquer momento. Use [`GET /partner/v2/{partnerId}/merchants/invoices`](/guides/partner/invoices/utilizando-a-api/listando-merchants-invoices) ou [`GET /partner/v2/{partnerId}/invoices`](/guides/partner/invoices/utilizando-a-api/listando-invoices).
+</Warning>
+
+O endpoint devolve uma fatura por loja que o token alcança, para o mês pedido, com os itens que a DeliveryVip cobra do parceiro.
+
+| Status | Quando |
+| --- | --- |
+| `200 OK` | Lista de faturas. |
+| `204 No Content` | Nenhuma fatura no período. |
+| `403 Forbidden` | `x-partners` fora do alcance do token. |
+
+## Requisição
+
+<CodeGroup>
+```bash cURL
+curl 'https://api.deliveryvip.com.br/partner/v2/merchants/invoices?year=2024&month=1' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+const response = await fetch(
+  'https://api.deliveryvip.com.br/partner/v2/merchants/invoices?year=2024&month=1',
+  { headers: { Authorization: `Bearer ${token}` } },
+)
+```
+
+```python Python
+response = requests.get(
+    "https://api.deliveryvip.com.br/partner/v2/merchants/invoices",
+    params={"year": 2024, "month": 1},
+    headers={"Authorization": f"Bearer {token}"},
+)
+```
+</CodeGroup>
+
+<ParamField query="year" type="integer">
+Ano. Sem ele, vale o ano corrente.
+</ParamField>
+<ParamField query="month" type="integer">
+Mês, de 1 a 12. Sem ele, vale o mês corrente.
+</ParamField>
+<ParamField header="x-partners" type="string[]">
+Restringe a parceiros ou revendas específicos, como em [Filtrar por Partners](/guides/partner/merchant/utilizando-a-api/listar-merchants#filtrar-por-partners).
+</ParamField>
+
+## Resposta
+
+```json Resposta (200)
+[
+  {
+    "merchantId": "2a710c93-ece1-4d57-9038-6fc714c0e81b",
+    "month": "1",
+    "year": "2024",
+    "items": [
+      {
+        "itemType": "DELIVERY_TAKEOUT",
+        "quantity": 1,
+        "usageTime": 0.5,
+        "totalPrice": 150.0,
+        "totalUsageTimePrice": 75.0,
+        "metadata": {
+          "agreementCode": "123456",
+          "sales": {
+            "all": { "quantity": 1059, "totalPrice": 96125.11 },
+            "success": { "quantity": 1059, "totalPrice": 96125.11 },
+            "cancelled": { "quantity": 0, "totalPrice": 0.0 }
+          }
+        }
+      },
+      { "itemType": "INDOOR_QRCODE", "quantity": 7, "usageTime": 0.5, "totalPrice": 35.0, "totalUsageTimePrice": 17.5 }
+    ],
+    "partnerId": "ba1fcc5c-8570-4a8d-b7dc-9d4077f85be8",
+    "resaleId": "70d3fdf7-1c4a-49d5-8be9-171e417b8f61"
+  }
+]
+```
+
+<ResponseField name="merchantId" type="uuid">ID da loja.</ResponseField>
+<ResponseField name="month" type="string | integer">
+Mês da fatura. Repete o valor enviado na query (texto); sem o parâmetro, vem como número.
+</ResponseField>
+<ResponseField name="year" type="string | integer">
+Ano da fatura, com a mesma regra de `month`.
+</ResponseField>
+<ResponseField name="partnerId" type="uuid">ID do parceiro.</ResponseField>
+<ResponseField name="resaleId" type="uuid">ID da revenda. Só aparece em lojas de revenda.</ResponseField>
+<ResponseField name="items" type="object[]">
+Itens da fatura.
+
+<Expandable title="propriedades">
+<ResponseField name="itemType" type="string">
+`DELIVERY_TAKEOUT`, `DELIVERYBOT_NOTIFICATION`, `DELIVERYBOT_ASSISTANT`, `INDOOR_VIEWER`, `INDOOR_QRCODE`, `INDOOR_TABLET`, `DOMAIN_CUSTOM`, `GROWTH_DISCOUNT`, `INTEGRATION_MARKETING`, `INTEGRATION_LOGISTIC`, `SALES_REVENUE`, `ORDERS_COUNT` ou `MULTI_STORE`. Veja [Definições de faturas](/guides/partner/invoices/definicoes).
+</ResponseField>
+<ResponseField name="quantity" type="integer">Quantidade usada no mês.</ResponseField>
+<ResponseField name="usageTime" type="number">
+Fração do mês em que a assinatura da loja ficou ativa, de 0 a 1 (ex.: `0.5` para uma loja ativada no dia 16 de um mês de 30 dias).
+</ResponseField>
+<ResponseField name="totalPrice" type="number">
+Valor do item no mês cheio, em reais: o que o parceiro paga à DeliveryVip. Só para token do parceiro dono da fatura.
+</ResponseField>
+<ResponseField name="totalUsageTimePrice" type="number">
+Valor proporcional ao `usageTime`, em reais. Só para token do parceiro dono da fatura.
+</ResponseField>
+<ResponseField name="metadata" type="object">
+Só no item `DELIVERY_TAKEOUT`: `agreementCode`, totais de vendas (`sales.all`, `sales.success`, `sales.cancelled`) e, quando o preço é por faixas, `tieredPricingRanges` (só para token do parceiro dono da fatura).
+</ResponseField>
+</Expandable>
+</ResponseField>
+
+<Info>
+`totalPrice` e `totalUsageTimePrice` mostram quanto o **parceiro** paga à DeliveryVip pela loja, por isso só aparecem quando o token representa o parceiro dono da fatura. Para um token de revenda, os dois campos não são enviados (nem como `null`) e o `metadata` não traz `tieredPricingRanges`. `itemType`, `quantity`, `usageTime` e o resto do `metadata` continuam iguais.
+</Info>

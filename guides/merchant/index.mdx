@@ -1,0 +1,127 @@
+---
+title: Merchant API
+sidebarTitle: Introdução
+description: Conheça os módulos da Merchant API e escolha por onde começar a integrar o seu PDV ou ERP.
+icon: store
+---
+
+A Merchant API conecta o seu sistema (PDV, ERP, KDS, gestor de entregas) às lojas que instalaram o seu app na DeliveryVip. Com ela você recebe pedidos, atualiza o status, mantém o catálogo sincronizado e opera comandas, descontos e fidelidade.
+
+<Info>
+Seu PDV já implementa o padrão Open Delivery para outras plataformas? Veja o [Open Delivery](/guides/open-delivery). Vai gerenciar lojas, assinaturas e faturas de uma rede? Esse é o papel da [Partner API](/guides/partner).
+</Info>
+
+## Para quem é
+
+| Seu sistema | O que você usa |
+| --- | --- |
+| PDV ou ERP que recebe pedidos | [Pedidos](/guides/merchant/order) e [webhooks](/guides/merchant/webhooks) ou [polling](/guides/merchant/events). |
+| Sistema que é a fonte do cardápio | [Catálogo](/guides/merchant/catalog-and-services). |
+| PDV de salão, com mesas e comandas | [Indoor](/guides/merchant/indoor) e os pedidos `INDOOR`. |
+| Ferramenta de marketing ou CRM | [Descontos](/guides/merchant/discount) e [Fidelidade](/guides/merchant/loyalty). |
+
+## Base URL e autenticação
+
+Todas as rotas exigem um token OAuth2 no header `Authorization`, com o scope `od.all` (as rotas de configuração de fidelidade pedem `dv.loyalty`). Veja [Autenticação](/inicio/conceitos/autenticacao).
+
+| | |
+| --- | --- |
+| **Base URL** | `https://api.deliveryvip.com.br/merchant/v3` |
+| **Token** | `POST /authentication/v1/oauth/token` com `grant_type=client_credentials` e `scope=od.all`. Vale 24 horas e não tem `refresh_token`. |
+| **Alcance** | Um token atende todas as lojas que instalaram o seu app. As rotas por loja levam o `merchantId` no caminho: `/merchant/v3/{merchantId}/...`. |
+| **Formato** | JSON com chaves em camelCase. Datas em RFC 3339 com offset UTC-3; veja [Datas e horários](/inicio/conceitos/datas-e-horarios). |
+
+## Comece aqui
+
+<Steps>
+<Step title="Crie o app e instale numa loja de teste" icon="store">
+Siga a [Jornada do Developer](/inicio/primeiros-passos/jornada-do-developer): conta, app com a permissão **Merchant API** e a loja de teste, pedida no [Discord](https://discord.gg/AJF8Yha4).
+</Step>
+<Step title="Receba o seu primeiro pedido" icon="rocket">
+O tutorial [Receba seu primeiro pedido](/guides/merchant/order/fluxo-de-integracao/recepcao-de-pedidos) vai do token ao pedido confirmado, com um script pronto em Node.js e Python.
+</Step>
+<Step title="Prepare para produção" icon="flask">
+Escolha o canal de eventos abaixo, complete o ciclo do pedido com as [ações](/guides/merchant/order/fluxo-de-integracao/acoes-de-pedidos) e confira o checklist em [Testes e produção](/inicio/testes-e-producao).
+</Step>
+</Steps>
+
+## Como os eventos chegam
+
+Tudo o que muda numa loja vira um evento. Você escolhe como recebê-los, e pode usar os dois canais juntos.
+
+<CardGroup cols={2}>
+<Card title="Webhooks" icon="bolt" href="/guides/merchant/webhooks">
+A DeliveryVip envia cada evento para a sua URL no momento em que ele acontece. **Recomendado** como canal principal.
+</Card>
+<Card title="Polling de eventos" icon="arrows-rotate" href="/guides/merchant/events">
+Você consulta a fila a cada 30 segundos e confirma o que processou. Ideal como reconciliação.
+</Card>
+</CardGroup>
+
+| | Webhook | Polling |
+| --- | --- | --- |
+| **Quem inicia** | A DeliveryVip faz um `POST` na sua URL. | O seu sistema chama `GET /merchant/v3/events:polling`. |
+| **Atraso** | Na hora. | Até 30 segundos. |
+| **Precisa de** | Uma URL pública que responda `2xx` rápido e valide a assinatura. | Só o token. Funciona atrás de firewall. |
+| **Confirmação** | A resposta `2xx`. Sem acknowledgment. | Acknowledgment obrigatório de todo evento recebido. |
+| **Se o seu sistema cair** | Falhas acumulam; 10 seguidas suspendem o envio. | Os eventos esperam na fila por até 24 horas. |
+
+<Tip>
+Os dois canais são independentes: um evento entregue por webhook continua no polling. O arranjo mais robusto é o **webhook como canal principal** e o **polling como reconciliação**. Se o seu sistema não pode receber chamadas da internet, use só o polling.
+</Tip>
+
+## Módulos
+
+<CardGroup cols={2}>
+<Card title="Pedidos" icon="receipt" href="/guides/merchant/order">
+Receba, confirme, prepare, despache e cancele pedidos de delivery, retirada e consumo no local.
+</Card>
+<Card title="Catálogo" icon="book-open" href="/guides/merchant/catalog-and-services">
+Consulte e sincronize categorias, produtos, opções e serviços de delivery e retirada.
+</Card>
+<Card title="Indoor" icon="utensils" href="/guides/merchant/indoor">
+Gerencie comandas e mesas do autoatendimento e responda a chamadas de garçom e pedidos de conta.
+</Card>
+<Card title="Descontos" icon="tags" href="/guides/merchant/discount">
+Crie cupons e descontos automáticos e acompanhe o desempenho de cada um.
+</Card>
+<Card title="Ferramentas" icon="toolbox" href="/guides/merchant/tools">
+Calcule a taxa de entrega para um endereço e consulte se a loja está aberta.
+</Card>
+<Card title="Fidelidade" icon="gift" href="/guides/merchant/loyalty">
+Conecte o seu programa de cashback ao checkout: adesão, resgate e acúmulo.
+</Card>
+</CardGroup>
+
+<Note>
+Indoor e Descontos estão em **beta** e ainda podem mudar. Acompanhe o [changelog](/changelog).
+</Note>
+
+## Erros comuns
+
+Os erros seguem o formato `{"status": "422", "title": "..."}`. Veja [Erros](/inicio/conceitos/erros).
+
+| Status | Quando | O que fazer |
+| --- | --- | --- |
+| `401 Unauthorized` | Token ausente, expirado (24 h) ou revogado. | Peça um token novo com as mesmas credenciais e repita a chamada uma vez. |
+| `403 Forbidden` | Token sem o scope da rota, filtro inválido no polling ou loja sem acesso em `x-polling-merchants`. | Confira o scope e os filtros; tire do header as lojas listadas no erro. |
+| `404 Not Found` | O recurso não existe, a loja não instalou o seu app, ou o pedido ainda aguarda a aprovação do pagamento online. | Confira o `merchantId` e se a instalação foi concluída. |
+| `422 Unprocessable Content` | Dados inválidos, ou ação que o estado do pedido não aceita (por exemplo, despachar um pedido cancelado). | Leia o `title` e siga o [ciclo de vida](/guides/merchant/order/definicoes#ciclo-de-vida-do-pedido). |
+| `429 Too Many Requests` | Mais de 150 requisições em 10 segundos, ou polling mais de uma vez a cada 30 segundos. | Espere e repita com backoff. Veja [Rate limiting](/inicio/conceitos/rate-limiting). |
+
+## Próximos passos
+
+<CardGroup cols={2}>
+<Card title="Receba seu primeiro pedido" icon="rocket" href="/guides/merchant/order/fluxo-de-integracao/recepcao-de-pedidos">
+Do token ao pedido confirmado, com código pronto para rodar.
+</Card>
+<Card title="Testes e produção" icon="flask" href="/inicio/testes-e-producao">
+Loja de teste, checklist de integração e o que muda ao liberar o app.
+</Card>
+<Card title="Referência" icon="code" href="/reference/merchant/v3">
+Todos os endpoints da Merchant API V3.
+</Card>
+<Card title="Conceitos" icon="book" href="/inicio/conceitos">
+Erros, paginação, datas, rate limiting e Postman.
+</Card>
+</CardGroup>

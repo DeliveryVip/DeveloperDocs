@@ -1,0 +1,24 @@
+---
+title: Planos
+sidebarTitle: Visão geral
+description: Consulte os planos de cobrança do parceiro para usar nas assinaturas das lojas.
+icon: compass
+---
+
+Toda assinatura de loja está ligada a um plano de cobrança. O plano define quais recursos vêm incluídos e quais são cobrados à parte. Os planos são criados pelo parceiro no painel; pela API você os consulta para escolher o `planId` ao [ativar ou atualizar uma assinatura](/guides/partner/merchant/utilizando-a-api/gerenciar-assinatura-dos-merchants).
+
+<Info>
+Só planos com `status: AVAILABLE` podem ser usados em assinaturas. Planos `DRAFT` e `UNAVAILABLE` também aparecem na listagem, mas são recusados.
+</Info>
+
+<CardGroup cols={2}>
+<Card title="Definições" icon="book-open" href="/guides/partner/plans/definicoes">
+Campos do plano, visibilidade e tipos de recurso.
+</Card>
+<Card title="Listar planos" icon="list" href="/guides/partner/plans/utilizando-a-api/listar-planos">
+Todos os planos visíveis para o parceiro ou a revenda.
+</Card>
+<Card title="Obter detalhes do plano" icon="magnifying-glass" href="/guides/partner/plans/utilizando-a-api/obter-detalhes-do-plano">
+Um plano pelo ID.
+</Card>
+</CardGroup>

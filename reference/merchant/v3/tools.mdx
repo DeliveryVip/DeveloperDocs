@@ -1,0 +1,17 @@
+---
+title: Ferramentas
+description: Endpoint utilitário para calcular a taxa de entrega de uma coordenada.
+icon: toolbox
+---
+
+Calcule se a loja entrega numa coordenada, a distância e o valor da taxa. Exige [autenticação](/reference/merchant/v3/authentication) com o scope `od.all`. Veja o guia [Obter taxa de entrega](/guides/merchant/tools/obter-taxa-de-entrega).
+
+| Endpoint | Para quê |
+| --- | --- |
+| `GET /merchant/v3/{merchantId}/delivery-fee/{latitude}/{longitude}` | Cotar a entrega para a coordenada do cliente, em graus decimais com ponto (`-29.7202754`). |
+
+O uso típico é lançar um pedido por telefone ou no balcão com a mesma taxa que o cardápio digital cobraria. Uma loja que o token não alcança responde `404`. Veja todos os utilitários no guia de [Ferramentas](/guides/merchant/tools).
+
+<Note>
+O status de funcionamento da loja (`GET /merchant/v3/{merchantId}/status`) está no grupo [Catálogo](/reference/merchant/v3/catalog-and-services).
+</Note>

@@ -1,0 +1,119 @@
+---
+title: Membros da revenda
+description: Liste, adicione, atualize e remova quem acessa o painel da revenda, e gere magic links de acesso.
+icon: users
+---
+
+Membros da revenda são os usuários com acesso ao painel dela. Os endpoints e as regras são os mesmos dos [membros da loja](/guides/partner/merchant/utilizando-a-api/membros-do-merchant), trocando `/merchants/{merchantId}` por `/resales/{resaleId}`.
+
+| Ação | Endpoint | Sucesso |
+| --- | --- | --- |
+| Listar | `GET /partner/v2/resales/{resaleId}/members` | `200` ou `204` |
+| Adicionar | `POST /partner/v2/resales/{resaleId}/members` | `201` |
+| Atualizar | `PATCH /partner/v2/resales/{resaleId}/members/{memberId}` | `200` |
+| Remover | `DELETE /partner/v2/resales/{resaleId}/members/{memberId}` | `200` |
+| Magic link | `POST /partner/v2/resales/{resaleId}/members/{memberId}/magic-link` | `201` |
+
+## Listar membros
+
+Traz os membros com acesso ativo; convites pendentes não aparecem.
+
+```bash
+curl 'https://api.deliveryvip.com.br/partner/v2/resales/{resaleId}/members' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```json Resposta (200)
+[
+  {
+    "id": "b90a8ae0-9cf0-40ef-a295-b3f43db65076",
+    "role": "OWNER",
+    "user": { "name": "Carlos Lima", "email": "carlos@revendasul.com.br" },
+    "status": "ACTIVE"
+  }
+]
+```
+
+## Adicionar membro
+
+<ParamField body="member.role" type="string" required>
+Papel, **em minúsculas**: `owner`, `manager` ou `operator`. Volta em maiúsculas.
+</ParamField>
+<ParamField body="user.name" type="string" required>Nome do usuário.</ParamField>
+<ParamField body="user.email" type="string" required>E-mail do usuário.</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl --request POST 'https://api.deliveryvip.com.br/partner/v2/resales/{resaleId}/members' \
+  --header 'Authorization: Bearer {token}' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "member": { "role": "manager" },
+    "user": { "name": "Ana Costa", "email": "ana@revendasul.com.br" }
+  }'
+```
+
+```js Node.js
+const response = await fetch(`https://api.deliveryvip.com.br/partner/v2/resales/${resaleId}/members`, {
+  method: 'POST',
+  headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    member: { role: 'manager' },
+    user: { name: 'Ana Costa', email: 'ana@revendasul.com.br' },
+  }),
+})
+const member = await response.json()
+```
+
+```python Python
+response = requests.post(
+    f"https://api.deliveryvip.com.br/partner/v2/resales/{resale_id}/members",
+    headers={"Authorization": f"Bearer {token}"},
+    json={
+        "member": {"role": "manager"},
+        "user": {"name": "Ana Costa", "email": "ana@revendasul.com.br"},
+    },
+)
+member = response.json()
+```
+</CodeGroup>
+
+Responde `201` com o membro. Com e-mail novo, a conta é criada e o membro volta `ACTIVE`. Com e-mail que já tem conta, um convite é enviado e o membro volta `INVITED` até o aceite. Papel inválido (inclusive em maiúsculas) retorna `422`.
+
+## Atualizar membro
+
+```bash
+curl --request PATCH 'https://api.deliveryvip.com.br/partner/v2/resales/{resaleId}/members/{memberId}' \
+  --header 'Authorization: Bearer {token}' \
+  --header 'Content-Type: application/json' \
+  --data '{ "member": { "role": "operator" } }'
+```
+
+## Remover membro
+
+Remove o acesso (ou cancela o convite) e responde com o `id` do membro.
+
+```bash
+curl --request DELETE 'https://api.deliveryvip.com.br/partner/v2/resales/{resaleId}/members/{memberId}' \
+  --header 'Authorization: Bearer {token}'
+```
+
+## MagicLink
+
+Gera um link de acesso sem senha para um membro `ACTIVE`, válido por 6 horas e de uso único. Se a conta exige código por e-mail ou dois fatores, o link inicia esse desafio.
+
+```bash
+curl --request POST 'https://api.deliveryvip.com.br/partner/v2/resales/{resaleId}/members/{memberId}/magic-link' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```json Resposta (201)
+{
+  "magicLink": "https://painel.seudominio.com.br/magic-links/authenticate?em=...&sign_in_token=...",
+  "magicLinkExpiresAt": "2025-10-23T07:33:23-03:00"
+}
+```
+
+<Warning>
+O magic link e o convite usam o domínio do painel do parceiro. Sem domínio configurado, a resposta é `403` (`partner must be setup a domain to user access`).
+</Warning>

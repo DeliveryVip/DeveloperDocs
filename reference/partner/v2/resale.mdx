@@ -1,0 +1,25 @@
+---
+title: Revendas
+description: Endpoints para listar, cadastrar e gerenciar revendas, assinaturas, membros e apps autorizados.
+icon: people-group
+---
+
+Endpoints de revendas. Todos exigem [autenticação](/reference/partner/v2/authentication) com um token **de parceiro** e o scope `dv.partner`. Para o fluxo completo, veja o guia de [Revendas](/guides/partner/resale).
+
+| Etapa | Endpoint | Guia |
+| --- | --- | --- |
+| 1. Cadastrar | `POST /{partnerId}/resales`: a revenda nasce em `TRIAL` por 10 dias, com uma loja de demonstração. | [Cadastrar uma revenda](/guides/partner/resale/utilizando-a-api/adicionar-um-resale) |
+| 2. Dar acesso | Membros do painel e, se a revenda tiver sistema próprio, o app dela com `dv.partner`. | [Membros](/guides/partner/resale/utilizando-a-api/membros-da-revenda) e [apps](/guides/partner/resale/utilizando-a-api/gerenciar-permissao-de-aplicativos-das-revendas) |
+| 3. Ativar | `POST /resales/{resaleId}/activate`. Lojas da revenda só são ativadas com a revenda ativa. | [Assinatura](/guides/partner/resale/utilizando-a-api/gerenciar-assinatura-das-revendas) |
+| 4. Consultar | `GET /resales` e `GET /resales/{resaleId}`. | [Listar revendas](/guides/partner/resale/utilizando-a-api/listar-resales) |
+
+<Info>
+A assinatura da revenda não tem plano: `activate` e `subscription` aceitam só `subscription.agreementCode`. No cadastro, o CPF do responsável vai em `personResponsible.document`.
+</Info>
+
+<Warning>
+Descontinuados, mas ainda respondendo com os headers `Deprecation` e `Sunset` (data anunciada: 01/07/2025):
+
+* `GET /partner/v2/resales/invoices` → use `GET /partner/v2/{partnerId}/resales/invoices`.
+* `PUT /partner/v2/resales/{resaleId}/agreementCode` → use `PUT /partner/v2/resales/{resaleId}/subscription`.
+</Warning>

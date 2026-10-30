@@ -1,0 +1,107 @@
+---
+title: Obter status do merchant
+sidebarTitle: Status do merchant
+description: Consulte se a loja está aberta ou fechada e os horários de funcionamento de cada dia da semana.
+icon: store
+---
+
+Consulte se a loja está aberta neste momento e em quais horários ela atende durante a semana. Use para mostrar o status no seu sistema ou evitar lançar pedidos com a loja fechada.
+
+## Requisição
+
+<CodeGroup>
+```bash cURL
+curl 'https://api.deliveryvip.com.br/merchant/v3/{merchantId}/status' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+const response = await fetch(`https://api.deliveryvip.com.br/merchant/v3/${merchantId}/status`, {
+  headers: { Authorization: `Bearer ${token}` },
+})
+const { status, services } = await response.json()
+```
+
+```python Python
+response = requests.get(
+    f"https://api.deliveryvip.com.br/merchant/v3/{merchant_id}/status",
+    headers={"Authorization": f"Bearer {token}"},
+)
+merchant_status = response.json()
+```
+</CodeGroup>
+
+<ParamField path="merchantId" type="uuid" required>
+A loja.
+</ParamField>
+
+## Resposta
+
+<ResponseField name="status" type="string" required>
+`AVAILABLE` se a loja está aberta agora, `UNAVAILABLE` se está fechada.
+</ResponseField>
+
+<ResponseField name="services" type="object[]" required>
+Lista com um único serviço, que reúne os horários da loja.
+
+<Expandable title="propriedades">
+<ResponseField name="id" type="uuid" required>
+Identificador da loja.
+</ResponseField>
+<ResponseField name="serviceHours" type="object[]" required>
+Lista com um único item.
+
+<Expandable title="propriedades">
+<ResponseField name="weekHours" type="object[]" required>
+Um item por período de funcionamento. Um dia com dois turnos gera dois itens; dias sem horário não aparecem.
+
+<Expandable title="propriedades">
+<ResponseField name="dayOfWeek" type="string[]" required>
+O dia do período, sempre com um único valor: `MONDAY`, `TUESDAY`, `WEDNESDAY`, `THURSDAY`, `FRIDAY`, `SATURDAY` ou `SUNDAY`.
+</ResponseField>
+<ResponseField name="timePeriods" type="object" required>
+`startTime` e `endTime` no formato `HH:MM:SS`, no horário local da loja.
+</ResponseField>
+</Expandable>
+</ResponseField>
+</Expandable>
+</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseField name="orderingAppMerchantId" type="uuid" required>
+Identificador da loja na DeliveryVip.
+</ResponseField>
+
+```json Resposta (200)
+{
+  "status": "AVAILABLE",
+  "services": [
+    {
+      "id": "f2dc029d-b999-4f26-b1e3-9a3e313051df",
+      "serviceHours": [
+        {
+          "weekHours": [
+            { "dayOfWeek": ["MONDAY"], "timePeriods": { "startTime": "11:00:00", "endTime": "14:00:00" } },
+            { "dayOfWeek": ["MONDAY"], "timePeriods": { "startTime": "18:00:00", "endTime": "23:00:00" } },
+            { "dayOfWeek": ["TUESDAY"], "timePeriods": { "startTime": "18:00:00", "endTime": "23:00:00" } },
+            { "dayOfWeek": ["SATURDAY"], "timePeriods": { "startTime": "11:00:00", "endTime": "23:59:00" } }
+          ]
+        }
+      ]
+    }
+  ],
+  "orderingAppMerchantId": "f2dc029d-b999-4f26-b1e3-9a3e313051df"
+}
+```
+
+<Note>
+`status` reflete se a loja está aberta neste momento, não é calculado a partir de `weekHours`. A loja pode estar fechada dentro do horário de funcionamento, por exemplo quando o lojista fecha a loja manualmente pelo painel.
+</Note>
+
+## Erros comuns
+
+| Status | Causa |
+| --- | --- |
+| `401 Unauthorized` | Token ausente, inválido ou expirado. |
+| `404 Not Found` | A loja não existe ou o token não tem acesso a ela. |

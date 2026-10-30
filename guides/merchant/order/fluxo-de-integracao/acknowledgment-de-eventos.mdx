@@ -1,0 +1,70 @@
+---
+title: Acknowledgment de eventos
+sidebarTitle: Acknowledgment
+description: Confirme o recebimento dos eventos para tirá-los da fila do polling.
+icon: check-double
+---
+
+Depois de cada polling com resultados, envie o acknowledgment dos eventos recebidos. Só assim eles saem da fila e o próximo polling traz o lote seguinte.
+
+## Requisição
+
+<ParamField body="id" type="uuid" required>
+O `eventId` de cada evento recebido. O corpo é um **array** de objetos, um por evento.
+</ParamField>
+
+<Warning>
+O campo lido é `id`. Reenviar o evento como veio do polling não funciona: ele traz o identificador em `eventId`, e a API não o reconhece. Monte o corpo como `[{ "id": evento.eventId }]`.
+</Warning>
+
+<CodeGroup>
+```bash cURL
+curl --request POST 'https://api.deliveryvip.com.br/merchant/v3/events/acknowledgment' \
+  --header 'Authorization: Bearer {token}' \
+  --header 'Content-Type: application/json' \
+  --data '[
+    { "id": "9a24ea9e-5743-4957-9b83-7a4b4f2a4597" },
+    { "id": "1c2f6a4e-0d5b-4f7e-9a51-3b8e2f6c9d10" }
+  ]'
+```
+
+```js Node.js
+await fetch('https://api.deliveryvip.com.br/merchant/v3/events/acknowledgment', {
+  method: 'POST',
+  headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+  body: JSON.stringify(events.map(({ eventId }) => ({ id: eventId }))),
+})
+```
+
+```python Python
+requests.post(
+    "https://api.deliveryvip.com.br/merchant/v3/events/acknowledgment",
+    headers={"Authorization": f"Bearer {token}"},
+    json=[{"id": event["eventId"]} for event in events],
+)
+```
+</CodeGroup>
+
+## Resposta
+
+<ResponseField name="total" type="integer">
+Quantos eventos foram confirmados nesta chamada.
+</ResponseField>
+
+```json 202 Accepted
+{ "total": 2 }
+```
+
+## Boas práticas
+
+<Check>
+**Um acknowledgment por polling com resultados.** Confirme o lote inteiro de uma vez.
+</Check>
+
+<Check>
+**Confirme também o que você não usa.** Eventos que o seu app ainda não trata precisam de acknowledgment, ou voltam em todo polling. Esse deve ser o tratamento padrão para qualquer evento não mapeado.
+</Check>
+
+<Check>
+**Pode repetir sem medo.** A operação é idempotente: confirmar o mesmo evento duas vezes não gera erro.
+</Check>

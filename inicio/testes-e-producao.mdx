@@ -1,0 +1,172 @@
+---
+title: Testes e ir para produção
+sidebarTitle: Testes e produção
+description: Como testar a integração numa loja de teste, o checklist de cada produto antes de liberar e o que muda quando as lojas reais instalam o seu app.
+icon: flask-vial
+---
+
+Esta página reúne o que fazer entre a primeira chamada e a primeira loja real: como montar o ambiente de testes, gerar pedidos, conferir a integração item a item e acompanhar o app depois que ele estiver em uso.
+
+## Ambiente de testes
+
+<Warning>
+**Não existe sandbox self-service.** A DeliveryVip não tem um ambiente de testes separado: todas as chamadas vão para a API de produção, nos mesmos hosts. O isolamento vem da **loja de teste**: uma loja real, que não atende clientes, com o seu app instalado.
+</Warning>
+
+<Steps>
+<Step title="Peça uma loja de teste" icon="store">
+Peça no [Discord](https://discord.gg/AJF8Yha4), no canal de desenvolvedores. Diga qual produto você vai integrar (pedidos, indoor, fidelidade, Open Delivery) para a loja vir com o que você precisa testar.
+</Step>
+<Step title="Instale o app nela" icon="download">
+Envie o token de autorização do app para quem administra a loja e siga [Instalando o app na loja](/inicio/primeiros-passos/instalando-app-na-loja). Guarde o `merchantId` que aparece no fim.
+</Step>
+<Step title="Confira o token" icon="key">
+Gere o token e chame `GET /authentication/v1/oauth/token/info`. Veja [Jornada do Developer](/inicio/primeiros-passos/jornada-do-developer#o-caminho).
+</Step>
+<Step title="Gere pedidos de teste" icon="receipt">
+Faça pedidos na loja de teste como um cliente faria. Veja a próxima seção.
+</Step>
+</Steps>
+
+### Gerando pedidos de teste
+
+Não há endpoint que crie pedidos fictícios. Um pedido de teste é um **pedido de verdade** feito no cardápio digital da loja de teste, e gera os mesmos eventos de qualquer pedido. Peça o link do cardápio junto com a loja.
+
+| Para testar | Como gerar |
+| --- | --- |
+| `CREATED` de `DELIVERY` ou `TAKEOUT` | Faça um pedido no cardápio digital e escolha entrega ou retirada no checkout. |
+| `CONFIRMED`, `DISPATCHED`, `READY_FOR_PICKUP`, `CONCLUDED` | Chame as [ações do pedido](/guides/merchant/order/fluxo-de-integracao/acoes-de-pedidos). Em `DELIVERY`, o `delivered` conclui o pedido e gera `CONCLUDED`. |
+| `CANCELLED` | Chame [`requestCancellation`](/guides/merchant/order/fluxo-de-integracao/acoes-de-pedidos#requisitar-cancelamento-de-um-pedido): o pedido é cancelado na hora. |
+| Pedido `INDOOR`, `CALL_WAITER` e `CLOSE_ACCOUNT` | A loja precisa de uma mesa ou comanda cadastrada, com o QR Code. Peça no Discord junto com a loja. Veja [Indoor](/guides/merchant/indoor). |
+| Card de fidelidade no checkout | Faça um pedido de entrega ou retirada logado como cliente com cadastro completo (nome, telefone, e-mail, CPF e data de nascimento). Sem login, o card pede para entrar; com cadastro incompleto, pede para completar o cadastro. Veja [Fidelidade](/guides/merchant/loyalty). |
+
+<Tip>
+Prefira uma forma de pagamento na entrega, se a loja de teste oferecer. Pedidos com pagamento online só ficam disponíveis na API depois que o pagamento é aprovado: até lá, a busca do pedido responde `404`. Veja [Obter detalhes do pedido](/guides/merchant/order/fluxo-de-integracao/obter-detalhes-do-pedido).
+</Tip>
+
+### Testando o webhook
+
+A DeliveryVip precisa alcançar a sua URL pela internet. Durante o desenvolvimento, exponha o seu servidor local com um túnel (ngrok, Cloudflare Tunnel ou similar) e cadastre essa URL na seção **Webhook** do app. Cada pedido de teste chega nela, e a tela **Ver webhooks enviados** mostra o status HTTP que o seu endpoint respondeu. Veja [Webhooks](/guides/merchant/webhooks#acompanhamento).
+
+## Checklist de integração
+
+Antes de liberar o app para lojas reais, confira cada item na loja de teste. Escolha o seu produto.
+
+<Tabs>
+<Tab title="Merchant API" icon="store">
+| | Item | Onde está |
+| --- | --- | --- |
+| 1 | Polling a cada **30 segundos**, e de novo sem esperar só quando o lote vier com 100 eventos. | [Consultar novos pedidos](/guides/merchant/order/fluxo-de-integracao/consultar-novos-pedidos) |
+| 2 | Com várias lojas no mesmo token e tratamento separado por loja, header `x-polling-merchants` com uma loja por header. | [Filtros](/guides/merchant/order/fluxo-de-integracao/consultar-novos-pedidos#filtros) |
+| 3 | Acknowledgment com `[{ "id": "<eventId>" }]` de **todos** os eventos recebidos, inclusive repetidos e tipos que você não trata. | [Acknowledgment](/guides/merchant/order/fluxo-de-integracao/acknowledgment-de-eventos) |
+| 4 | `eventId` processados guardados no banco; repetidos são descartados. | [Seu primeiro pedido](/guides/merchant/order/fluxo-de-integracao/recepcao-de-pedidos#como-funciona) |
+| 5 | Detalhes buscados na `orderURL` do evento; o evento é só o aviso. | [Obter detalhes do pedido](/guides/merchant/order/fluxo-de-integracao/obter-detalhes-do-pedido) |
+| 6 | `CANCELLED` tratado: o pedido sai da tela do PDV e não segue para preparo ou entrega. | [Eventos de pedidos](/guides/merchant/order/fluxo-de-integracao/eventos-de-pedidos) |
+| 7 | `confirm` quando a loja aceita; `dispatch` obrigatório em `DELIVERY`; `readyForPickup` obrigatório em `TAKEOUT` e `INDOOR`. | [Ações de pedidos](/guides/merchant/order/fluxo-de-integracao/acoes-de-pedidos) |
+| 8 | Pedidos `SCHEDULED` não são preparados na hora. | [Momento do pedido](/guides/merchant/order/definicoes#momento-do-pedido) |
+| 9 | Token guardado e reaproveitado; ao receber `401`, um token novo com as mesmas credenciais. `client_credentials` não tem `refresh_token`. | [Autenticação](/inicio/conceitos/autenticacao#expiração-e-reaproveitamento) |
+| 10 | `403` no polling tratado: filtro inválido ou loja sem acesso em `x-polling-merchants` (o corpo lista as lojas). | [Consultar novos pedidos](/guides/merchant/order/fluxo-de-integracao/consultar-novos-pedidos#filtros) |
+| 11 | `429` tratado com espera e backoff, sem repetir na hora. | [Rate limiting](/inicio/conceitos/rate-limiting) |
+</Tab>
+
+<Tab title="Webhooks" icon="bolt">
+| | Item | Onde está |
+| --- | --- | --- |
+| 1 | Assinatura `X-App-Signature` validada com HMAC-SHA256 do **corpo bruto** e o Client Secret, em comparação de tempo constante. | [Validando a origem](/guides/merchant/webhooks#validando-a-origem) |
+| 2 | Requisições com assinatura inválida rejeitadas. | [Validando a origem](/guides/merchant/webhooks#validando-a-origem) |
+| 3 | Resposta **2xx rápida**: o evento é gravado e processado depois (limite de 3 s para conectar e 5 s para responder). | [O que o seu endpoint deve fazer](/guides/merchant/webhooks#o-que-o-seu-endpoint-deve-fazer) |
+| 4 | Repetidos descartados pelo `eventId`. | [O que o seu endpoint deve fazer](/guides/merchant/webhooks#o-que-o-seu-endpoint-deve-fazer) |
+| 5 | Sobrecarga respondida com `429` ou `408`: só esses, timeouts e erros de conexão têm nova tentativa automática. Um `5xx` vira falha na hora. | [Tentativas e reenvio](/guides/merchant/webhooks#tentativas-e-reenvio) |
+| 6 | Plano para a suspensão: 10 falhas consecutivas suspendem o envio, e a reativação é manual no painel. | [Suspensão automática](/guides/merchant/webhooks#suspensão-automática) |
+| 7 | Polling rodando como reconciliação, para recuperar o que o webhook perdeu. | [Webhooks](/guides/merchant/webhooks) |
+| 8 | Tipos de evento desconhecidos respondidos com `2xx` e ignorados. | [Tipos de evento](/guides/merchant/webhooks#tipos-de-evento) |
+</Tab>
+
+<Tab title="Open Delivery" icon="right-left">
+| | Item | Onde está |
+| --- | --- | --- |
+| 1 | Um `client_secret` **por loja** guardado junto da loja; o token de cada loja pedido com o secret dela, em `od.deliveryvip.com.br/oauth/token`. | [Primeiros passos](/guides/open-delivery/primeiros-passos) |
+| 2 | Rotas montadas com o prefixo `/v1`; token na raiz do host. | [Introdução](/guides/open-delivery) |
+| 3 | Datas lidas como **UTC**, com um parser RFC 3339 que respeite o offset. | [Introdução](/guides/open-delivery) |
+| 4 | `merchantOnboarding` de cada loja com o `merchantId` do seu sistema, a URL de webhook e o endpoint de catálogo. | [Onboarding de lojas](/guides/open-delivery/onboarding-de-lojas) |
+| 5 | Mudanças de catálogo avisadas com `merchantUpdate`, e o resultado conferido em `merchantStatus`. | [Catálogo](/guides/open-delivery/catalogo) |
+| 6 | Webhook validado com o `client_secret` **da loja**; polling com acknowledgment como reconciliação. | [Recebendo eventos](/guides/open-delivery/recebendo-eventos) |
+| 7 | Status do pedido transicionado até o fim, e cancelamento tratado. | [Ciclo de vida do pedido](/guides/open-delivery/ciclo-de-vida-do-pedido) |
+</Tab>
+
+<Tab title="Fidelidade" icon="gift">
+| | Item | Onde está |
+| --- | --- | --- |
+| 1 | As cinco rotas do contrato no ar sob a `api_base_url`: `ping`, `accounts:link`, saldo, `redemptions` e `reversal`. | [Contrato do operador](/guides/merchant/loyalty/contrato-do-operador) |
+| 2 | Assinatura `X-App-Signature` validada sobre o corpo bruto em todas as rotas; nas rotas sem corpo, sobre a string vazia. | [Autenticação das chamadas](/guides/merchant/loyalty/contrato-do-operador#autenticação-das-chamadas) |
+| 3 | `ping` respondendo `204` com a assinatura validada: sem ele, o config push volta `422` e nada é gravado. | [Ativando o programa](/guides/merchant/loyalty/ativando-o-programa) |
+| 4 | Débito idempotente pelo `relatedOrderId` e respondido dentro dos timeouts (3 s para conectar, 5 s para ler). | [Resgate e estorno](/guides/merchant/loyalty/contrato-do-operador/resgate-e-estorno) |
+| 5 | Estorno idempotente: `2xx` também para um resgate já estornado; `404` só para um `redemptionId` desconhecido. | [Estorno](/guides/merchant/loyalty/contrato-do-operador/resgate-e-estorno#estorno-reversal) |
+| 6 | Só os códigos documentados em cada rota: qualquer outro conta para o circuit breaker. | [Timeouts e circuit breaker](/guides/merchant/loyalty/contrato-do-operador#timeouts-e-circuit-breaker) |
+| 7 | Acúmulo no `CONCLUDED` e desfeito no `CANCELLED`, lendo o bloco `loyalty` do pedido com o token `od.all`. | [Acúmulo](/guides/merchant/loyalty/acumulo) |
+</Tab>
+
+<Tab title="Partner API" icon="handshake">
+| | Item | Onde está |
+| --- | --- | --- |
+| 1 | Token pedido com `scope=dv.partner`, depois que o parceiro ou a revenda autorizou o app. | [Partner API](/guides/partner) |
+| 2 | `partnerId` lido das lojas (`GET /partner/v2/merchants`) e usado nas rotas `/partner/v2/{partnerId}/...`. | [Primeira chamada](/guides/partner#primeira-chamada-liste-suas-lojas) |
+| 3 | Com mais de um parceiro ou revenda no mesmo token, listagens filtradas com `x-partners`. | [Filtrar por Partners](/guides/partner/merchant/utilizando-a-api/listar-merchants#filtrar-por-partners) |
+| 4 | Respostas `204` das listagens tratadas como lista vazia. | [Partner API](/guides/partner) |
+| 5 | Faturas lidas pelo `type` de cada bloco, nunca pela posição. | [Faturas](/guides/partner/invoices) |
+| 6 | Token `dv.partner` só no seu backend, nunca no navegador (cadastro por landing page). | [Cadastro](/guides/partner/signup) |
+</Tab>
+</Tabs>
+
+<Warning>
+Na Partner API, os testes mexem na sua rede de verdade: lojas cadastradas, ativadas ou canceladas pela API são reais, e lojas ativas ou canceladas no mês entram no [fechamento de faturas](/guides/partner/invoices). Combine no Discord como testar antes de cadastrar lojas.
+</Warning>
+
+## Ir para produção
+
+Como não há sandbox, não existe migração de ambiente: **nada muda nas URLs nem nas credenciais**. O app que você testou é o mesmo que as lojas reais vão instalar.
+
+<Steps>
+<Step title="Revise o app no painel" icon="sliders">
+Confira as permissões (scopes), o **e-mail de contato**, que recebe os avisos de instalação e de suspensão do webhook, e a **URL de webhook**, que agora deve apontar para o seu endpoint de produção. O app tem uma única URL de webhook para todas as lojas.
+</Step>
+<Step title="Envie o token de autorização às lojas" icon="paper-plane">
+Cada loja instala o app pela Delivery Store com o token de autorização. Envie junto o guia [Instalando o app na loja](/inicio/primeiros-passos/instalando-app-na-loja) e peça o `merchantId` no fim.
+</Step>
+<Step title="Cadastre cada loja no seu sistema" icon="database">
+Associe o `merchantId` ao cliente no seu sistema. O mesmo token passa a alcançar a loja nova. No Open Delivery, guarde o `client_secret` da loja e faça o onboarding dela.
+</Step>
+<Step title="Acompanhe os primeiros pedidos" icon="eye">
+Siga os primeiros pedidos de cada loja na tela **Ver webhooks enviados** e no seu sistema antes de considerar a loja liberada.
+</Step>
+</Steps>
+
+<Tip>
+Os eventos da loja de teste continuam chegando no mesmo app. Se você mantiver a loja de teste instalada, identifique-a pelo `merchantId` no seu sistema. Se preferir um app separado para homologação, crie outro app no painel e instale só ele na loja de teste.
+</Tip>
+
+### Monitoramento
+
+<CardGroup cols={2}>
+<Card title="Webhooks enviados" icon="list-check" href="/guides/merchant/webhooks#acompanhamento">
+No painel do developer, na sua aplicação, **Ver webhooks enviados**: histórico de entregas, status HTTP, tentativas e reenvio das que falharam.
+</Card>
+<Card title="E-mail de suspensão" icon="envelope" href="/guides/merchant/webhooks#suspensão-automática">
+Após 10 falhas consecutivas, o envio é suspenso e o e-mail de contato do app recebe o aviso com o motivo. Reative em **Reativar envios**.
+</Card>
+</CardGroup>
+
+<Note>
+O Open Delivery suspende os webhooks **por loja**, e a reativação é diferente. Veja [Recebendo eventos](/guides/open-delivery/recebendo-eventos).
+</Note>
+
+## Suporte
+
+<CardGroup cols={2}>
+<Card title="Discord" icon="discord" href="https://discord.gg/AJF8Yha4">
+Canal de desenvolvedores: loja de teste, dúvidas e acompanhamento da integração.
+</Card>
+<Card title="Reunião com o time" icon="calendar" href="https://calendar.app.google/EchaXk57y7xp8Hyx6">
+Agende uma conversa para revisar a integração antes de ir para produção.
+</Card>
+</CardGroup>

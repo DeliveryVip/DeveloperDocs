@@ -1,0 +1,240 @@
+---
+title: Listar pedidos
+description: Consulte o histórico de pedidos de uma loja com filtros por período e tipo, paginação por cursor e agrupamento de opções.
+icon: list
+---
+
+Use a listagem para consultar o histórico de pedidos de uma loja: conciliar o dia, recuperar um pedido que o seu sistema perdeu ou montar relatórios. Para receber pedidos novos, use os [eventos](/guides/merchant/events), não a listagem.
+
+`GET /merchant/v3/{merchantId}/orders` devolve os pedidos do **mais recente para o mais antigo**, no mesmo formato de [Obter detalhes do pedido](/guides/merchant/order/fluxo-de-integracao/obter-detalhes-do-pedido).
+
+## Requisição
+
+<CodeGroup>
+```bash cURL
+curl --include 'https://api.deliveryvip.com.br/merchant/v3/{merchantId}/orders?starts_at=2026-10-01&ends_in=2026-10-07&orderType[]=DELIVERY' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+const url = new URL(`https://api.deliveryvip.com.br/merchant/v3/${merchantId}/orders`)
+url.searchParams.set('starts_at', '2026-10-01')
+url.searchParams.set('ends_in', '2026-10-07')
+url.searchParams.append('orderType[]', 'DELIVERY')
+
+const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+const orders = response.status === 204 ? [] : await response.json()
+const nextCursor = response.headers.get('x-next-cursor')
+```
+
+```python Python
+response = requests.get(
+    f"https://api.deliveryvip.com.br/merchant/v3/{merchant_id}/orders",
+    headers={"Authorization": f"Bearer {token}"},
+    params={"starts_at": "2026-10-01", "ends_in": "2026-10-07", "orderType[]": ["DELIVERY"]},
+)
+orders = [] if response.status_code == 204 else response.json()
+next_cursor = response.headers.get("x-next-cursor")
+```
+</CodeGroup>
+
+<ParamField path="merchantId" type="uuid" required>
+A loja. O token precisa ter acesso a ela; caso contrário a resposta é `404`.
+</ParamField>
+
+### Filtros
+
+<ParamField query="starts_at" type="date">
+Primeiro dia do período, no formato `AAAA-MM-DD`. Considera desde o início do dia, no fuso de Brasília. Sem `ends_in`, o período vai até o fim do dia de hoje.
+</ParamField>
+
+<ParamField query="ends_in" type="date">
+Último dia do período, no formato `AAAA-MM-DD`, até o fim do dia. Exige `starts_at`: enviado sozinho, retorna `406`.
+</ParamField>
+
+<ParamField query="orderType[]" type="string[]">
+Tipos de pedido: `DELIVERY`, `TAKEOUT` ou `INDOOR`. Repita o parâmetro **com colchetes**, uma vez por valor.
+
+```text
+/merchant/v3/{merchantId}/orders?orderType[]=DELIVERY&orderType[]=TAKEOUT
+```
+</ParamField>
+
+<Warning>
+Diferente do polling de eventos, aqui o filtro `orderType` precisa dos colchetes (`orderType[]=`). Sem eles, o filtro é ignorado e a listagem traz todos os tipos.
+</Warning>
+
+### Formato das opções
+
+<ParamField query="views[]" type="string">
+Envie `optionGroups` para receber as opções de cada item agrupadas pelo grupo de opções em `items[].optionGroups`, em vez da lista simples `items[].options`.
+
+```text
+/merchant/v3/{merchantId}/orders?views[]=optionGroups
+```
+</ParamField>
+
+<Accordion title="Exemplo de item com optionGroups" icon="layer-group">
+```json
+"optionGroups": [
+  {
+    "id": "3e94cbcf-359a-4ed3-bcdb-c36a15b48971",
+    "name": "Sabores Pizza",
+    "externalCode": "6",
+    "totalPrice": { "value": 12.0, "currency": "BRL" },
+    "options": [
+      {
+        "id": "4e4faed4-aea0-48dd-b25e-fdff503c98f0",
+        "index": 0,
+        "name": "Chocolate Preto M&Ms",
+        "externalCode": "23",
+        "unit": "UN",
+        "quantity": 1,
+        "unitPrice": { "value": 6.0, "currency": "BRL" },
+        "totalPrice": { "value": 6.0, "currency": "BRL" }
+      },
+      {
+        "id": "ae909b21-d1dc-45f1-880b-bcba53a7afa8",
+        "index": 1,
+        "name": "Bombom Chocolate Branco",
+        "externalCode": "8",
+        "unit": "UN",
+        "quantity": 1,
+        "unitPrice": { "value": 6.0, "currency": "BRL" },
+        "totalPrice": { "value": 6.0, "currency": "BRL" }
+      }
+    ]
+  }
+]
+```
+</Accordion>
+
+### Paginação
+
+<ParamField query="per_page" type="integer" default="30">
+Pedidos por página, entre **30** e **250**. Valores fora dessa faixa são ajustados para o limite mais próximo.
+</ParamField>
+
+<ParamField query="next" type="string">
+Cursor da próxima página, copiado do header `X-Next-Cursor` da resposta anterior.
+</ParamField>
+
+<ParamField query="previous" type="string">
+Cursor da página anterior, copiado do header `X-Previous-Cursor`. Não envie `next` e `previous` juntos: a resposta é `400`.
+</ParamField>
+
+A resposta traz os cursores nos headers `X-Next-Cursor` e `X-Previous-Cursor` e as URLs prontas no header `Link`. Cada header só vem quando existe a página correspondente. Veja [Paginação](/inicio/conceitos/paginacao).
+
+<Steps>
+<Step title="Primeira página">
+Chame a listagem com os filtros que você precisa.
+</Step>
+<Step title="Leia o cursor">
+Se a resposta tiver `X-Next-Cursor`, há mais pedidos.
+</Step>
+<Step title="Próxima página">
+Repita a mesma chamada com `next={cursor}`, mantendo os filtros, até a resposta vir sem `X-Next-Cursor`.
+</Step>
+</Steps>
+
+## Respostas
+
+| Status | Quando |
+| --- | --- |
+| `200 OK` | Lista de pedidos da página. |
+| `204 No Content` | Nenhum pedido para os filtros informados. Sem corpo. |
+| `400 Bad Request` | `next` e `previous` enviados juntos. |
+| `404 Not Found` | A loja não existe ou o token não tem acesso a ela. |
+| `406 Not Acceptable` | Filtro inválido, como um `orderType` desconhecido ou `ends_in` sem `starts_at`. |
+
+<Accordion title="Exemplo de resposta (200)" icon="code">
+```json
+[
+  {
+    "id": "6c6bba10-cd70-479b-91ca-b6caa55da46c",
+    "type": "TAKEOUT",
+    "displayId": "7RGSGF",
+    "salesChannel": "STORE",
+    "createdAt": "2026-10-03T19:48:23-03:00",
+    "orderTiming": "INSTANT",
+    "preparationStartDateTime": "2026-10-03T19:48:23-03:00",
+    "lastEvent": "CONCLUDED",
+    "merchant": {
+      "id": "c8f536ab-4307-407b-b04e-aa6f0df9f2e6",
+      "name": "Pizzaria Exemplo"
+    },
+    "items": [
+      {
+        "id": "27f1ae65-5095-4665-a693-c1f85cf33bd1",
+        "index": 0,
+        "name": "Calzone Médio",
+        "externalCode": "156",
+        "unit": "UN",
+        "quantity": 1,
+        "unitPrice": { "value": 31.0, "currency": "BRL" },
+        "optionsPrice": { "value": 0.0, "currency": "BRL" },
+        "totalPrice": { "value": 31.0, "currency": "BRL" },
+        "options": [
+          {
+            "id": "74d1048c-b958-41d0-b68c-22a5dd93636a",
+            "index": 0,
+            "name": "Strogonoff",
+            "externalCode": "60",
+            "unit": "UN",
+            "quantity": 1,
+            "unitPrice": { "value": 0.0, "currency": "BRL" },
+            "totalPrice": { "value": 0.0, "currency": "BRL" }
+          }
+        ]
+      }
+    ],
+    "total": {
+      "itemsPrice": { "value": 31.0, "currency": "BRL" },
+      "otherFees": { "value": 0.0, "currency": "BRL" },
+      "discount": { "value": 0.0, "currency": "BRL" },
+      "orderAmount": { "value": 31.0, "currency": "BRL" }
+    },
+    "payments": {
+      "prepaid": 0.0,
+      "pending": 31.0,
+      "methods": [
+        {
+          "value": 31.0,
+          "currency": "BRL",
+          "type": "PENDING",
+          "method": "CREDIT",
+          "methodInfo": "Master Crédito",
+          "brand": "MASTERCARD"
+        }
+      ]
+    },
+    "customer": {
+      "id": "477c44bd-ddb9-42b2-9ac3-7f172f626a82",
+      "name": "Maria Silva",
+      "phone": { "number": "5511999990000" },
+      "email": "maria@exemplo.com",
+      "ordersCountOnMerchant": 5
+    },
+    "takeout": {
+      "mode": "DEFAULT",
+      "takeoutDateTime": "2026-10-03T20:34:00-03:00"
+    },
+    "sendDelivered": true,
+    "sendPreparing": true,
+    "sendPickedUp": true,
+    "sendTracking": true
+  }
+]
+```
+</Accordion>
+
+Cada campo está descrito em [Obter detalhes do pedido](/guides/merchant/order/fluxo-de-integracao/obter-detalhes-do-pedido#campos-do-pedido).
+
+<AccordionGroup>
+<Accordion title="O filtro INDOOR não traz todos os pedidos de consumo no local" icon="utensils">
+O filtro `orderType[]=INDOOR` traz os pedidos feitos pelo autoatendimento (comandas e mesas). Pedidos de consumo no local feitos pelo cardápio de delivery também aparecem com `type: INDOOR` na resposta, mas não entram nesse filtro. Para ter certeza de pegar todos, liste sem filtro de tipo e filtre pelo `type` no seu sistema.
+</Accordion>
+<Accordion title="Qual fuso as datas do filtro usam?" icon="clock">
+`starts_at` e `ends_in` são datas, sem hora, interpretadas no fuso de Brasília: o período vai de 00:00:00 do primeiro dia a 23:59:59 do último.
+</Accordion>
+</AccordionGroup>

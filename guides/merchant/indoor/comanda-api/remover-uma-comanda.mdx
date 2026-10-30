@@ -1,0 +1,68 @@
+---
+title: Remover uma comanda
+description: Tire uma comanda de uso e libere o código dela para outra comanda.
+icon: trash
+---
+
+Remove a comanda da loja. Ela some da listagem, para de aceitar pedidos e o código dela fica livre para ser usado em outra comanda. Os pedidos já feitos com a comanda continuam no histórico.
+
+<Tip>
+Quer só impedir pedidos por um tempo, como entre um cliente e outro? [Feche a comanda para consumo](/guides/merchant/indoor/comanda-api/acoes-das-comandas/fechar-para-consumo-uma-comanda) em vez de removê-la.
+</Tip>
+
+## Requisição
+
+<ParamField path="merchantId" type="uuid" required>
+A loja.
+</ParamField>
+
+<ParamField path="tabId" type="uuid" required>
+O `id` da comanda.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl --request DELETE 'https://api.deliveryvip.com.br/merchant/v3/{merchantId}/tabs/{tabId}' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+await fetch(`https://api.deliveryvip.com.br/merchant/v3/${merchantId}/tabs/${tabId}`, {
+  method: 'DELETE',
+  headers: { Authorization: `Bearer ${token}` },
+})
+```
+
+```python Python
+requests.delete(
+    f"https://api.deliveryvip.com.br/merchant/v3/{merchant_id}/tabs/{tab_id}",
+    headers={"Authorization": f"Bearer {token}"},
+)
+```
+</CodeGroup>
+
+## Resposta
+
+Retorna `200 OK` com a comanda já removida: `code` vem `null` e `status` vem `UNAVAILABLE`.
+
+```json 200 OK
+{
+  "id": "6b7cd994-d8ff-4d12-8064-251becc39b08",
+  "createdAt": "2023-02-09T17:56:43-03:00",
+  "name": "0014",
+  "code": null,
+  "qrcode": "https://qrcode.dvstore.com/qrcode/indoor_tab_6b7cd994-d8ff-4d12-8064-251becc39b08",
+  "status": "UNAVAILABLE",
+  "situation": "OPENED"
+}
+```
+
+<Warning>
+A remoção não tem volta pela API. Depois dela, qualquer chamada com o mesmo `tabId` responde `404`. Para usar a comanda de novo, [cadastre outra](/guides/merchant/indoor/comanda-api/adicionar-uma-comanda) e imprima o novo QR Code.
+</Warning>
+
+## Erros
+
+| Status | Quando |
+| --- | --- |
+| `404 Not Found` | O `merchantId` não autorizou o seu app, a comanda não existe ou já foi removida, ou o `tabId` não é um UUID válido. |

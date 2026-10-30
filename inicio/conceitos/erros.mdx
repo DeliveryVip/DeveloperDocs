@@ -1,0 +1,90 @@
+---
+title: Erros
+description: O formato do corpo de erro das APIs da DeliveryVip e o que fazer com cada status HTTP.
+icon: circle-exclamation
+---
+
+Quando uma chamada falha, a API responde com um status HTTP de erro e, na maioria dos casos, um corpo JSON curto com o status e a mensagem. Trate os erros **pelo status HTTP**: a mensagem serve para log e depuração, não para lógica.
+
+## Formato da resposta
+
+```json 422 Unprocessable Content
+{
+  "status": "422",
+  "title": "Subscription must be activated"
+}
+```
+
+<ResponseField name="status" type="string">
+O código HTTP, **como string** (`"404"`, `"422"`).
+</ResponseField>
+<ResponseField name="title" type="string">
+A mensagem do erro, em inglês. Quando há mais de uma, elas vêm juntas na mesma string, separadas por `|`.
+</ResponseField>
+
+O formato vale para a Merchant API V3, a Partner API V2 e o Open Delivery.
+
+<Warning>
+**Exceções ao formato.** Não assuma que todo erro tem corpo:
+
+* `401` vem com `status` **numérico**: `{ "title": "Unauthorized", "status": 401 }`.
+* `403` por falta de scope vem **sem corpo**.
+* O endpoint de token (`/authentication/v1/oauth/token`) usa o padrão OAuth2, com `error` e `error_description`. Veja [Autenticação](/inicio/conceitos/autenticacao#erros-de-autenticação).
+* `429` pode vir sem o corpo padrão. Veja [Rate limiting](/inicio/conceitos/rate-limiting).
+</Warning>
+
+## Códigos HTTP
+
+| Código | Significado | Quando acontece | O que fazer |
+| --- | --- | --- | --- |
+| `400` | Bad Request | Parâmetros incompatíveis, como enviar os cursores `next` e `previous` juntos. | Corrija a requisição; repetir não resolve. |
+| `401` | Unauthorized | Token ausente, expirado ou revogado. | Obtenha um novo token e repita uma vez. |
+| `403` | Forbidden | Token sem o scope da rota, JSON malformado no corpo, filtro inválido no polling ou loja sem acesso em `x-polling-merchants` / `x-partners`. | Confira scope, corpo e headers. Não repita sem corrigir. |
+| `404` | Not Found | O recurso não existe ou não pertence às lojas que instalaram o seu app (`"title": "Record not found"`). | Confira o ID e se a loja instalou o app. |
+| `406` | Not Acceptable | Parâmetros inválidos em listagens e no acknowledgment, como datas fora do formato em `GET /merchant/v3/{merchantId}/orders`. | Corrija os parâmetros. |
+| `422` | Unprocessable Content | Dados inválidos para a regra de negócio, ou campo obrigatório ausente (`"param is missing: ..."`). | Leia o `title`, corrija os dados. |
+| `429` | Too Many Requests | Limite de requisições excedido. | Espere e repita com backoff. |
+| `500` | Internal Server Error | Erro inesperado na DeliveryVip (`"title": "Internal server error"`). | Repita com backoff; se persistir, avise no Discord. |
+
+<Info>
+**Sucesso sem corpo.** `204 No Content` não é erro: o polling sem eventos novos e as listagens sem resultados respondem `204`, sem corpo. Não tente fazer parse do JSON nesses casos.
+</Info>
+
+## Tratando erros no código
+
+<CodeGroup>
+```js Node.js
+async function call(url, options = {}) {
+  const response = await fetch(url, {
+    ...options,
+    headers: { Authorization: `Bearer ${token}`, ...options.headers },
+  })
+  if (response.status === 204) return null
+  if (response.ok) return response.json()
+
+  const body = await response.text()
+  const error = body ? JSON.parse(body) : {}
+  throw new Error(`HTTP ${response.status}: ${error.title ?? error.error ?? 'sem corpo'}`)
+}
+```
+
+```python Python
+def call(method, url, **kwargs):
+    response = requests.request(
+        method, url, headers={"Authorization": f"Bearer {token}"}, **kwargs
+    )
+    if response.status_code == 204:
+        return None
+    if response.ok:
+        return response.json()
+
+    error = response.json() if response.content else {}
+    raise RuntimeError(
+        f"HTTP {response.status_code}: {error.get('title') or error.get('error') or 'sem corpo'}"
+    )
+```
+</CodeGroup>
+
+<Check>
+**Repita só o que pode dar certo na segunda vez.** `401` (com token novo), `429` e `5xx` merecem nova tentativa com backoff. `400`, `403`, `404`, `406` e `422` precisam de correção antes.
+</Check>

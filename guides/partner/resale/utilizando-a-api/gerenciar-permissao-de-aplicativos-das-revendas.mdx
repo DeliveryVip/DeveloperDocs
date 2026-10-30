@@ -1,0 +1,68 @@
+---
+title: Gerenciar apps autorizados nas revendas
+sidebarTitle: Gerenciar apps autorizados
+description: Autorize ou revogue o acesso de um app à Partner API em nome de uma revenda.
+icon: plug
+---
+
+Autorizar um app na revenda dá a ele um token com o scope `dv.partner` que enxerga **só a revenda**: as lojas dela, os planos visíveis a ela e as faturas dessas lojas. Use para o sistema de gestão da própria revenda.
+
+| Ação | Endpoint | Sucesso |
+| --- | --- | --- |
+| [Adicionar permissão](#adicionar-permissão) | `POST /partner/v2/resales/{resaleId}/applications` | `202` |
+| [Remover permissão](#remover-permissão) | `DELETE /partner/v2/resales/{resaleId}/applications/{applicationId}` | `202` |
+
+## Adicionar Permissão
+
+<ParamField body="permission.applicationId" type="uuid" required>
+ID do app. Precisa ser de [distribuição direta](/inicio/primeiros-passos/distribuicao-direta).
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl --request POST 'https://api.deliveryvip.com.br/partner/v2/resales/{resaleId}/applications' \
+  --header 'Authorization: Bearer {token}' \
+  --header 'Content-Type: application/json' \
+  --data '{ "permission": { "applicationId": "161be0be-38d1-44a0-84ea-161093886253" } }'
+```
+
+```js Node.js
+await fetch(`https://api.deliveryvip.com.br/partner/v2/resales/${resaleId}/applications`, {
+  method: 'POST',
+  headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+  body: JSON.stringify({ permission: { applicationId } }),
+})
+```
+
+```python Python
+requests.post(
+    f"https://api.deliveryvip.com.br/partner/v2/resales/{resale_id}/applications",
+    headers={"Authorization": f"Bearer {token}"},
+    json={"permission": {"applicationId": application_id}},
+)
+```
+</CodeGroup>
+
+```json Resposta (202)
+{ "applicationId": "161be0be-38d1-44a0-84ea-161093886253" }
+```
+
+<Info>
+O scope concedido é sempre `dv.partner`, independente do que for enviado: um campo `scopes` no corpo é ignorado.
+</Info>
+
+| Status | Quando |
+| --- | --- |
+| `404 Not Found` | App ou revenda não encontrados. |
+| `422 Unprocessable Content` | `application_must_be_manual_type` ou `permission_failed`. |
+
+## Remover Permissão
+
+Revoga todos os tokens do app para a revenda.
+
+```bash
+curl --request DELETE 'https://api.deliveryvip.com.br/partner/v2/resales/{resaleId}/applications/{applicationId}' \
+  --header 'Authorization: Bearer {token}'
+```
+
+Responde `202` com o `applicationId`, ou `404` se o app não está autorizado na revenda.

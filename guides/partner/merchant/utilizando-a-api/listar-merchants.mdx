@@ -1,0 +1,147 @@
+---
+title: Listar lojas
+description: Liste as lojas que o token alcança, com filtros por status da assinatura, contrato, CNPJ/CPF e parceiro.
+icon: list
+---
+
+`GET /partner/v2/merchants` traz todas as lojas abaixo de quem autorizou o seu app: as diretas do parceiro e as das revendas. A ordem é da loja criada mais recentemente para a mais antiga, sem paginação.
+
+| Status | Quando |
+| --- | --- |
+| `200 OK` | Lista de lojas. |
+| `204 No Content` | Nenhuma loja encontrada. A resposta vem sem corpo. |
+| `403 Forbidden` | `subscriptionStatus` inválido (`Invalid subscription status`) ou `x-partners` fora do alcance do token. |
+
+## Requisição
+
+<CodeGroup>
+```bash cURL
+curl 'https://api.deliveryvip.com.br/partner/v2/merchants?subscriptionStatus[]=ACTIVATED' \
+  --header 'Authorization: Bearer {token}' \
+  --header 'x-partners: {partnerId}'
+```
+
+```js Node.js
+const url = new URL('https://api.deliveryvip.com.br/partner/v2/merchants')
+url.searchParams.append('subscriptionStatus[]', 'ACTIVATED')
+
+const response = await fetch(url, {
+  headers: { Authorization: `Bearer ${token}`, 'x-partners': partnerId },
+})
+const merchants = response.status === 204 ? [] : await response.json()
+```
+
+```python Python
+response = requests.get(
+    "https://api.deliveryvip.com.br/partner/v2/merchants",
+    params={"subscriptionStatus[]": ["ACTIVATED"]},
+    headers={"Authorization": f"Bearer {token}", "x-partners": partner_id},
+)
+merchants = [] if response.status_code == 204 else response.json()
+```
+</CodeGroup>
+
+Cada item tem o mesmo formato de [Obter detalhes da loja](/guides/partner/merchant/utilizando-a-api/obter-detalhes-do-merchant).
+
+```json Resposta (200)
+[
+  {
+    "id": "466caa37-ab0b-4f9d-b583-896681627367",
+    "name": "Cantina da Maria",
+    "corporateName": "Cantina da Maria LTDA",
+    "identifier": "11.222.333/0001-44",
+    "email": "contato@cantinadamaria.com.br",
+    "storeUrl": "https://cantinadamaria.dvstore.com.br",
+    "createdAt": "2025-09-30T17:35:03-03:00",
+    "updatedAt": "2025-10-02T10:12:41-03:00",
+    "personResponsible": {
+      "name": "Maria Silva",
+      "email": "maria@exemplo.com.br",
+      "phone": { "number": "5511999998888" }
+    },
+    "address": {
+      "country": "Brasil",
+      "state": "SP",
+      "city": "São Paulo",
+      "district": "Bela Vista",
+      "street": "Avenida Paulista",
+      "number": "1000",
+      "postalCode": "01310-100",
+      "formattedAddress": "Avenida Paulista, 1000 - Bela Vista, São Paulo - SP",
+      "coordinates": { "latitude": -23.5650, "longitude": -46.6520 }
+    },
+    "subscription": {
+      "status": "ACTIVATED",
+      "warning": false,
+      "blocked": false,
+      "agreementCode": "123456",
+      "lastActivationAt": "2025-10-01T09:00:00-03:00",
+      "planId": "aa67c98c-d81f-5a9c-b0bc-26caa0051aea"
+    },
+    "features": [
+      { "featureType": "INDOOR_QRCODE", "status": "ACTIVATED", "lastActivationAt": "2025-10-01T09:05:00-03:00" }
+    ],
+    "partnerId": "32eeaefa-6a31-487f-9402-fd9a41683830",
+    "resaleId": "ea5705df-5537-4b1b-b291-3536839d3d6f"
+  }
+]
+```
+
+## Filtros
+
+Os filtros podem ser combinados.
+
+<ParamField query="subscriptionStatus[]" type="string[]">
+Status da assinatura: `TRIAL`, `TRIAL_EXPIRED`, `ACTIVATED`, `CANCELLED` ou `DEMO`. Repita o parâmetro para cada valor, **com colchetes**. Um valor desconhecido retorna `403`.
+
+```text
+/partner/v2/merchants?subscriptionStatus[]=TRIAL&subscriptionStatus[]=ACTIVATED
+```
+</ParamField>
+
+<ParamField query="subscriptionAgreementCode" type="string">
+Código do contrato da assinatura (`agreementCode`), comparação exata.
+
+```text
+/partner/v2/merchants?subscriptionAgreementCode=123456789
+```
+</ParamField>
+
+<ParamField query="merchantIdentifier" type="string">
+CNPJ ou CPF da loja, **formatado** com pontos, barra e traço, do mesmo jeito que a API devolve em `identifier`.
+
+```text
+/partner/v2/merchants?merchantIdentifier=08.460.509/1101-45
+```
+</ParamField>
+
+### Filtrar por Partners
+
+Sem filtro, a resposta traz as lojas de **todos** os parceiros e revendas que autorizaram o seu app com esse token. Para restringir, envie o header `x-partners` com um ou mais IDs, separados por vírgula ou em headers repetidos.
+
+<ParamField header="x-partners" type="string[]">
+IDs de parceiros ou revendas que autorizaram o seu app.
+
+```text
+x-partners: 0a0000aa-0aa0-00aa-aa00-0000aa000001,0a0000aa-0aa0-00aa-aa00-0000aa000002
+```
+</ParamField>
+
+<Warning>
+Se o mesmo token representa mais de um parceiro e o seu sistema trata cada um separadamente, use `x-partners`. Sem ele, as lojas de todos chegam misturadas na mesma lista.
+</Warning>
+
+<Accordion title="Recebi 403 usando x-partners" icon="triangle-exclamation">
+Com o header, a API confere se o token tem permissão em **todos** os IDs informados. Se faltar em algum, a resposta é `403` e o `title` lista os IDs sem acesso:
+
+```json
+{ "status": "403", "title": "invalid x-partners 0a0000aa-0aa0-00aa-aa00-0000aa000002" }
+```
+
+**Para continuar recebendo:** remova esses IDs do header e chame de novo.
+
+**Para achar a causa:**
+
+* O parceiro ou a revenda pode ter revogado o acesso do seu app. Peça para autorizar de novo.
+* Se a autorização é recente, o token pode ter sido gerado antes dela. Gere um novo token.
+</Accordion>

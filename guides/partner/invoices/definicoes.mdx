@@ -1,0 +1,80 @@
+---
+title: Definições de faturas
+sidebarTitle: Definições
+description: Campos da fatura da loja, blocos de preço PAYABLE e RECEIVABLE, valor do mês cheio e valor proporcional.
+icon: book-open
+---
+
+A fatura da loja é o objeto devolvido por [`GET /{partnerId}/invoices`](/guides/partner/invoices/utilizando-a-api/listando-invoices) e [`GET /{partnerId}/merchants/invoices`](/guides/partner/invoices/utilizando-a-api/listando-merchants-invoices). O resumo por revenda tem formato próprio, descrito em [Listando faturas das revendas](/guides/partner/invoices/utilizando-a-api/listando-resales-invoices).
+
+## Objeto
+
+<ResponseField name="merchantId" type="uuid">ID da loja.</ResponseField>
+<ResponseField name="resaleId" type="uuid">ID da revenda. Veja [resaleId](#resaleid).</ResponseField>
+<ResponseField name="planId" type="uuid">Plano da assinatura no fechamento.</ResponseField>
+<ResponseField name="month" type="string | integer">
+Mês da fatura. Repete o valor enviado na query (texto, ex.: `"4"`); sem o parâmetro, vem como número.
+</ResponseField>
+<ResponseField name="year" type="string | integer">Ano da fatura, com a mesma regra de `month`.</ResponseField>
+<ResponseField name="totalPrice" type="object[]">
+Totais da fatura, um bloco por tipo. Veja [totalPrice](#totalprice).
+
+<Expandable title="propriedades">
+<ResponseField name="type" type="string">`PAYABLE` ou `RECEIVABLE`.</ResponseField>
+<ResponseField name="value" type="number">Valor do mês cheio.</ResponseField>
+<ResponseField name="usageTimeValue" type="number">Valor proporcional ao tempo de assinatura ativa no mês.</ResponseField>
+<ResponseField name="currency" type="string">Moeda. Sempre `BRL`.</ResponseField>
+</Expandable>
+</ResponseField>
+<ResponseField name="items" type="object[]">
+Detalhamento por recurso.
+
+<Expandable title="propriedades">
+<ResponseField name="itemType" type="string">Tipo do item. Veja [Tipos de item](#tipos-de-item).</ResponseField>
+<ResponseField name="quantity" type="integer">Quantidade usada no mês.</ResponseField>
+<ResponseField name="totalPrice" type="object[]">Blocos de preço do item, no mesmo formato do `totalPrice` da fatura.</ResponseField>
+</Expandable>
+</ResponseField>
+
+### resaleId
+
+Só aparece quando o `partnerId` consultado é um **parceiro** e a loja pertence a uma revenda. Consultando com o ID de uma revenda, o campo é omitido: todas as lojas da resposta são daquela revenda.
+
+### totalPrice
+
+Cada bloco tem um `type`:
+
+* **`PAYABLE`**: o que **você paga** pela loja. Para o parceiro, o custo junto à DeliveryVip. Para a revenda, o que ela paga ao parceiro.
+* **`RECEIVABLE`**: o que **você recebe**, pela sua tabela de preços. Para o parceiro, o preço cobrado da loja direta ou da revenda. Para a revenda, o preço cobrado da loja.
+
+<Warning>
+`RECEIVABLE` só é enviado quando a tabela de preços de recebíveis está habilitada para o parceiro. Sem ela, os arrays trazem só `PAYABLE`. Consultando como revenda sem essa tabela, a fatura não traz `totalPrice` e os itens vêm sem preço. Nunca acesse os blocos pela posição (`totalPrice[1]`): procure pelo campo `type`.
+</Warning>
+
+### value e usageTimeValue
+
+`value` é o valor **do mês cheio**, como se a assinatura da loja tivesse ficado ativa o mês inteiro. `usageTimeValue` é **proporcional ao tempo em que a assinatura ficou ativa** no mês, contado em dias, da ativação (ou do início do mês) até o cancelamento (ou o fim do mês).
+
+Uma loja ativada no dia 16 de um mês de 30 dias tem `usageTimeValue` igual à metade do `value`. Quando a assinatura fica ativa o mês inteiro, os dois são iguais. Os dois usam até 4 casas decimais.
+
+### Tipos de item
+
+| Código | Descrição |
+| --- | --- |
+| `DELIVERY_TAKEOUT` | Loja própria online: catálogo, checkout, entrega e retirada. |
+| `DELIVERYBOT_NOTIFICATION` | Notificações de status do pedido via WhatsApp. |
+| `DELIVERYBOT_ASSISTANT` | Assistente virtual por IA no WhatsApp. |
+| `INDOOR_VIEWER` | Cardápio por QR Code só para visualização. |
+| `INDOOR_QRCODE` | Cardápio por QR Code com pedido. |
+| `INDOOR_TABLET` | Autoatendimento em tablets. |
+| `DOMAIN_CUSTOM` | Domínio personalizado. |
+| `SALES_REVENUE` | Cobrança variável sobre faturamento. |
+| `ORDERS_COUNT` | Cobrança variável por número de pedidos. |
+| `MULTI_STORE` | Estrutura multiloja. |
+| `GROWTH_DISCOUNT` | Módulo de descontos. |
+| `INTEGRATION_MARKETING` | Integrações de marketing. |
+| `INTEGRATION_LOGISTIC` | Integrações de logística. |
+
+<Info>
+`GROWTH_DISCOUNT`, `INTEGRATION_MARKETING` e `INTEGRATION_LOGISTIC` aparecem com quantidade 1 quando o recurso está incluso no plano ou foi contratado à parte.
+</Info>

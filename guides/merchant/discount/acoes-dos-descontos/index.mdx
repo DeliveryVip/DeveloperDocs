@@ -1,0 +1,24 @@
+---
+title: Ações dos descontos
+sidebarTitle: Ações
+description: Ligue ou desligue um desconto na hora, sem editar as datas manualmente.
+icon: arrows-rotate
+---
+
+Cada ação é um `POST` sem corpo em `/merchant/v3/{merchantId}/discounts/{discountId}/<ação>`. As ações reescrevem as datas do desconto, e a resposta é `200 OK` com o [objeto desconto](/guides/merchant/discount/obter-detalhes-do-desconto#resposta) atualizado.
+
+| Ação | Endpoint | Efeito nas datas | `status` resultante |
+| --- | --- | --- | --- |
+| [Ativar](/guides/merchant/discount/acoes-dos-descontos/ativar-um-desconto) | `available` | `startsAt` vira agora e `endsAt` é apagado. | `ACTIVE` |
+| [Desativar](/guides/merchant/discount/acoes-dos-descontos/desativar-um-desconto) | `unavailable` | `startsAt` e `endsAt` viram agora. | `OVERDUE` |
+
+<Warning>
+As ações descartam o período configurado. Um desconto agendado para começar no futuro, se ativado, começa na hora e perde a data de fim. Se você precisa de um período específico, [atualize](/guides/merchant/discount/atualizar-um-desconto) `startsAt` e `endsAt` em vez de usar as ações.
+</Warning>
+
+## Erros
+
+| Status | Quando |
+| --- | --- |
+| `403 Forbidden` | A loja não contratou o módulo de descontos. |
+| `404 Not Found` | O `merchantId` não autorizou o seu app, ou o desconto não existe ou foi removido. |

@@ -1,0 +1,23 @@
+---
+title: Utilizando a API de faturas
+sidebarTitle: Utilizando a API
+description: Os três endpoints de faturas da Partner API V2 e quando usar cada um.
+icon: code
+---
+
+Todas as rotas ficam em `https://api.deliveryvip.com.br/partner/v2`, recebem o `partnerId` no caminho e aceitam `year` e `month` na query (sem eles, vale o mês corrente).
+
+<CardGroup cols={2}>
+<Card title="Listando faturas" icon="list" href="/guides/partner/invoices/utilizando-a-api/listando-invoices">
+`GET /{partnerId}/invoices`: uma fatura por loja, diretas e de revendas.
+</Card>
+<Card title="Faturas das lojas diretas" icon="store" href="/guides/partner/invoices/utilizando-a-api/listando-merchants-invoices">
+`GET /{partnerId}/merchants/invoices`: só as lojas sem revenda.
+</Card>
+<Card title="Resumo por revenda" icon="people-group" href="/guides/partner/invoices/utilizando-a-api/listando-resales-invoices">
+`GET /{partnerId}/resales/invoices`: totais por revenda, plano e item.
+</Card>
+<Card title="Definições" icon="book-open" href="/guides/partner/invoices/definicoes">
+`PAYABLE` x `RECEIVABLE`, `value` x `usageTimeValue`.
+</Card>
+</CardGroup>

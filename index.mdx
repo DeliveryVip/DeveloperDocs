@@ -1,0 +1,79 @@
+---
+title: DeliveryVip Developers
+sidebarTitle: Comece aqui
+icon: flag
+description: Integre seu sistema à DeliveryVip para receber pedidos, sincronizar o catálogo, conectar seu programa de fidelidade ou gerenciar lojas como parceiro.
+---
+
+## Qual integração é a sua?
+
+Escolha o caminho que descreve o seu sistema. Cada um tem o próprio passo a passo, guias e referência.
+
+<CardGroup cols={2}>
+<Card title="Merchant API" icon="store" href="/guides/merchant">
+Tenho um PDV ou ERP e quero receber pedidos, atualizar o catálogo e gerenciar comandas e descontos pela API da DeliveryVip.
+</Card>
+<Card title="Open Delivery" icon="right-left" href="/guides/open-delivery">
+Meu PDV já fala o padrão aberto Open Delivery e quero integrar sem escrever código específico da DeliveryVip.
+</Card>
+<Card title="Fidelidade" icon="gift" href="/guides/merchant/loyalty">
+Tenho um programa de fidelidade ou CRM e quero oferecer adesão, resgate de cashback e acúmulo no checkout das lojas.
+</Card>
+<Card title="Partner API" icon="handshake" href="/guides/partner">
+Sou parceiro ou revenda e quero cadastrar lojas e gerenciar assinaturas, recursos e faturas.
+</Card>
+</CardGroup>
+
+## Merchant API ou Open Delivery?
+
+Os dois caminhos levam os pedidos da DeliveryVip até o seu PDV. A diferença está no padrão que o seu sistema fala.
+
+| | Merchant API (V3) | Open Delivery |
+| --- | --- | --- |
+| **Padrão** | API própria da DeliveryVip | Especificação aberta da Abrasel (Order `1.3.0`, Merchant `1.0.0`) |
+| **Host** | `api.deliveryvip.com.br` | `od.deliveryvip.com.br` |
+| **Credenciais** | `client_id` e `client_secret` do app; o mesmo token atende todas as lojas que instalaram o app | `client_id` do app e um `client_secret` por loja; cada token vale para uma loja |
+| **Eventos** | Webhook ou polling | Webhook ou polling |
+| **Catálogo** | Você envia pela API (update, upsert e force) | Você expõe um endpoint de catálogo no padrão OD e a DeliveryVip importa |
+| **Escolha se** | Você está construindo a integração do zero | Seu PDV já implementa Open Delivery para outras plataformas |
+
+<Info>
+A **Fidelidade** é uma extensão de app: o operador usa a Merchant API para ativar o programa e ler os pedidos, e implementa as rotas que a DeliveryVip chama no checkout.
+</Info>
+
+## Antes de começar
+
+Estes passos são os mesmos em qualquer integração.
+
+<CardGroup cols={2}>
+<Card title="Jornada do Developer" icon="route" href="/inicio/primeiros-passos/jornada-do-developer">
+Da criação da conta até a primeira chamada à API, passo a passo.
+</Card>
+<Card title="Autenticação" icon="key" href="/inicio/conceitos/autenticacao">
+Como obter e renovar o token OAuth2 do seu app.
+</Card>
+<Card title="Instalando o app na loja" icon="download" href="/inicio/primeiros-passos/instalando-app-na-loja">
+Como o lojista instala e autoriza o seu app pela Delivery Store.
+</Card>
+<Card title="Conceitos" icon="book" href="/inicio/conceitos">
+Erros, paginação, datas e horários, rate limiting e Postman.
+</Card>
+</CardGroup>
+
+## Acompanhe as mudanças
+
+<CardGroup cols={2}>
+<Card title="Changelog" icon="newspaper" href="/changelog">
+As principais alterações nas APIs, em ordem cronológica.
+</Card>
+<Card title="Deprecations" icon="triangle-exclamation" href="/deprecations">
+Endpoints em descontinuação, prazos e como migrar.
+</Card>
+</CardGroup>
+
+## Suporte
+
+Em caso de dúvidas durante a integração:
+
+* **Discord**: [canal de desenvolvedores](https://discord.gg/AJF8Yha4)
+* **Reunião**: [agende com nosso time](https://calendar.app.google/EchaXk57y7xp8Hyx6)

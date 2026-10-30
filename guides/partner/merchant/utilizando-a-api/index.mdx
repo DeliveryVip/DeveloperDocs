@@ -1,0 +1,35 @@
+---
+title: Utilizando a API de lojas
+sidebarTitle: Utilizando a API
+description: Mapa de todos os endpoints de lojas da Partner API V2.
+icon: code
+---
+
+Todas as rotas abaixo ficam em `https://api.deliveryvip.com.br/partner/v2` e exigem um token com o scope `dv.partner`.
+
+| Endpoint | O que faz |
+| --- | --- |
+| `GET /merchants` | [Listar lojas](/guides/partner/merchant/utilizando-a-api/listar-merchants) com filtros. |
+| `GET /merchants/sales` | [Listar vendas](/guides/partner/merchant/utilizando-a-api/listar-vendas-dos-merchants) do mês por loja. |
+| `GET /merchants/{merchantId}` | [Obter detalhes](/guides/partner/merchant/utilizando-a-api/obter-detalhes-do-merchant) de uma loja. |
+| `POST /{partnerId}/merchants` | [Cadastrar uma loja](/guides/partner/merchant/utilizando-a-api/adicionar-um-merchant). |
+| `GET/POST/PATCH/DELETE /merchants/{merchantId}/members` | [Membros](/guides/partner/merchant/utilizando-a-api/membros-do-merchant) e magic link. |
+| `POST /merchants/{merchantId}/activate` e afins | [Assinatura](/guides/partner/merchant/utilizando-a-api/gerenciar-assinatura-dos-merchants): ativar, cancelar, avisar, bloquear, atualizar. |
+| `POST /merchants/{merchantId}/features/*` | [Recursos](/guides/partner/merchant/utilizando-a-api/gerenciar-recursos-dos-merchants) adicionais. |
+| `POST/DELETE /merchants/{merchantId}/applications` | [Apps autorizados](/guides/partner/merchant/utilizando-a-api/gerenciar-permissao-de-aplicativos-dos-merchants) na loja. |
+| `GET /merchants/invoices` | [Faturas (descontinuado)](/guides/partner/merchant/utilizando-a-api/listar-faturas-dos-merchants). Use [Faturas](/guides/partner/invoices). |
+
+<CardGroup cols={2}>
+<Card title="Listar lojas" icon="list" href="/guides/partner/merchant/utilizando-a-api/listar-merchants">
+Filtre por status, contrato, CNPJ/CPF e parceiro.
+</Card>
+<Card title="Cadastrar uma loja" icon="plus" href="/guides/partner/merchant/utilizando-a-api/adicionar-um-merchant">
+Crie a loja já vinculada ao parceiro ou a uma revenda.
+</Card>
+<Card title="Gerenciar assinatura" icon="file-signature" href="/guides/partner/merchant/utilizando-a-api/gerenciar-assinatura-dos-merchants">
+Ative, cancele, avise, bloqueie e troque de plano.
+</Card>
+<Card title="Membros da loja" icon="users" href="/guides/partner/merchant/utilizando-a-api/membros-do-merchant">
+Quem acessa o painel da loja.
+</Card>
+</CardGroup>

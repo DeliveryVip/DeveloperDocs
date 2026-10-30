@@ -1,0 +1,48 @@
+---
+title: Pedidos
+sidebarTitle: Visão geral
+description: Receba, confirme e acompanhe os pedidos das lojas que instalaram o seu app.
+icon: compass
+---
+
+A API de pedidos é orientada a eventos: a DeliveryVip avisa o que aconteceu com cada pedido e o seu PDV busca os detalhes e responde com ações. Todo pedido passa pelas mesmas quatro etapas.
+
+<Steps>
+<Step title="Receba o evento" icon="bell">
+Consulte novos eventos a cada 30 segundos em `GET /merchant/v3/events:polling`, ou receba-os na hora por [webhook](/guides/merchant/webhooks).
+</Step>
+<Step title="Confirme o recebimento" icon="check-double">
+Envie o acknowledgment em `POST /merchant/v3/events/acknowledgment` para tirar os eventos da fila.
+</Step>
+<Step title="Busque o pedido" icon="magnifying-glass">
+Obtenha itens, cliente, entrega e pagamento em `GET /merchant/v3/orders/{orderId}`.
+</Step>
+<Step title="Atualize o status" icon="arrows-rotate">
+Confirme, prepare, despache, entregue ou cancele o pedido com as ações.
+</Step>
+</Steps>
+
+<Tip>
+Quer ver isso funcionando? O guia [Receba seu primeiro pedido](/guides/merchant/order/fluxo-de-integracao/recepcao-de-pedidos) tem um script completo em Node.js e Python.
+</Tip>
+
+## Por onde seguir
+
+<CardGroup cols={2}>
+<Card title="Seu primeiro pedido" icon="rocket" href="/guides/merchant/order/fluxo-de-integracao/recepcao-de-pedidos">
+Do token ao pedido confirmado, com código pronto para rodar.
+</Card>
+<Card title="Definições" icon="book-open" href="/guides/merchant/order/definicoes">
+Tipos de pedido, agendamento e o ciclo de vida de cada tipo.
+</Card>
+<Card title="Fluxo de integração" icon="diagram-project" href="/guides/merchant/order/fluxo-de-integracao">
+Cada etapa em detalhe: polling, eventos, acknowledgment, detalhes e ações.
+</Card>
+<Card title="Listar pedidos" icon="list" href="/guides/merchant/order/listar-pedidos">
+Consulte o histórico de pedidos de uma loja com paginação.
+</Card>
+</CardGroup>
+
+<Info>
+A Merchant API V3 segue o modelo da especificação [Open Delivery](https://www.opendelivery.com.br), o padrão aberto para integrar plataformas de pedidos e PDVs. Se o seu sistema já implementa Open Delivery, veja a [integração Open Delivery](/guides/open-delivery).
+</Info>

@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  body { background: #fff; font-family: Inter, sans-serif; color: #1e293b; }
+  #art { width: 1700px; padding: 36px 40px 40px; background: #fff; }
+  .steps { display: grid; grid-template-columns: 1fr 56px 1fr 56px 1fr 56px 1fr; align-items: center; }
+  .card { border: 2px solid #dbe4f3; border-radius: 18px; padding: 22px 24px 26px; text-align: center; background: #fbfcff; }
+  .head { display: flex; align-items: center; gap: 14px; justify-content: center; margin-bottom: 14px; }
+  .num { width: 40px; height: 40px; border-radius: 50%; color: #fff; font-weight: 700; font-size: 19px; display: grid; place-items: center; flex-shrink: 0; }
+  .blue { background: #1d4ed8; } .green { background: #15803d; }
+  .title { font-size: 25px; font-weight: 700; color: #0f2a5e; }
+  .icon-lg svg { width: 64px; height: 64px; stroke: #1d4ed8; stroke-width: 1.6; }
+  .desc { font-size: 17px; color: #475569; margin-top: 12px; line-height: 1.4; }
+  .arrow svg { width: 40px; height: 40px; stroke: #0f2a5e; stroke-width: 2.2; display: block; margin: auto; }
+  .join { height: 52px; position: relative; }
+  .join svg { position: absolute; inset: 0; }
+  .integrate { margin: 0 auto; width: 720px; border: 2px solid #b7e2c4; background: #f0faf3; border-radius: 18px; padding: 22px 28px; display: flex; gap: 20px; align-items: center; }
+  .integrate .t { font-size: 23px; font-weight: 700; color: #0f2a5e; }
+  .integrate .d { font-size: 17px; color: #475569; margin-top: 6px; }
+  .integrate .ic svg { width: 64px; height: 64px; stroke: #15803d; stroke-width: 1.6; }
+  .products { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .product { border: 2px solid var(--b); background: var(--bg); border-radius: 20px; padding: 20px 22px 22px; }
+  .ph { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+  .ph .num { background: var(--c); width: 46px; height: 46px; font-size: 18px; }
+  .ph .name { font-size: 23px; font-weight: 700; color: var(--c); }
+  .ph .sub { font-size: 15px; color: #64748b; margin-left: auto; }
+  .flow { display: flex; align-items: stretch; gap: 8px; }
+  .item { flex: 1; background: #fff; border: 1.5px solid #e2e8f0; border-radius: 14px; padding: 14px 10px; text-align: center; }
+  .item svg { width: 40px; height: 40px; stroke: var(--c); stroke-width: 1.7; }
+  .item .n { font-weight: 700; font-size: 17px; margin-top: 8px; color: #1e293b; }
+  .item .s { font-size: 14px; color: #64748b; margin-top: 4px; line-height: 1.3; }
+  .mini svg { width: 26px; height: 26px; stroke: var(--c); stroke-width: 2.4; align-self: center; }
+  .mini { display: flex; align-items: center; }
+  .merchant { --c: #1d4ed8; --b: #c9d7f4; --bg: #f5f8ff; }
+  .od { --c: #0e7490; --b: #b9e1ea; --bg: #f2fafc; }
+  .loyalty { --c: #c2410c; --b: #f6cdb4; --bg: #fff7f2; }
+  .partner { --c: #6d28d9; --b: #d9cbf5; --bg: #f8f5ff; }
+body.dark, body.dark #art { background: #0f1117; color: #e2e8f0; }
+body.dark .card { background: #151a24; border-color: #2a3446; }
+body.dark .title, body.dark .integrate .t { color: #dbe6ff; }
+body.dark .desc, body.dark .integrate .d, body.dark .item .s, body.dark .ph .sub { color: #a3b1c6; }
+body.dark .icon-lg svg { stroke: #93b4ff; }
+body.dark .arrow svg { stroke: #cbd5e1; }
+body.dark .integrate { background: #11251a; border-color: #1f4d33; }
+body.dark .integrate .ic svg { stroke: #6ee7a0; }
+body.dark .item { background: #151a24; border-color: #2a3446; }
+body.dark .item .n { color: #e2e8f0; }
+body.dark .merchant { --c: #93b4ff; --b: #2c3d66; --bg: #111a2e; }
+body.dark .od { --c: #67d4ea; --b: #1d4b56; --bg: #0f242a; }
+body.dark .loyalty { --c: #fdab7a; --b: #5c3420; --bg: #2a1810; }
+body.dark .partner { --c: #c4a7ff; --b: #45307a; --bg: #1f1736; }
+body.dark .ph .num { color: #0f1117; }
+body.dark .join svg path { stroke: #93b4ff; }
+body.dark .join + .integrate + .join svg path { stroke: #6ee7a0; }
+</style>
+</head>
+<body>
+<div id="art">
+  <div class="steps">
+    <div class="card"><div class="head"><div class="num blue">1</div><div class="title">Criar conta</div></div><div class="icon-lg"><i data-lucide="user-plus"></i></div><div class="desc">Crie sua conta de<br>developer na plataforma.</div></div>
+    <div class="arrow"><i data-lucide="arrow-right"></i></div>
+    <div class="card"><div class="head"><div class="num blue">2</div><div class="title">Criar app</div></div><div class="icon-lg"><i data-lucide="app-window"></i></div><div class="desc">Escolha a distribuição e<br>receba as credenciais.</div></div>
+    <div class="arrow"><i data-lucide="arrow-right"></i></div>
+    <div class="card"><div class="head"><div class="num blue">3</div><div class="title">Obter token</div></div><div class="icon-lg"><i data-lucide="shield-check"></i></div><div class="desc">Instale numa loja e peça<br>o token de acesso.</div></div>
+    <div class="arrow"><i data-lucide="arrow-right"></i></div>
+    <div class="card"><div class="head"><div class="num blue">4</div><div class="title">Primeira chamada</div></div><div class="icon-lg"><i data-lucide="code-xml"></i></div><div class="desc">Chame a API para<br>conferir o token.</div></div>
+  </div>
+
+  <div class="join">
+    <svg width="1620" height="52" viewBox="0 0 1620 52" fill="none" stroke="#2563eb" stroke-width="2.5">
+      <path d="M190 0 V20 H800 V44" /><path d="M1430 0 V20 H820 V44" />
+      <path d="M793 38 L800 46 L807 38" /><path d="M813 38 L820 46 L827 38" />
+    </svg>
+  </div>
+
+  <div class="integrate">
+    <div class="num green">5</div>
+    <div style="flex:1"><div class="t">Escolha o produto do seu caso de uso</div><div class="d">Cada produto tem o próprio passo a passo, guias e referência.</div></div>
+    <div class="ic"><i data-lucide="puzzle"></i></div>
+  </div>
+
+  <div class="join">
+    <svg width="1620" height="52" viewBox="0 0 1620 52" fill="none" stroke="#15803d" stroke-width="2.5">
+      <path d="M810 0 V20 H398 V44 M810 20 H1222 V44" />
+      <path d="M391 38 L398 46 L405 38" /><path d="M1215 38 L1222 46 L1229 38" />
+    </svg>
+  </div>
+
+  <div class="products">
+    <div class="product merchant">
+      <div class="ph"><div class="num">6a</div><div class="name">Merchant API</div><div class="sub">PDVs e ERPs</div></div>
+      <div class="flow">
+        <div class="item"><i data-lucide="shopping-bag"></i><div class="n">Catálogo</div><div class="s">Envie produtos<br>e preços.</div></div>
+        <div class="mini"><i data-lucide="arrow-right"></i></div>
+        <div class="item"><i data-lucide="bell"></i><div class="n">Eventos</div><div class="s">Polling ou<br>webhook.</div></div>
+        <div class="mini"><i data-lucide="arrow-right"></i></div>
+        <div class="item"><i data-lucide="shopping-cart"></i><div class="n">Pedidos</div><div class="s">Receba e<br>acompanhe.</div></div>
+        <div class="mini"><i data-lucide="arrow-right"></i></div>
+        <div class="item"><i data-lucide="zap"></i><div class="n">Ações</div><div class="s">Atualize o<br>status.</div></div>
+      </div>
+    </div>
+
+    <div class="product od">
+      <div class="ph"><div class="num">6b</div><div class="name">Open Delivery</div><div class="sub">PDVs no padrão aberto</div></div>
+      <div class="flow">
+        <div class="item"><i data-lucide="plug"></i><div class="n">Onboarding</div><div class="s">Configure<br>cada loja.</div></div>
+        <div class="mini"><i data-lucide="arrow-right"></i></div>
+        <div class="item"><i data-lucide="book-open"></i><div class="n">Catálogo</div><div class="s">A DeliveryVip<br>importa o seu.</div></div>
+        <div class="mini"><i data-lucide="arrow-right"></i></div>
+        <div class="item"><i data-lucide="bell"></i><div class="n">Eventos</div><div class="s">Webhook ou<br>polling.</div></div>
+        <div class="mini"><i data-lucide="arrow-right"></i></div>
+        <div class="item"><i data-lucide="refresh-cw"></i><div class="n">Pedidos</div><div class="s">Ciclo de vida<br>do pedido.</div></div>
+      </div>
+    </div>
+
+    <div class="product loyalty">
+      <div class="ph"><div class="num">6c</div><div class="name">Fidelidade</div><div class="sub">Programas e CRMs</div></div>
+      <div class="flow">
+        <div class="item"><i data-lucide="sliders-horizontal"></i><div class="n">Ativação</div><div class="s">Ligue o programa<br>por loja.</div></div>
+        <div class="mini"><i data-lucide="arrow-right"></i></div>
+        <div class="item"><i data-lucide="link"></i><div class="n">Vínculo</div><div class="s">O cliente adere<br>no checkout.</div></div>
+        <div class="mini"><i data-lucide="arrow-right"></i></div>
+        <div class="item"><i data-lucide="gift"></i><div class="n">Resgate</div><div class="s">Cashback vira<br>desconto.</div></div>
+        <div class="mini"><i data-lucide="arrow-right"></i></div>
+        <div class="item"><i data-lucide="piggy-bank"></i><div class="n">Acúmulo</div><div class="s">Credite nos pedidos<br>concluídos.</div></div>
+      </div>
+    </div>
+
+    <div class="product partner">
+      <div class="ph"><div class="num">6d</div><div class="name">Partner API</div><div class="sub">Parceiros e revendas</div></div>
+      <div class="flow">
+        <div class="item"><i data-lucide="store"></i><div class="n">Lojas</div><div class="s">Cadastre e<br>gerencie.</div></div>
+        <div class="mini"><i data-lucide="arrow-right"></i></div>
+        <div class="item"><i data-lucide="users"></i><div class="n">Revendas</div><div class="s">Acompanhe<br>sua rede.</div></div>
+        <div class="mini"><i data-lucide="arrow-right"></i></div>
+        <div class="item"><i data-lucide="badge-check"></i><div class="n">Assinaturas</div><div class="s">Planos e<br>recursos.</div></div>
+        <div class="mini"><i data-lucide="arrow-right"></i></div>
+        <div class="item"><i data-lucide="receipt"></i><div class="n">Faturas</div><div class="s">Consulte o<br>faturamento.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>if (new URLSearchParams(location.search).get("theme") === "dark") document.body.classList.add("dark"); lucide.createIcons();</script>
+</body>
+</html>

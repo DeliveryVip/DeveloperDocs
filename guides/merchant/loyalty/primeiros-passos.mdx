@@ -1,0 +1,102 @@
+---
+title: Primeiros passos
+description: Crie o app com o scope dv.loyalty, declare a extensão de fidelidade e obtenha o token com os dois scopes necessários.
+icon: rocket
+---
+
+Ao final desta página você tem um app operador de fidelidade instalado em uma loja e um token capaz de ativar o programa e ler os pedidos. São quatro passos, metade no painel e metade na API.
+
+<Steps>
+<Step title="Crie o app com os scopes dv.loyalty e od.all">
+Crie sua aplicação no [painel do desenvolvedor](/inicio/primeiros-passos) normalmente. Um app operador de fidelidade precisa de **dois scopes**:
+
+| Scope | Para quê |
+| ----- | -------- |
+| `dv.loyalty` | Os endpoints de configuração de fidelidade (`PUT`/`DELETE /merchant/v3/{merchantId}/loyalty/config`). |
+| `od.all` | Ler os pedidos (`GET /merchant/v3/orders/{orderId}`). É assim que o [acúmulo](/guides/merchant/loyalty/acumulo) funciona, já que o bloco `loyalty` vive no pedido. |
+
+Guarde o `client_id` e o `client_secret`. O secret também é a chave que a DeliveryVip usa para [assinar as chamadas do contrato](/guides/merchant/loyalty/contrato-do-operador#autenticação-das-chamadas).
+</Step>
+
+<Step title="Declare a extensão de fidelidade">
+Na seção **Extensões** do app, declare a extensão **loyalty** informando a **`api_base_url`**: a base HTTPS onde o seu sistema implementa o [contrato do operador](/guides/merchant/loyalty/contrato-do-operador). A URL pode incluir um prefixo de caminho (ex.: `https://operador.example.com/dv`); a DeliveryVip acrescenta `/v1/loyalty/...` a ela.
+
+<Warning>
+A `api_base_url` deve ser **HTTPS**. `http://` é aceito apenas em loopback (`localhost`, `127.x.x.x`, `::1`), para desenvolvimento local.
+</Warning>
+
+<Danger>
+**Remover a extensão do app cascateia**: apaga as configurações de programa de todas as lojas, os vínculos de clientes e o histórico de resgates. Isso é diferente do [`DELETE` da configuração de uma loja](/guides/merchant/loyalty/ativando-o-programa#desativando-o-programa), que desativa o programa naquela loja **sem** tocar em vínculos nem histórico.
+</Danger>
+</Step>
+
+<Step title="O lojista instala o app">
+O lojista instala o seu app pela **Delivery Store**, como qualquer outro app. Veja [Instalando o app na loja](/inicio/primeiros-passos/instalando-app-na-loja). O grant é derivado no servidor (interseção dos scopes do app com os que o dono da loja pode conceder), e a página de consentimento destaca o item de **fidelidade/LGPD** para o lojista.
+</Step>
+
+<Step title="Obtenha o token com os dois scopes">
+Use o fluxo **client credentials** pedindo os dois scopes no mesmo token. O token vale **24 horas** e atende todas as lojas que instalaram o app.
+
+<CodeGroup>
+```bash cURL
+curl --request POST 'https://api.deliveryvip.com.br/authentication/v1/oauth/token' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'grant_type=client_credentials' \
+  --data-urlencode "client_id=$DV_CLIENT_ID" \
+  --data-urlencode "client_secret=$DV_CLIENT_SECRET" \
+  --data-urlencode 'scope=od.all dv.loyalty'
+```
+
+```js Node.js
+const response = await fetch('https://api.deliveryvip.com.br/authentication/v1/oauth/token', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+  body: new URLSearchParams({
+    grant_type: 'client_credentials',
+    client_id: process.env.DV_CLIENT_ID,
+    client_secret: process.env.DV_CLIENT_SECRET,
+    scope: 'od.all dv.loyalty',
+  }),
+})
+const { access_token } = await response.json()
+```
+
+```python Python
+import os
+import requests
+
+response = requests.post(
+    "https://api.deliveryvip.com.br/authentication/v1/oauth/token",
+    data={
+        "grant_type": "client_credentials",
+        "client_id": os.environ["DV_CLIENT_ID"],
+        "client_secret": os.environ["DV_CLIENT_SECRET"],
+        "scope": "od.all dv.loyalty",
+    },
+)
+access_token = response.json()["access_token"]
+```
+</CodeGroup>
+
+<Info>
+O parâmetro é `scope` (**singular**), com os valores **separados por espaço**. Um token só com `dv.loyalty` consegue configurar o programa, mas recebe `403` ao ler pedidos; um token só com `od.all` recebe `403` nos endpoints de configuração.
+</Info>
+
+Veja mais detalhes do fluxo OAuth em [Autenticação](/inicio/conceitos/autenticacao).
+</Step>
+</Steps>
+
+<Check>
+Com o app instalado e o token em mãos, você já pode [ativar o programa da loja](/guides/merchant/loyalty/ativando-o-programa). Antes, deixe a rota `GET /v1/loyalty/ping` do seu servidor respondendo `204` com a assinatura validada: o config push depende dela.
+</Check>
+
+## Duas credenciais, dois sentidos
+
+| Sentido | Autenticação | Credencial |
+| ------- | ------------ | ---------- |
+| Você chama a DeliveryVip (config push, pedidos) | `Authorization: Bearer {token}` | Token OAuth obtido no passo 4. |
+| A DeliveryVip chama você (contrato) | `X-App-Signature` (HMAC-SHA256 do corpo) | O `client_secret` do app como chave. |
+
+<Warning>
+Não assine o config push com HMAC nem espere um Bearer token nas rotas do contrato. Cada sentido usa só a sua autenticação.
+</Warning>

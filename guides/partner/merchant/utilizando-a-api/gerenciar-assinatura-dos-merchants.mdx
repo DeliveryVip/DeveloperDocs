@@ -1,0 +1,169 @@
+---
+title: Gerenciar assinatura das lojas
+sidebarTitle: Gerenciar assinatura
+description: Ative, cancele, avise, bloqueie e atualize contrato e plano da assinatura de uma loja.
+icon: file-signature
+---
+
+Cada ação é uma chamada em `/partner/v2/merchants/{merchantId}/<ação>`. As de estado respondem `202 Accepted` com o ID da loja; a atualização responde `200 OK`.
+
+| Ação | Endpoint | Exige status | Efeito |
+| --- | --- | --- | --- |
+| [Ativar](#ativar-assinatura) | `POST activate` | `TRIAL`, `TRIAL_EXPIRED` ou `CANCELLED` | Vai para `ACTIVATED`. |
+| [Cancelar](#cancelar-assinatura) | `POST cancel` | `ACTIVATED` | Vai para `CANCELLED`. |
+| [Ativar aviso](#ativar-aviso) | `POST warning` | `ACTIVATED` | `warning: true`, `blocked: false`. |
+| [Desativar aviso](#desativar-aviso) | `POST unwarning` | `ACTIVATED` | `warning: false`. |
+| [Bloquear](#bloquear-assinatura) | `POST block` | `ACTIVATED` | `blocked: true`, `warning: false`. |
+| [Desbloquear](#desbloquear-assinatura) | `POST unblock` | `ACTIVATED` | `blocked: false`. |
+| [Atualizar](#atualizar-assinatura) | `PUT subscription` | `TRIAL`, `ACTIVATED` ou `DEMO` | Troca `agreementCode` e/ou plano. |
+
+```json Resposta (202)
+{ "merchantId": "d7240afd-d47c-4ae8-b79d-f14d3e8e1dd8" }
+```
+
+Quando o status não aceita a ação, a resposta é `422` com o motivo no `title`, por exemplo `{"status": "422", "title": "Subscription must be activated"}`. Loja fora do alcance do token retorna `404`.
+
+## Ativar Assinatura
+
+Tira a loja do teste ou reativa uma loja cancelada.
+
+<ParamField body="subscription.agreementCode" type="string">
+Código do contrato. Omita (ou envie `null`) para manter o atual.
+</ParamField>
+<ParamField body="subscription.planId" type="uuid">
+Plano de cobrança. Omita para manter o atual. Precisa ser um plano `AVAILABLE` do parceiro, com visibilidade compatível com a loja: `PUBLIC` ou `DIRECT_MERCHANT` para lojas diretas, `PUBLIC` ou `RESALE` para lojas de revenda. Veja [Planos](/guides/partner/plans/definicoes).
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl --request POST 'https://api.deliveryvip.com.br/partner/v2/merchants/{merchantId}/activate' \
+  --header 'Authorization: Bearer {token}' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "subscription": {
+      "agreementCode": "123456",
+      "planId": "47f3af9c-c380-4e09-8f73-76bc06634d76"
+    }
+  }'
+```
+
+```js Node.js
+await fetch(`https://api.deliveryvip.com.br/partner/v2/merchants/${merchantId}/activate`, {
+  method: 'POST',
+  headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+  body: JSON.stringify({ subscription: { agreementCode: '123456', planId } }),
+})
+```
+
+```python Python
+requests.post(
+    f"https://api.deliveryvip.com.br/partner/v2/merchants/{merchant_id}/activate",
+    headers={"Authorization": f"Bearer {token}"},
+    json={"subscription": {"agreementCode": "123456", "planId": plan_id}},
+)
+```
+</CodeGroup>
+
+A ativação é recusada com `422` quando:
+
+* a loja é `DEMO` (`Subscription is demo`);
+* a assinatura do parceiro ou da revenda da loja não está `ACTIVATED` (`Partner subscription is not activated`);
+* o `planId` não existe, não está disponível ou não é visível para a loja (`Invalid plan`);
+* a loja já está `ACTIVATED`.
+
+<Warning>
+**Reativação no mesmo mês do cancelamento.** Se a loja foi cancelada no mês corrente (ou há menos de 24 horas), a reativação muda o status, mas mantém `lastActivationAt` e **ignora** `agreementCode` e `planId`. Envie-os em seguida com [Atualizar Assinatura](#atualizar-assinatura).
+</Warning>
+
+## Cancelar Assinatura
+
+Encerra a assinatura. Não tem corpo.
+
+```bash
+curl --request POST 'https://api.deliveryvip.com.br/partner/v2/merchants/{merchantId}/cancel' \
+  --header 'Authorization: Bearer {token}'
+```
+
+<Danger>
+O cancelamento também cancela todos os recursos contratados e **remove os domínios da loja**. Ao reativar, o domínio padrão é recriado, mas domínios personalizados precisam ser configurados de novo.
+</Danger>
+
+## Ativar Aviso
+
+Sinaliza que a loja pode ser bloqueada em breve, por exemplo por atraso de pagamento. Não tem corpo. Desliga um bloqueio ativo.
+
+```bash
+curl --request POST 'https://api.deliveryvip.com.br/partner/v2/merchants/{merchantId}/warning' \
+  --header 'Authorization: Bearer {token}'
+```
+
+## Desativar Aviso
+
+Remove o aviso. Não tem corpo: `POST /partner/v2/merchants/{merchantId}/unwarning`.
+
+## Bloquear Assinatura
+
+Bloqueia o uso da loja. Não tem corpo: `POST /partner/v2/merchants/{merchantId}/block`.
+
+<Info>
+O bloqueio não cancela: a assinatura continua `ACTIVATED` e continua sendo cobrada. Use o bloqueio para inadimplência, não como cancelamento.
+</Info>
+
+## Desbloquear Assinatura
+
+Libera a loja. Não tem corpo: `POST /partner/v2/merchants/{merchantId}/unblock`.
+
+## Atualizar Assinatura
+
+Troca o código do contrato, o plano ou os dois, sem mudar o status. Aceita lojas em `TRIAL`, `ACTIVATED` ou `DEMO`; nos demais status responde `422` (`Failed to update subscription`).
+
+<ParamField body="subscription.agreementCode" type="string">
+Código do contrato. Omita (ou envie `null`) para manter; envie `""` para apagar.
+</ParamField>
+<ParamField body="subscription.planId" type="uuid">
+Novo plano. Mesmas regras de visibilidade da ativação. Plano inválido retorna `422`.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl --request PUT 'https://api.deliveryvip.com.br/partner/v2/merchants/{merchantId}/subscription' \
+  --header 'Authorization: Bearer {token}' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "subscription": {
+      "agreementCode": "123456",
+      "planId": "47f3af9c-c380-4e09-8f73-76bc06634d76"
+    }
+  }'
+```
+
+```js Node.js
+await fetch(`https://api.deliveryvip.com.br/partner/v2/merchants/${merchantId}/subscription`, {
+  method: 'PUT',
+  headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+  body: JSON.stringify({ subscription: { agreementCode: '123456', planId } }),
+})
+```
+
+```python Python
+requests.put(
+    f"https://api.deliveryvip.com.br/partner/v2/merchants/{merchant_id}/subscription",
+    headers={"Authorization": f"Bearer {token}"},
+    json={"subscription": {"agreementCode": "123456", "planId": plan_id}},
+)
+```
+</CodeGroup>
+
+```json Resposta (200)
+{ "merchantId": "d7240afd-d47c-4ae8-b79d-f14d3e8e1dd8" }
+```
+
+Ao trocar de plano, os recursos da loja são sincronizados com o novo plano.
+
+## Código do Contrato
+
+<Warning>
+`PUT /partner/v2/merchants/{merchantId}/agreementCode` está **descontinuado** em favor de [Atualizar Assinatura](#atualizar-assinatura). A data de desligamento anunciada foi 01/07/2025; a rota ainda responde, com os headers `Deprecation: true` e `Sunset: Tue, 01 Jul 2025 00:00:00 GMT`, e pode ser removida a qualquer momento.
+</Warning>
+
+Aceita o mesmo corpo de `PUT subscription` e responde igual. Migre trocando apenas o final do caminho.

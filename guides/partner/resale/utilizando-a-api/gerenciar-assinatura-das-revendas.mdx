@@ -1,0 +1,124 @@
+---
+title: Gerenciar assinatura das revendas
+sidebarTitle: Gerenciar assinatura
+description: Ative, cancele, avise, bloqueie e atualize o código do contrato da assinatura de uma revenda.
+icon: file-signature
+---
+
+As ações são as mesmas da [assinatura das lojas](/guides/partner/merchant/utilizando-a-api/gerenciar-assinatura-dos-merchants), em `/partner/v2/resales/{resaleId}/<ação>`. As de estado respondem `202 Accepted` com o `resaleId`; a atualização responde `200 OK`.
+
+<Info>
+A assinatura de uma revenda não tem plano. `activate`, `subscription` e o antigo `agreementCode` aceitam só o `agreementCode`; um `planId` no corpo é ignorado.
+</Info>
+
+| Ação | Endpoint | Exige status |
+| --- | --- | --- |
+| [Ativar](#ativar-assinatura) | `POST activate` | `TRIAL`, `TRIAL_EXPIRED` ou `CANCELLED` |
+| [Cancelar](#cancelar-assinatura) | `POST cancel` | `ACTIVATED` |
+| [Ativar aviso](#ativar-aviso) / [Desativar](#desativar-aviso) | `POST warning` / `unwarning` | `ACTIVATED` |
+| [Bloquear](#bloquear-assinatura) / [Desbloquear](#desbloquear-assinatura) | `POST block` / `unblock` | `ACTIVATED` |
+| [Atualizar](#atualizar-assinatura) | `PUT subscription` | `TRIAL`, `ACTIVATED` ou `DEMO` |
+
+```json Resposta (202)
+{ "resaleId": "d7240afd-d47c-4ae8-b79d-f14d3e8e1dd8" }
+```
+
+Status que não aceita a ação retorna `422` com o motivo no `title`.
+
+## Ativar Assinatura
+
+<ParamField body="subscription.agreementCode" type="string">
+Código do contrato. Omita para manter o atual.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl --request POST 'https://api.deliveryvip.com.br/partner/v2/resales/{resaleId}/activate' \
+  --header 'Authorization: Bearer {token}' \
+  --header 'Content-Type: application/json' \
+  --data '{ "subscription": { "agreementCode": "123456" } }'
+```
+
+```js Node.js
+await fetch(`https://api.deliveryvip.com.br/partner/v2/resales/${resaleId}/activate`, {
+  method: 'POST',
+  headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+  body: JSON.stringify({ subscription: { agreementCode: '123456' } }),
+})
+```
+
+```python Python
+requests.post(
+    f"https://api.deliveryvip.com.br/partner/v2/resales/{resale_id}/activate",
+    headers={"Authorization": f"Bearer {token}"},
+    json={"subscription": {"agreementCode": "123456"}},
+)
+```
+</CodeGroup>
+
+Como nas lojas, reativar no mesmo mês do cancelamento (ou em até 24 horas) muda o status mas ignora o `agreementCode`; envie-o depois com [Atualizar Assinatura](#atualizar-assinatura).
+
+## Cancelar Assinatura
+
+Sem corpo: `POST /partner/v2/resales/{resaleId}/cancel`.
+
+<Danger>
+Cancelar a revenda **cancela também todas as lojas `ACTIVATED` dela** e remove os domínios da revenda. As lojas precisam ser reativadas uma a uma depois que a revenda voltar a `ACTIVATED`.
+</Danger>
+
+## Ativar Aviso
+
+Sem corpo: `POST /partner/v2/resales/{resaleId}/warning`. Desliga um bloqueio ativo.
+
+## Desativar Aviso
+
+Sem corpo: `POST /partner/v2/resales/{resaleId}/unwarning`.
+
+## Bloquear Assinatura
+
+Sem corpo: `POST /partner/v2/resales/{resaleId}/block`.
+
+<Info>
+O bloqueio não cancela: a assinatura continua `ACTIVATED`. Enquanto a revenda está bloqueada, as lojas dela perdem a licença.
+</Info>
+
+## Desbloquear Assinatura
+
+Sem corpo: `POST /partner/v2/resales/{resaleId}/unblock`.
+
+## Atualizar Assinatura
+
+Atualiza o código do contrato sem mudar o status. Envie `""` para apagar o código.
+
+<CodeGroup>
+```bash cURL
+curl --request PUT 'https://api.deliveryvip.com.br/partner/v2/resales/{resaleId}/subscription' \
+  --header 'Authorization: Bearer {token}' \
+  --header 'Content-Type: application/json' \
+  --data '{ "subscription": { "agreementCode": "123456" } }'
+```
+
+```js Node.js
+await fetch(`https://api.deliveryvip.com.br/partner/v2/resales/${resaleId}/subscription`, {
+  method: 'PUT',
+  headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+  body: JSON.stringify({ subscription: { agreementCode: '123456' } }),
+})
+```
+
+```python Python
+requests.put(
+    f"https://api.deliveryvip.com.br/partner/v2/resales/{resale_id}/subscription",
+    headers={"Authorization": f"Bearer {token}"},
+    json={"subscription": {"agreementCode": "123456"}},
+)
+```
+</CodeGroup>
+
+## Código do Contrato
+
+<Warning>
+`PUT /partner/v2/resales/{resaleId}/agreementCode` está **descontinuado** em favor de [Atualizar Assinatura](#atualizar-assinatura). A data anunciada foi 01/07/2025; a rota ainda responde, com os headers `Deprecation: true` e `Sunset: Tue, 01 Jul 2025 00:00:00 GMT`, e pode ser removida a qualquer momento.
+</Warning>
+
+Aceita o mesmo corpo de `PUT subscription`. Migre trocando apenas o final do caminho.

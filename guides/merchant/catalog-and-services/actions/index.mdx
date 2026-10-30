@@ -1,0 +1,235 @@
+---
+title: Ações do catálogo
+sidebarTitle: Ações
+description: Escolha entre update, upsert e force e conheça as regras que valem para as três rotas.
+icon: arrows-rotate
+---
+
+Três rotas escrevem no catálogo. Elas recebem os mesmos objetos e validam os campos da mesma forma. O que muda é o que acontece com objetos novos e com os objetos que você **não** enviou.
+
+| | [Update](/guides/merchant/catalog-and-services/actions/update) | [Upsert](/guides/merchant/catalog-and-services/actions/upsert) | [Force](/guides/merchant/catalog-and-services/actions/force) |
+| --- | --- | --- | --- |
+| Endpoint | `merchantUpdate` | `merchantUpsert` | `merchantForce` |
+| Corpo | `entityType` + `updatedObjects` | `entityType` + `upsertObjects` | Loja inteira, no formato do [GET](/guides/merchant/catalog-and-services/details) |
+| Tipos por chamada | Um | Um | Todos |
+| ID que não existe | Erro `422` | Cria o objeto | Cria o objeto |
+| Campos obrigatórios | Só `id` | `id`, `name` e os campos essenciais do tipo | Como no upsert |
+| Objetos não enviados | Ficam como estão | Ficam como estão | **São removidos** |
+| Abrir ou fechar a loja | `merchantStatus` (opcional) | `merchantStatus` (opcional) | `status` (obrigatório) |
+
+<CardGroup cols={3}>
+<Card title="Update" icon="pen" href="/guides/merchant/catalog-and-services/actions/update">
+Mudanças pontuais: preço, status, tempo de entrega, abrir e fechar a loja.
+</Card>
+<Card title="Upsert" icon="file-import" href="/guides/merchant/catalog-and-services/actions/upsert">
+Cadastrar e alterar objetos sem mexer no resto do catálogo.
+</Card>
+<Card title="Force" icon="triangle-exclamation" href="/guides/merchant/catalog-and-services/actions/force">
+Carga inicial ou reescrita completa. Remove o que não vier.
+</Card>
+</CardGroup>
+
+## Qual usar
+
+<Steps>
+<Step title="Primeira carga" icon="rocket">
+Use o **force** com o catálogo completo, ou o **upsert** tipo a tipo, na ordem `OPTION`, `OPTION_GROUP`, `CATEGORY` e `ITEM`.
+</Step>
+<Step title="Produto novo ou alterado" icon="file-import">
+Use o **upsert** só com os objetos que mudaram.
+</Step>
+<Step title="Preço, estoque e status do dia a dia" icon="pen">
+Use o **update** com o `id` e só os campos que mudaram. Se o objeto não existir na loja, a chamada falha em vez de criar um objeto incompleto.
+</Step>
+<Step title="Reconciliação completa" icon="rotate">
+Use o **force** quando o seu sistema for a fonte da verdade e você quiser apagar da DeliveryVip o que não existe mais nele.
+</Step>
+</Steps>
+
+## Comportamento comum
+
+<AccordionGroup>
+<Accordion title="A chamada é síncrona e tudo ou nada" icon="check-double">
+A resposta `204 No Content` só chega depois que o catálogo foi gravado. Tudo roda numa única transação: se qualquer objeto falhar, **nada** é gravado e a resposta é `422` com o motivo. Corrija o objeto e reenvie a chamada inteira.
+
+A única parte assíncrona são as [imagens](#imagens), baixadas depois da resposta.
+</Accordion>
+
+<Accordion title="Só os campos enviados são alterados" icon="pen">
+Em update e upsert, um objeto que já existe recebe só os campos presentes no JSON. Um campo ausente mantém o valor atual. Campos fora da estrutura documentada são rejeitados com `422`.
+</Accordion>
+
+<Accordion title="Referências precisam existir antes" icon="link">
+`categoryId`, `optionIds`, `optionGroupId` e `optionId` precisam apontar para objetos que já existem na loja. Senão, a chamada falha com uma mensagem como `categoryId '...' not available in merchant`.
+
+No update e no upsert, envie um tipo por vez, nesta ordem: `OPTION`, `OPTION_GROUP`, `CATEGORY` e `ITEM`. No force, a ordem é resolvida para você: serviços, opções, grupos, categorias, produtos e formas de pagamento são gravados nessa sequência.
+</Accordion>
+
+<Accordion title="IDs repetidos" icon="clone">
+IDs repetidos dentro de um mesmo objeto são removidos antes de gravar: `optionIds` de um grupo, `modifiers` de um produto (pelo `id`) e `optionGroups` de um modificador (pelo `optionGroupId`).
+
+Não repita o mesmo objeto na lista principal (`updatedObjects`, `upsertObjects` ou as listas do force): a chamada pode falhar com `422`.
+</Accordion>
+</AccordionGroup>
+
+## Formato dos campos
+
+| Campo | Regra |
+| --- | --- |
+| `id` e demais UUIDs | UUID em **letras minúsculas**, versão 1 a 5 (o UUID v4 é o mais comum). UUID v7 ou em maiúsculas é rejeitado. |
+| `name` | Precisa ter ao menos uma letra ou um número. |
+| `index` | Inteiro a partir de `1`. `0` é rejeitado. |
+| `status` | `AVAILABLE` ou `UNAVAILABLE`. |
+| `price.value` e `price.originalValue` | Número maior ou igual a `0`. |
+| `price.currency` | Só `BRL`. |
+| `image.url` | Só `https://`. |
+
+<Warning>
+**O ID é seu e precisa ser único.** Gere um UUID novo no seu sistema para cada objeto. Não reaproveite UUIDs de outra plataforma ou de catálogos antigos: se o UUID já pertencer a outra loja na DeliveryVip, o objeto é **ignorado** sem erro, nem criado nem alterado.
+</Warning>
+
+## Regras de preço do modificador
+
+O campo `rule` de um modificador define como o preço das opções escolhidas entra no produto. Para as opções A = 10, B = 15 e C = 20:
+
+| `rule` | Cálculo | Cliente escolhe A e B |
+| --- | --- | --- |
+| `ADDITION` | Soma dos preços das opções escolhidas | 10 + 15 = **25** |
+| `APPORTIONMENT` | Média dos preços (rateio, como em pizza meio a meio) | (10 + 15) / 2 = **12,5** |
+| `HIGHEST` | Maior preço entre as opções escolhidas | **15** |
+
+`minPermitted` e `maxPermitted` limitam quantas opções o cliente escolhe:
+
+* Envie os dois juntos. Enviar só um deles gera erro.
+* Os dois são inteiros maiores ou iguais a `0`, e `minPermitted` não pode ser maior que `maxPermitted`.
+* `minPermitted` igual a `0` torna o modificador opcional.
+* `maxPermitted` igual a `0` significa **sem limite**. Nesse caso, `minPermitted` também precisa ser `0`.
+
+## Imagens
+
+Produtos (`ITEM`) e opções (`OPTION`) aceitam `image` com `url` e `checksum`. A imagem é baixada **depois** da resposta, em segundo plano:
+
+* Se o `checksum` for igual ao da imagem atual, o download é ignorado. Envie sempre o checksum real do arquivo para não baixar a mesma imagem de novo.
+* A `url` precisa ser `https://`, pública e responder `2xx` direto: redirecionamentos não são seguidos.
+* Formatos aceitos: PNG, JPEG, GIF, WebP e SVG.
+* O download tem limite de 5 segundos para conectar e 10 segundos no total.
+* Se o download falhar, a imagem é descartada sem aviso e a anterior continua. Confira o `checksum` no [GET da loja](/guides/merchant/catalog-and-services/details) para saber se a troca aconteceu.
+
+O `checksum` é o MD5 do arquivo, em Base64.
+
+<Accordion title="Como calcular o checksum" icon="code">
+<CodeGroup>
+```ruby Ruby
+require 'open-uri'
+require 'digest'
+require 'base64'
+
+url = 'https://example.com/seu_arquivo.jpg'
+image_data = URI.open(url).read
+
+md5_base64 = Base64.strict_encode64(Digest::MD5.digest(image_data))
+puts "MD5 em base64 da imagem: #{md5_base64}"
+```
+
+```python Python
+import base64
+import hashlib
+
+import requests
+
+url = "https://example.com/seu_arquivo.jpg"
+response = requests.get(url)
+response.raise_for_status()
+
+md5_base64 = base64.b64encode(hashlib.md5(response.content).digest()).decode("utf-8")
+print(f"MD5 em base64 da imagem: {md5_base64}")
+```
+
+```php PHP
+<?php
+$url = 'https://example.com/seu_arquivo.jpg';
+$image = file_get_contents($url);
+
+if ($image !== false) {
+    $md5_base64 = base64_encode(md5($image, true));
+    echo "MD5 em base64 da imagem: $md5_base64";
+} else {
+    echo "Falha ao baixar a imagem.";
+}
+```
+
+```js Node.js
+const crypto = require('crypto')
+
+const response = await fetch('https://example.com/seu_arquivo.jpg')
+const buffer = Buffer.from(await response.arrayBuffer())
+
+const md5Base64 = crypto.createHash('md5').update(buffer).digest('base64')
+console.log(`MD5 em base64 da imagem: ${md5Base64}`)
+```
+
+```csharp C#
+using System;
+using System.Net.Http;
+using System.Security.Cryptography;
+
+var url = "https://example.com/seu_arquivo.jpg";
+using var client = new HttpClient();
+byte[] imageBytes = await client.GetByteArrayAsync(url);
+
+using var md5 = MD5.Create();
+string md5Base64 = Convert.ToBase64String(md5.ComputeHash(imageBytes));
+Console.WriteLine($"MD5 em base64 da imagem: {md5Base64}");
+```
+
+```java Java
+import java.io.InputStream;
+import java.net.URL;
+import java.security.MessageDigest;
+import java.util.Base64;
+
+public class Main {
+    public static void main(String[] args) throws Exception {
+        String url = "https://example.com/seu_arquivo.jpg";
+
+        try (InputStream inputStream = new URL(url).openStream()) {
+            byte[] imageBytes = inputStream.readAllBytes();
+            byte[] md5 = MessageDigest.getInstance("MD5").digest(imageBytes);
+            String md5Base64 = Base64.getEncoder().encodeToString(md5);
+            System.out.println("MD5 em base64 da imagem: " + md5Base64);
+        }
+    }
+}
+```
+</CodeGroup>
+</Accordion>
+
+## Respostas e erros
+
+| Status | Quando |
+| --- | --- |
+| `204 No Content` | Tudo foi gravado. A resposta vem sem corpo. |
+| `401 Unauthorized` | Token ausente, expirado ou inválido. |
+| `404 Not Found` | O `merchantId` não existe ou a loja não autorizou o seu app. |
+| `422 Unprocessable Content` | O corpo não segue a estrutura, um ID referenciado não existe na loja ou a lista de objetos veio vazia. Nada foi gravado. |
+
+Os erros `422` trazem o motivo em `title`. Quando há mais de um erro de estrutura, eles vêm separados por `|`.
+
+```json 422 Unprocessable Content
+{
+  "status": "422",
+  "title": "number at `/upsertObjects/0/index` is less than: 1"
+}
+```
+
+| Mensagem em `title` | Causa | Como resolver |
+| --- | --- | --- |
+| `object at root is missing required properties: merchantStatus` | Corpo sem `entityType` e sem `merchantStatus` | Envie `entityType` com os objetos, ou só `merchantStatus` |
+| `value at ... is not one of: [...]` em `/entityType` | `entityType` fora da lista | Use `SERVICE`, `OPTION`, `OPTION_GROUP`, `CATEGORY`, `ITEM` ou `PAYMENT_METHOD` |
+| `objects_empty` | `updatedObjects` ou `upsertObjects` vazio | Envie ao menos um objeto |
+| `object at ... is missing required properties: ...` | Falta um campo obrigatório | Envie os campos listados na mensagem. No upsert, um `ITEM` exige `name`, `menu`, `price` e `categoryId` |
+| `object property at ... is a disallowed additional property` | Campo fora da estrutura documentada, ou na entidade errada | Remova o campo |
+| `number at ... is less than: 1` | `index` igual a `0` | Comece a numeração em `1` |
+| `string at ... does not match pattern: ...` | UUID inválido (maiúsculas, v7), `name` sem letras ou números, ou `url` sem `https://` | Corrija o formato do campo indicado |
+| `... not available in merchant` | O ID referenciado não existe na loja. No update, também o próprio `id` do objeto | Crie o objeto antes (upsert) ou corrija o ID |
+| `modifierId '...' minPermitted cannot greater than maxPermitted` | `minPermitted` maior que `maxPermitted` | Ajuste os limites. Para "sem limite", envie os dois como `0` |

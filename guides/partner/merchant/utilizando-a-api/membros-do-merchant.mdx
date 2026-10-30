@@ -1,0 +1,170 @@
+---
+title: Membros da loja
+description: Liste, adicione, atualize e remova quem acessa o painel da loja, e gere magic links de acesso.
+icon: users
+---
+
+Membros são os usuários com acesso ao painel da loja. Cada um tem um papel: `owner`, `manager` ou `operator` (veja [Papéis de membros](/guides/partner/merchant/definicoes#papéis-de-membros)).
+
+| Ação | Endpoint | Sucesso |
+| --- | --- | --- |
+| [Listar](#listar-membros) | `GET /partner/v2/merchants/{merchantId}/members` | `200` ou `204` |
+| [Adicionar](#adicionar-membro) | `POST /partner/v2/merchants/{merchantId}/members` | `201` |
+| [Atualizar](#atualizar-membro) | `PATCH /partner/v2/merchants/{merchantId}/members/{memberId}` | `200` |
+| [Remover](#remover-membro) | `DELETE /partner/v2/merchants/{merchantId}/members/{memberId}` | `200` |
+| [Magic link](#magiclink) | `POST /partner/v2/merchants/{merchantId}/members/{memberId}/magic-link` | `201` |
+
+Loja ou membro fora do alcance do token retorna `404`.
+
+## O objeto membro
+
+```json
+{
+  "id": "b90a8ae0-9cf0-40ef-a295-b3f43db65076",
+  "role": "MANAGER",
+  "user": { "name": "João Souza", "email": "joao@exemplo.com.br" },
+  "status": "ACTIVE"
+}
+```
+
+<ResponseField name="id" type="uuid">ID do membro (não do usuário).</ResponseField>
+<ResponseField name="role" type="string">`OWNER`, `MANAGER` ou `OPERATOR`.</ResponseField>
+<ResponseField name="user" type="object">`name` e `email` do usuário.</ResponseField>
+<ResponseField name="status" type="string">
+`ACTIVE`: o usuário já tem acesso. `INVITED`: convite enviado para um e-mail que já tinha conta, aguardando aceite.
+</ResponseField>
+
+## Listar membros
+
+Traz os membros com acesso ativo. Convites pendentes não aparecem.
+
+<CodeGroup>
+```bash cURL
+curl 'https://api.deliveryvip.com.br/partner/v2/merchants/{merchantId}/members' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+const response = await fetch(`https://api.deliveryvip.com.br/partner/v2/merchants/${merchantId}/members`, {
+  headers: { Authorization: `Bearer ${token}` },
+})
+const members = response.status === 204 ? [] : await response.json()
+```
+
+```python Python
+response = requests.get(
+    f"https://api.deliveryvip.com.br/partner/v2/merchants/{merchant_id}/members",
+    headers={"Authorization": f"Bearer {token}"},
+)
+members = [] if response.status_code == 204 else response.json()
+```
+</CodeGroup>
+
+## Adicionar membro
+
+<ParamField body="member.role" type="string" required>
+Papel, **em minúsculas**: `owner`, `manager` ou `operator`.
+</ParamField>
+<ParamField body="user.name" type="string" required>Nome do usuário.</ParamField>
+<ParamField body="user.email" type="string" required>E-mail do usuário.</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl --request POST 'https://api.deliveryvip.com.br/partner/v2/merchants/{merchantId}/members' \
+  --header 'Authorization: Bearer {token}' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "member": { "role": "manager" },
+    "user": { "name": "João Souza", "email": "joao@exemplo.com.br" }
+  }'
+```
+
+```js Node.js
+const response = await fetch(`https://api.deliveryvip.com.br/partner/v2/merchants/${merchantId}/members`, {
+  method: 'POST',
+  headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    member: { role: 'manager' },
+    user: { name: 'João Souza', email: 'joao@exemplo.com.br' },
+  }),
+})
+const member = await response.json()
+```
+
+```python Python
+response = requests.post(
+    f"https://api.deliveryvip.com.br/partner/v2/merchants/{merchant_id}/members",
+    headers={"Authorization": f"Bearer {token}"},
+    json={
+        "member": {"role": "manager"},
+        "user": {"name": "João Souza", "email": "joao@exemplo.com.br"},
+    },
+)
+member = response.json()
+```
+</CodeGroup>
+
+A resposta é sempre `201 Created` com o membro, em um de dois formatos:
+
+<Tabs>
+<Tab title="E-mail novo">
+A conta é criada e vinculada à loja na hora. O membro volta com `status: ACTIVE`. Para o primeiro acesso, gere um [magic link](#magiclink).
+</Tab>
+<Tab title="E-mail com conta">
+Nenhuma conta é alterada e nenhum acesso é concedido: um convite é enviado para o e-mail e o membro volta com `status: INVITED`. Ele vira `ACTIVE` quando o dono da conta aceitar. O link do convite usa o domínio do painel do parceiro; sem domínio configurado, a resposta é `403` (`partner must be setup a domain to user access`).
+</Tab>
+</Tabs>
+
+<Warning>
+O papel precisa ir em minúsculas. `OWNER`, em maiúsculas, é recusado com `422`.
+</Warning>
+
+## Atualizar membro
+
+Troca o papel de um membro.
+
+<ParamField body="member.role" type="string" required>
+Novo papel, em minúsculas: `owner`, `manager` ou `operator`.
+</ParamField>
+
+```bash
+curl --request PATCH 'https://api.deliveryvip.com.br/partner/v2/merchants/{merchantId}/members/{memberId}' \
+  --header 'Authorization: Bearer {token}' \
+  --header 'Content-Type: application/json' \
+  --data '{ "member": { "role": "operator" } }'
+```
+
+Responde `200 OK` com o membro atualizado, ou `422` se o papel for inválido.
+
+## Remover membro
+
+Remove o acesso do membro à loja. Também serve para cancelar um convite pendente. A conta do usuário não é apagada.
+
+```bash
+curl --request DELETE 'https://api.deliveryvip.com.br/partner/v2/merchants/{merchantId}/members/{memberId}' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```json Resposta (200)
+{ "id": "b90a8ae0-9cf0-40ef-a295-b3f43db65076" }
+```
+
+## MagicLink
+
+Gera um link para o membro entrar no painel sem senha. Só funciona para membros `ACTIVE`.
+
+```bash
+curl --request POST 'https://api.deliveryvip.com.br/partner/v2/merchants/{merchantId}/members/{memberId}/magic-link' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```json Resposta (201)
+{
+  "magicLink": "https://painel.seudominio.com.br/magic-links/authenticate?em=...&sign_in_token=...",
+  "magicLinkExpiresAt": "2025-10-23T07:33:23-03:00"
+}
+```
+
+* O link vale por **6 horas** e é de **uso único**.
+* O host é o domínio do painel do parceiro. Sem domínio configurado, a resposta é `403` (`partner must be setup a domain to user access`).
+* O link não substitui o segundo fator: se a conta exige código por e-mail (o padrão) ou autenticação em dois fatores, abrir o link inicia esse desafio e o login só termina depois do código.

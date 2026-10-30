@@ -1,0 +1,79 @@
+---
+title: Desativar um desconto
+sidebarTitle: Desativar
+description: Encerre um desconto agora, mantendo o cadastro e as estatísticas.
+icon: toggle-off
+---
+
+Encerra o desconto na hora: `startsAt` e `endsAt` passam a ser o momento da chamada. O `status` vira `OVERDUE` e o desconto deixa de ser aplicado em novos pedidos, mas continua na listagem e com as [estatísticas](/guides/merchant/discount/obter-estatistica-do-desconto) disponíveis.
+
+Use para pausar uma campanha. Para voltar, [ative](/guides/merchant/discount/acoes-dos-descontos/ativar-um-desconto) o desconto de novo.
+
+<Info>
+As datas originais são sobrescritas. Depois de desativado, `startsAt` não mostra mais quando a campanha começou de fato.
+</Info>
+
+## Requisição
+
+<ParamField path="merchantId" type="uuid" required>
+A loja.
+</ParamField>
+
+<ParamField path="discountId" type="uuid" required>
+O `id` do desconto.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl --request POST 'https://api.deliveryvip.com.br/merchant/v3/{merchantId}/discounts/{discountId}/unavailable' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+const response = await fetch(
+  `https://api.deliveryvip.com.br/merchant/v3/${merchantId}/discounts/${discountId}/unavailable`,
+  { method: 'POST', headers: { Authorization: `Bearer ${token}` } },
+)
+const discount = await response.json()
+```
+
+```python Python
+response = requests.post(
+    f"https://api.deliveryvip.com.br/merchant/v3/{merchant_id}/discounts/{discount_id}/unavailable",
+    headers={"Authorization": f"Bearer {token}"},
+)
+discount = response.json()
+```
+</CodeGroup>
+
+## Resposta
+
+Retorna `200 OK` com o [objeto desconto](/guides/merchant/discount/obter-detalhes-do-desconto#resposta).
+
+```json 200 OK
+{
+  "id": "4b4012e5-2555-4f35-91cf-f87e4cb61353",
+  "createdAt": "2021-12-22T15:21:00-03:00",
+  "startsAt": "2024-08-02T16:57:57-03:00",
+  "endsAt": "2024-08-02T16:57:57-03:00",
+  "type": "SMART",
+  "name": "10% na Primeira Compra",
+  "status": "OVERDUE",
+  "rules": {
+    "valueType": "PERCENTAGE",
+    "value": 10.0,
+    "minimumOrderValue": 106.0,
+    "usageLimit": 0,
+    "usagePerCustomer": "FIRST_ORDER",
+    "discountType": "SUBTOTAL"
+  },
+  "options": ["NON_PROMOTION_PRODUCTS"]
+}
+```
+
+## Erros
+
+| Status | Quando |
+| --- | --- |
+| `403 Forbidden` | A loja não contratou o módulo de descontos. |
+| `404 Not Found` | O `merchantId` não autorizou o seu app, ou o desconto não existe ou foi removido. |

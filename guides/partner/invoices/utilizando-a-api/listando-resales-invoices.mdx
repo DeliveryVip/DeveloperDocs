@@ -1,0 +1,124 @@
+---
+title: Listando faturas das revendas
+sidebarTitle: Resumo por revenda
+description: Resumo mensal das faturas por revenda, com totais da revenda, de cada plano e de cada tipo de item.
+icon: people-group
+---
+
+`GET /partner/v2/{partnerId}/resales/invoices` traz um resumo por revenda do parceiro: quanto o parceiro paga à DeliveryVip pelas lojas daquela revenda e quanto cobra da revenda. Entram só as lojas vinculadas a revendas; as lojas diretas ficam de fora (use [Faturas das lojas diretas](/guides/partner/invoices/utilizando-a-api/listando-merchants-invoices)).
+
+O endpoint é exclusivo do **parceiro**: com o ID de uma revenda no `partnerId`, ou com token de revenda, a resposta é `403`.
+
+| Status | Quando |
+| --- | --- |
+| `200 OK` | Um resumo por revenda. |
+| `204 No Content` | Nenhuma fatura de loja de revenda no período (inclusive parceiro sem revendas). |
+| `403 Forbidden` | `partnerId` é de uma revenda ou está fora do alcance do token. |
+
+<Warning>
+O bloco **`RECEIVABLE`** só é enviado quando a tabela de preços de recebíveis está habilitada para o parceiro. Sem ela, os arrays `totalPrice` do resumo, de cada plano e de cada item trazem apenas **`PAYABLE`**. Não acesse os blocos pela posição (`totalPrice[1]`): procure pelo campo `type`.
+</Warning>
+
+## Requisição
+
+<ParamField path="partnerId" type="uuid" required>ID do parceiro.</ParamField>
+<ParamField query="year" type="integer">Ano. Sem ele, vale o ano corrente.</ParamField>
+<ParamField query="month" type="integer">Mês, de 1 a 12. Sem ele, vale o mês corrente.</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl 'https://api.deliveryvip.com.br/partner/v2/{partnerId}/resales/invoices?year=2025&month=4' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+const response = await fetch(
+  `https://api.deliveryvip.com.br/partner/v2/${partnerId}/resales/invoices?year=2025&month=4`,
+  { headers: { Authorization: `Bearer ${token}` } },
+)
+const summaries = response.status === 204 ? [] : await response.json()
+
+for (const summary of summaries) {
+  const receivable = summary.totalPrice.find((price) => price.type === 'RECEIVABLE')
+  console.log(summary.resaleId, receivable?.usageTimeValue)
+}
+```
+
+```python Python
+response = requests.get(
+    f"https://api.deliveryvip.com.br/partner/v2/{partner_id}/resales/invoices",
+    params={"year": 2025, "month": 4},
+    headers={"Authorization": f"Bearer {token}"},
+)
+summaries = [] if response.status_code == 204 else response.json()
+
+for summary in summaries:
+    receivable = next((p for p in summary["totalPrice"] if p["type"] == "RECEIVABLE"), None)
+    print(summary["resaleId"], receivable and receivable["usageTimeValue"])
+```
+</CodeGroup>
+
+## Resposta
+
+```json Resposta (200)
+[
+  {
+    "resaleId": "6bbf7d1e-5563-4a09-aa30-809e8aa46d96",
+    "month": "4",
+    "year": "2025",
+    "totalPrice": [
+      { "type": "PAYABLE", "value": 175.0, "usageTimeValue": 137.5, "currency": "BRL" },
+      { "type": "RECEIVABLE", "value": 405.0, "usageTimeValue": 310.0, "currency": "BRL" }
+    ],
+    "plans": [
+      {
+        "id": "b01ea148-c315-486f-8511-57c72327d114",
+        "name": "Plano Delivery",
+        "code": "DELIVERY",
+        "totalSubscriptions": 2,
+        "totalPrice": [
+          { "type": "PAYABLE", "value": 100.0, "usageTimeValue": 75.0, "currency": "BRL" },
+          { "type": "RECEIVABLE", "value": 230.0, "usageTimeValue": 172.5, "currency": "BRL" }
+        ]
+      }
+    ],
+    "items": [
+      {
+        "itemType": "DELIVERY_TAKEOUT",
+        "quantity": 3,
+        "totalPrice": [
+          { "type": "PAYABLE", "value": 150.0, "usageTimeValue": 125.0, "currency": "BRL" },
+          { "type": "RECEIVABLE", "value": 300.0, "usageTimeValue": 250.0, "currency": "BRL" }
+        ]
+      }
+    ]
+  }
+]
+```
+
+<ResponseField name="resaleId" type="uuid">ID da revenda.</ResponseField>
+<ResponseField name="month" type="string | integer">Mês consultado. Texto quando enviado na query; número quando omitido.</ResponseField>
+<ResponseField name="year" type="string | integer">Ano consultado, com a mesma regra.</ResponseField>
+<ResponseField name="totalPrice" type="object[]">
+Totais da revenda no mês. `PAYABLE`: o que o parceiro paga à DeliveryVip pelas lojas da revenda. `RECEIVABLE`: o que o parceiro cobra da revenda. Cada bloco tem `type`, `value` (mês cheio), `usageTimeValue` (proporcional) e `currency`.
+</ResponseField>
+<ResponseField name="plans" type="object[]">
+Totais por plano usado pelas lojas da revenda.
+
+<Expandable title="propriedades">
+<ResponseField name="id" type="uuid">ID do plano.</ResponseField>
+<ResponseField name="name" type="string">Nome do plano.</ResponseField>
+<ResponseField name="code" type="string">Código do plano.</ResponseField>
+<ResponseField name="totalSubscriptions" type="integer">Quantidade de lojas da revenda nesse plano.</ResponseField>
+<ResponseField name="totalPrice" type="object[]">Blocos de preço do plano.</ResponseField>
+</Expandable>
+</ResponseField>
+<ResponseField name="items" type="object[]">
+Totais por tipo de item, somando as lojas da revenda.
+
+<Expandable title="propriedades">
+<ResponseField name="itemType" type="string">Tipo do item. Veja [Definições de faturas](/guides/partner/invoices/definicoes#tipos-de-item).</ResponseField>
+<ResponseField name="quantity" type="integer">Quantidade somada.</ResponseField>
+<ResponseField name="totalPrice" type="object[]">Blocos de preço do item.</ResponseField>
+</Expandable>
+</ResponseField>

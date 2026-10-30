@@ -1,0 +1,77 @@
+---
+title: Remover um desconto
+description: Tire um desconto da loja de vez, liberando o código do cupom.
+icon: trash
+---
+
+Remove o desconto. Ele deixa de valer, some da listagem e, se for cupom, o `code` fica livre para outro cupom. Os pedidos que já usaram o desconto não mudam.
+
+<Tip>
+Quer só pausar o desconto e manter o histórico consultável? [Desative](/guides/merchant/discount/acoes-dos-descontos/desativar-um-desconto) em vez de remover. Depois da remoção, nem as [estatísticas](/guides/merchant/discount/obter-estatistica-do-desconto) ficam disponíveis.
+</Tip>
+
+## Requisição
+
+<ParamField path="merchantId" type="uuid" required>
+A loja.
+</ParamField>
+
+<ParamField path="discountId" type="uuid" required>
+O `id` do desconto.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl --request DELETE 'https://api.deliveryvip.com.br/merchant/v3/{merchantId}/discounts/{discountId}' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+await fetch(`https://api.deliveryvip.com.br/merchant/v3/${merchantId}/discounts/${discountId}`, {
+  method: 'DELETE',
+  headers: { Authorization: `Bearer ${token}` },
+})
+```
+
+```python Python
+requests.delete(
+    f"https://api.deliveryvip.com.br/merchant/v3/{merchant_id}/discounts/{discount_id}",
+    headers={"Authorization": f"Bearer {token}"},
+)
+```
+</CodeGroup>
+
+## Resposta
+
+Retorna `200 OK` com o [objeto desconto](/guides/merchant/discount/obter-detalhes-do-desconto#resposta) como estava antes da remoção.
+
+```json 200 OK
+{
+  "id": "4572126a-6161-4b68-af04-3cb2fb4fa7a5",
+  "createdAt": "2024-08-01T19:43:15-03:00",
+  "startsAt": "2024-04-28T17:18:00-03:00",
+  "type": "SMART",
+  "name": "Desconto 10%",
+  "status": "ACTIVE",
+  "rules": {
+    "valueType": "PERCENTAGE",
+    "value": 10.0,
+    "minimumOrderValue": 32.0,
+    "usageLimit": 0,
+    "usagePerCustomer": "MANY",
+    "discountType": "SUBTOTAL"
+  },
+  "options": ["NON_PROMOTION_PRODUCTS"]
+}
+```
+
+<Warning>
+A remoção não tem volta pela API. Depois dela, qualquer chamada com o mesmo `discountId` responde `404`.
+</Warning>
+
+## Erros
+
+| Status | Quando |
+| --- | --- |
+| `403 Forbidden` | A loja não contratou o módulo de descontos. |
+| `404 Not Found` | O `merchantId` não autorizou o seu app, ou o desconto não existe ou já foi removido. |

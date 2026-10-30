@@ -1,0 +1,47 @@
+---
+title: Autenticação
+description: Como autenticar as chamadas da Merchant API V3 e quais scopes cada grupo de endpoints exige.
+icon: key
+---
+
+Todo endpoint da Merchant API V3 exige um token OAuth2 no header `Authorization`. O passo a passo para obter e renovar o token está em [Autenticação](/inicio/conceitos/autenticacao).
+
+| Endpoint | Para quê |
+| --- | --- |
+| `POST /authentication/v1/oauth/token` | Obter o token: `client_credentials` (distribuição direta), `authorization_code` (interativa) ou `refresh_token`. |
+| `GET /authentication/v1/oauth/token/info` | Ver o app, os scopes e o tempo restante do token enviado. |
+| `POST /authentication/v1/oauth/introspect` | Verificar se um token está ativo. |
+| `POST /authentication/v1/oauth/revoke` | Revogar um token antes de expirar. |
+
+Com o token em mãos, envie-o em toda chamada:
+
+<CodeGroup>
+```bash cURL
+curl 'https://api.deliveryvip.com.br/merchant/v3/events:polling' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+const response = await fetch('https://api.deliveryvip.com.br/merchant/v3/events:polling', {
+  headers: { Authorization: `Bearer ${token}` },
+})
+```
+
+```python Python
+response = requests.get(
+    "https://api.deliveryvip.com.br/merchant/v3/events:polling",
+    headers={"Authorization": f"Bearer {token}"},
+)
+```
+</CodeGroup>
+
+| Endpoints | Scope exigido |
+| --- | --- |
+| Pedidos, eventos, catálogo, indoor, descontos e ferramentas | `od.all` |
+| Configuração de fidelidade (`/loyalty/config`) | `dv.loyalty` |
+
+| Status | Quando |
+| --- | --- |
+| `401 Unauthorized` | Token ausente, inválido ou expirado. |
+| `403 Forbidden` | Token válido, mas sem o scope exigido pelo endpoint. |
+| `404 Not Found` | A loja ou o recurso não existe, ou o token não tem acesso a essa loja. |

@@ -1,0 +1,135 @@
+---
+title: Consultar novos pedidos
+sidebarTitle: Consultar eventos
+description: Como fazer o polling de eventos, drenar a fila e filtrar por tipo de evento, tipo de pedido e loja.
+icon: bell
+---
+
+Para receber pedidos novos, chame o endpoint de polling **a cada 30 segundos**.
+
+| Resposta | Quando |
+| --- | --- |
+| `200 OK` | Há eventos novos: uma lista com **até 100**, do mais antigo para o mais recente. |
+| `204 No Content` | Não há eventos novos. A resposta vem sem corpo. |
+
+<Tip>
+Precisa de eventos em tempo real? Use o [webhook](/guides/merchant/webhooks): a plataforma envia cada evento para a sua URL no momento em que ele acontece, sem fila para drenar, sem limite de 100 e sem intervalo de consulta. Uma integração robusta usa o webhook como canal principal e o polling como reconciliação.
+</Tip>
+
+## Requisição
+
+<CodeGroup>
+```bash cURL
+curl 'https://api.deliveryvip.com.br/merchant/v3/events:polling' \
+  --header 'Authorization: Bearer {token}' \
+  --header 'x-polling-merchants: {merchantId}'
+```
+
+```js Node.js
+const response = await fetch('https://api.deliveryvip.com.br/merchant/v3/events:polling', {
+  headers: { Authorization: `Bearer ${token}`, 'x-polling-merchants': merchantId },
+})
+const events = response.status === 204 ? [] : await response.json()
+```
+
+```python Python
+response = requests.get(
+    "https://api.deliveryvip.com.br/merchant/v3/events:polling",
+    headers={"Authorization": f"Bearer {token}", "x-polling-merchants": merchant_id},
+)
+events = [] if response.status_code == 204 else response.json()
+```
+</CodeGroup>
+
+```json Resposta (200)
+[
+  {
+    "eventId": "9a24ea9e-5743-4957-9b83-7a4b4f2a4597",
+    "eventType": "CREATED",
+    "orderId": "64939842-b9d7-44d1-a0fd-f68d18d410a6",
+    "orderURL": "https://api.deliveryvip.com.br/merchant/v3/orders/64939842-b9d7-44d1-a0fd-f68d18d410a6",
+    "orderType": "DELIVERY",
+    "merchantId": "8158198a-4bb7-430e-9746-87cd02dfedda",
+    "createdAt": "2022-08-16T16:01:21-03:00"
+  }
+]
+```
+
+## A fila de eventos
+
+Eventos sem acknowledgment continuam voltando nas próximas chamadas até serem confirmados ou completarem 24 horas. O consumo é sempre o mesmo ciclo:
+
+<Steps>
+<Step title="Polling">
+Chame o polling e processe os eventos recebidos.
+</Step>
+<Step title="Acknowledgment">
+Envie o [acknowledgment](/guides/merchant/order/fluxo-de-integracao/acknowledgment-de-eventos) de todos os eventos recebidos.
+</Step>
+<Step title="Próximo lote">
+Chame o polling de novo: os eventos confirmados saem da fila e vem o próximo lote.
+</Step>
+</Steps>
+
+<Warning>
+**Lote cheio = fila acumulada.** Se a resposta vier com 100 eventos, há mais esperando. Envie o acknowledgment e chame o polling de novo **sem esperar os 30 segundos**, até receber menos de 100 eventos ou `204`.
+</Warning>
+
+<Danger>
+Sem acknowledgment, a sua integração recebe sempre os mesmos eventos, os mais antigos primeiro, e nunca chega aos novos.
+</Danger>
+
+<AccordionGroup>
+<Accordion title="Por quanto tempo os eventos ficam disponíveis?" icon="clock">
+O polling retorna eventos criados nas **últimas 24 horas**. Um evento sem acknowledgment que passe desse prazo deixa de ser retornado, então não deixe a fila acumular.
+</Accordion>
+<Accordion title="Qual é o intervalo mínimo entre chamadas?" icon="gauge-high">
+Uma chamada a cada **30 segundos** por token. Acima disso a API responde `429` e pode bloquear o cliente temporariamente. A única exceção é drenar uma fila acumulada (lote com 100 eventos).
+</Accordion>
+</AccordionGroup>
+
+## Filtros
+
+Os filtros fazem o lote de 100 trazer só o que a sua integração usa. Eles podem ser combinados, e um valor inválido em qualquer filtro retorna **`403 Forbidden`**.
+
+<ParamField query="eventType" type="string[]">
+Tipos de evento a receber. Repita o parâmetro para cada valor, sem colchetes (`style: form`, `explode: true`).
+
+`CREATED`, `CONFIRMED`, `PREPARING`, `DISPATCHED`, `READY_FOR_PICKUP`, `PICKUP_AREA_ASSIGNED`, `PICKED_UP`, `DELIVERED`, `CONCLUDED`, `CANCELLATION_REQUESTED`, `CANCELLATION_REQUEST_DENIED`, `CANCELLED`, `ORDER_CANCELLATION_REQUEST`, `CALL_WAITER`, `CLOSE_ACCOUNT`
+
+```text
+/merchant/v3/events:polling?eventType=CREATED&eventType=CANCELLED
+```
+</ParamField>
+
+<ParamField query="orderType" type="string[]">
+Tipos de pedido a receber: `DELIVERY`, `TAKEOUT` ou `INDOOR`. Também repetido uma vez por valor.
+
+```text
+/merchant/v3/events:polling?orderType=DELIVERY&orderType=TAKEOUT
+```
+</ParamField>
+
+<ParamField header="x-polling-merchants" type="string[]">
+Lojas das quais receber eventos. Sem ele, o polling traz os eventos de **todas** as lojas que o token alcança. Envie um header por loja.
+
+```text
+x-polling-merchants: 0a0000aa-0aa0-00aa-aa00-0000aa000001
+x-polling-merchants: 0a0000aa-0aa0-00aa-aa00-0000aa000002
+```
+</ParamField>
+
+<Warning>
+Se o mesmo token tem acesso a mais de uma loja e o seu sistema trata cada loja separadamente, use `x-polling-merchants`. Sem ele, os eventos de todas as lojas chegam misturados no mesmo lote.
+</Warning>
+
+<Accordion title="Recebi 403 usando x-polling-merchants" icon="triangle-exclamation">
+Com o header, a API confere se o token tem permissão em **todas** as lojas informadas. Se faltar permissão em alguma, a resposta é `403` e o corpo lista as lojas sem acesso.
+
+**Para continuar recebendo:** remova essas lojas do header e chame o polling de novo. As demais seguem funcionando.
+
+**Para achar a causa:**
+
+* A loja pode ter revogado o acesso do seu app. Fale com o responsável e peça para autorizar de novo.
+* Confira se a instalação foi concluída na Delivery Store. O acesso do token é calculado a cada chamada: uma loja que acabou de instalar o app já vale para o token atual, sem gerar outro.
+</Accordion>

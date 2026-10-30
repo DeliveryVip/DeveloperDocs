@@ -1,0 +1,91 @@
+---
+title: Listar vendas das lojas
+sidebarTitle: Listar vendas
+description: Consulte a quantidade de pedidos e o valor vendido por loja em um mês.
+icon: chart-column
+---
+
+`GET /partner/v2/merchants/sales` devolve, para cada loja que o token alcança, quantos pedidos ela recebeu no mês e quanto vendeu. Lojas sem pedidos no período aparecem com zero. A lista vem ordenada pelo valor vendido, do maior para o menor.
+
+| Status | Quando |
+| --- | --- |
+| `200 OK` | Lista de vendas por loja. |
+| `204 No Content` | Nenhuma loja encontrada. |
+| `403 Forbidden` | `subscriptionStatus` inválido ou `x-partners` fora do alcance do token. |
+
+<Info>
+Entram no cálculo os pedidos **criados** no mês com status `pending`, `completed`, `preparing` ou `delivering`. Pedidos cancelados ficam de fora.
+</Info>
+
+## Requisição
+
+<CodeGroup>
+```bash cURL
+curl 'https://api.deliveryvip.com.br/partner/v2/merchants/sales?year=2025&month=10' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+const response = await fetch(
+  'https://api.deliveryvip.com.br/partner/v2/merchants/sales?year=2025&month=10',
+  { headers: { Authorization: `Bearer ${token}` } },
+)
+const sales = response.status === 204 ? [] : await response.json()
+```
+
+```python Python
+response = requests.get(
+    "https://api.deliveryvip.com.br/partner/v2/merchants/sales",
+    params={"year": 2025, "month": 10},
+    headers={"Authorization": f"Bearer {token}"},
+)
+sales = [] if response.status_code == 204 else response.json()
+```
+</CodeGroup>
+
+```json Resposta (200)
+[
+  { "merchantId": "2a710c93-ece1-4d57-9038-6fc714c0e81b", "ordersCount": 815, "ordersTotal": 78457.0 },
+  { "merchantId": "466caa37-ab0b-4f9d-b583-896681627367", "ordersCount": 0, "ordersTotal": 0.0 }
+]
+```
+
+<ResponseField name="merchantId" type="uuid">
+ID da loja.
+</ResponseField>
+<ResponseField name="ordersCount" type="integer">
+Quantidade de pedidos no mês.
+</ResponseField>
+<ResponseField name="ordersTotal" type="number">
+Valor total vendido no mês, em reais.
+</ResponseField>
+
+## Filtros
+
+<ParamField query="year" type="integer">
+Ano. Sem ele, vale o ano corrente.
+</ParamField>
+
+<ParamField query="month" type="integer">
+Mês, de 1 a 12. Sem ele, vale o mês corrente.
+</ParamField>
+
+<ParamField query="subscriptionStatus[]" type="string[]">
+Status da assinatura das lojas, repetido uma vez por valor: `TRIAL`, `TRIAL_EXPIRED`, `ACTIVATED`, `CANCELLED` ou `DEMO`.
+
+```text
+/partner/v2/merchants/sales?subscriptionStatus[]=TRIAL&subscriptionStatus[]=ACTIVATED
+```
+</ParamField>
+
+<ParamField query="subscriptionAgreementCode" type="string">
+Código do contrato da assinatura.
+</ParamField>
+
+<ParamField query="merchantIdentifier" type="string">
+CNPJ ou CPF da loja, formatado.
+</ParamField>
+
+<ParamField header="x-partners" type="string[]">
+Restringe a parceiros ou revendas específicos. Funciona como em [Filtrar por Partners](/guides/partner/merchant/utilizando-a-api/listar-merchants#filtrar-por-partners).
+</ParamField>

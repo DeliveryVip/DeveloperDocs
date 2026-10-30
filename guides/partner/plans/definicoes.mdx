@@ -1,0 +1,70 @@
+---
+title: Definições de planos
+sidebarTitle: Definições
+description: Campos do plano de cobrança, plano padrão, visibilidade, status e tipos de recurso.
+icon: book-open
+---
+
+O plano é o mesmo objeto em [Listar planos](/guides/partner/plans/utilizando-a-api/listar-planos) e [Obter detalhes do plano](/guides/partner/plans/utilizando-a-api/obter-detalhes-do-plano).
+
+## Objeto
+
+<ResponseField name="id" type="uuid">ID do plano. É o `planId` usado nas assinaturas.</ResponseField>
+<ResponseField name="name" type="string">Nome do plano.</ResponseField>
+<ResponseField name="standard" type="boolean">Se é o plano padrão do parceiro. Veja [standard](#standard).</ResponseField>
+<ResponseField name="code" type="string">Código do plano.</ResponseField>
+<ResponseField name="status" type="string">`DRAFT`, `AVAILABLE` ou `UNAVAILABLE`. Veja [status](#status).</ResponseField>
+<ResponseField name="visibility" type="string">`PUBLIC`, `RESALE` ou `DIRECT_MERCHANT`. Veja [visibility](#visibility).</ResponseField>
+<ResponseField name="features" type="object[]">
+Recursos que fazem parte do plano.
+
+<Expandable title="propriedades">
+<ResponseField name="featureType" type="string">Tipo do recurso. Veja [Tipos de recurso](#tipos-de-recurso).</ResponseField>
+<ResponseField name="inclusionType" type="string">`INCLUDED` (incluso no preço do plano) ou `ADDITIONAL` (cobrado à parte).</ResponseField>
+</Expandable>
+</ResponseField>
+
+### standard
+
+Quando `true`, o plano é o **plano padrão do parceiro**:
+
+* toda loja nova é criada nesse plano;
+* cada parceiro tem no máximo um plano padrão, e ele precisa estar disponível.
+
+### status
+
+| status | Uso em assinaturas |
+| --- | --- |
+| `AVAILABLE` | Pode ser usado. |
+| `DRAFT` | Em edição. Recusado. |
+| `UNAVAILABLE` | Desativado para novas assinaturas. Recusado. |
+
+### visibility
+
+| Visibility | Quem pode usar |
+| --- | --- |
+| `PUBLIC` | Lojas das suas revendas **e** lojas atendidas diretamente por você. |
+| `RESALE` | **Somente** lojas das suas revendas. |
+| `DIRECT_MERCHANT` | **Apenas** lojas atendidas diretamente; não fica visível às revendas. |
+
+Ao ativar ou atualizar uma assinatura, um plano com visibilidade incompatível com a loja é recusado. Um token de revenda só enxerga os planos `PUBLIC` e `RESALE` do parceiro.
+
+### Tipos de recurso
+
+| Código do Recurso | Descrição | Uso típico |
+| --- | --- | --- |
+| `DELIVERY_TAKEOUT` | Ativa a **loja própria online**: catálogo, checkout, entrega e retirada. | Pedidos diretos, sem marketplace. |
+| `DELIVERYBOT_NOTIFICATION` | **Notificações automáticas via WhatsApp** a cada mudança de status do pedido. | Manter o cliente informado. |
+| `DELIVERYBOT_ASSISTANT` | **Assistente virtual por IA** no WhatsApp para pré-atendimento. | Reduzir o suporte humano. |
+| `INDOOR_VIEWER` | Cardápio por **QR Code** só para visualização. | Consulta de cardápio em mesas e balcões. |
+| `INDOOR_QRCODE` | Cardápio por **QR Code com pedido** pelo celular do cliente. | Autoatendimento na mesa. |
+| `INDOOR_TABLET` | **Autoatendimento em tablets** nas mesas ou totens. | Tablets fixos para pedidos. |
+| `DOMAIN_CUSTOM` | **Domínio personalizado** (ex.: `pedidos.minhaloja.com`). | Marca própria e SEO. |
+| `SALES_REVENUE` | **Cobrança variável sobre faturamento**. | Preço baseado em receita. |
+| `ORDERS_COUNT` | **Cobrança variável por número de pedidos**. | Franquia de pedidos ou pay-as-you-go. |
+| `MULTI_STORE` | Operação em **estrutura multiloja** (rede compartilhando domínio ou app). | Franquias e grupos. |
+| `GROWTH_DISCOUNT` | Módulo de **descontos**. | Campanhas de desconto. |
+| `INTEGRATION_MARKETING` | **Integrações de marketing**. | Ferramentas de marketing de terceiros. |
+| `INTEGRATION_LOGISTIC` | **Integrações de logística**. | Operadores logísticos de terceiros. |
+
+Quando `inclusionType` é `ADDITIONAL`, o recurso não está no preço do plano e é cobrado à parte. Para habilitá-lo, [contrate o recurso](/guides/partner/merchant/utilizando-a-api/gerenciar-recursos-dos-merchants) na loja.

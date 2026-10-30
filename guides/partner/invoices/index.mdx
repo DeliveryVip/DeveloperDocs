@@ -1,0 +1,35 @@
+---
+title: Faturas
+sidebarTitle: Visão geral
+description: Consulte o fechamento mensal de cada loja e o resumo por revenda para gerar as suas cobranças.
+icon: compass
+---
+
+No **penúltimo dia de cada mês**, a DeliveryVip fecha uma fatura (invoice) para cada loja ativa ou cancelada no mês, com base no plano e nos recursos usados. Com elas você sabe quanto paga à DeliveryVip e quanto cobrar de cada loja ou revenda.
+
+<Info>
+As faturas só existem depois do fechamento. Antes dele, a consulta do mês corrente volta `204 No Content`.
+</Info>
+
+## Qual endpoint usar
+
+| Endpoint | Traz | Quem pode chamar |
+| --- | --- | --- |
+| [`GET /{partnerId}/invoices`](/guides/partner/invoices/utilizando-a-api/listando-invoices) | Uma fatura por loja: diretas e de revendas. | Parceiro ou revenda |
+| [`GET /{partnerId}/merchants/invoices`](/guides/partner/invoices/utilizando-a-api/listando-merchants-invoices) | Uma fatura por loja **atendida diretamente**. | Parceiro ou revenda |
+| [`GET /{partnerId}/resales/invoices`](/guides/partner/invoices/utilizando-a-api/listando-resales-invoices) | Um resumo **por revenda**, com totais por plano e por item. | Só parceiro |
+
+Todos ficam em `https://api.deliveryvip.com.br/partner/v2` e aceitam `year` e `month` na query.
+
+<CardGroup cols={2}>
+<Card title="Definições" icon="book-open" href="/guides/partner/invoices/definicoes">
+Campos da fatura, `PAYABLE` x `RECEIVABLE`, valor cheio x proporcional.
+</Card>
+<Card title="Utilizando a API" icon="code" href="/guides/partner/invoices/utilizando-a-api">
+Os três endpoints, com exemplos.
+</Card>
+</CardGroup>
+
+<Warning>
+As rotas antigas sem `partnerId` (`GET /partner/v2/merchants/invoices` e `GET /partner/v2/resales/invoices`) estão descontinuadas. Veja [Deprecações](/deprecations).
+</Warning>

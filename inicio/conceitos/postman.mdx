@@ -1,0 +1,59 @@
+---
+title: Postman
+description: Importe as specs OpenAPI da DeliveryVip no Postman e configure o OAuth2 para explorar a API sem escrever código.
+icon: paper-plane
+---
+
+As APIs da DeliveryVip são descritas em specs OpenAPI públicas. O Postman importa essas specs e gera uma coleção com todas as rotas, prontas para chamar.
+
+## Antes de começar
+
+* Uma conta no [Postman](https://www.postman.com) (a gratuita basta).
+* Um app no [painel de developers](/inicio/primeiros-passos) com `client_id` e `client_secret`.
+* Uma loja com o app instalado. Não há sandbox: as chamadas vão para produção, então use a **loja de teste** pedida no [Discord](https://discord.gg/AJF8Yha4).
+
+## Specs disponíveis
+
+| Spec | Conteúdo |
+| --- | --- |
+| [authentication.yaml](https://app.deliveryvip.com.br/swaggers/authentication.yaml) | Token, revoke, introspect e token info. |
+| [merchant.yaml](https://app.deliveryvip.com.br/swaggers/merchant.yaml) | Merchant API V3: eventos, pedidos, catálogo, indoor, descontos, fidelidade. |
+| [partner.yaml](https://app.deliveryvip.com.br/swaggers/partner.yaml) | Partner API V2. |
+| [opendelivery.yaml](https://app.deliveryvip.com.br/swaggers/opendelivery.yaml) | Rotas Open Delivery em `od.deliveryvip.com.br`. |
+| [loyalty\_operator.yaml](https://app.deliveryvip.com.br/swaggers/loyalty_operator.yaml) | Contrato que o **operador de fidelidade** implementa. Útil para gerar um mock do seu lado. |
+
+## Importando
+
+<Steps>
+<Step title="Copie a URL da spec">
+Escolha a spec da tabela acima e copie a URL.
+</Step>
+<Step title="Importe no Postman">
+No Postman, clique em **Import**, cole a URL e confirme. Escolha gerar uma **coleção** (Postman Collection).
+</Step>
+<Step title="Configure a autenticação">
+Na coleção, abra **Authorization**, escolha **OAuth 2.0** e preencha:
+
+| Campo | Valor |
+| --- | --- |
+| Grant type | `Client Credentials` |
+| Access Token URL | `https://api.deliveryvip.com.br/authentication/v1/oauth/token` |
+| Client ID | o `client_id` do app |
+| Client Secret | o `client_secret` do app |
+| Scope | `od.all` (ou os scopes da API que você vai chamar) |
+| Client Authentication | **Send client credentials in body** |
+
+Clique em **Get New Access Token** e depois em **Use Token**. Todas as requisições da coleção herdam o token.
+</Step>
+<Step title="Faça uma chamada">
+Comece por `GET /authentication/v1/oauth/token/info` para confirmar o token e depois chame uma rota da loja de teste.
+</Step>
+</Steps>
+
+<Warning>
+Guarde `client_id` e `client_secret` como variáveis **secretas** de um ambiente do Postman, nunca direto na coleção. Coleções exportadas ou compartilhadas levam junto o que está salvo nelas.
+</Warning>
+
+<Tip>
+Para o **Open Delivery**, use `https://od.deliveryvip.com.br/oauth/token` como Access Token URL e o `client_secret` da loja. Veja [Primeiros passos do Open Delivery](/guides/open-delivery/primeiros-passos).
+</Tip>

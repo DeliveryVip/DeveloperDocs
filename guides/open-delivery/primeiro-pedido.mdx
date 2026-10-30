@@ -1,0 +1,537 @@
+---
+title: Receba seu primeiro pedido via Open Delivery
+sidebarTitle: Seu primeiro pedido
+description: Um programa completo que recebe o webhook assinado, busca o pedido, confirma e reconcilia pelo polling. Pronto para copiar e rodar.
+icon: rocket
+---
+
+Ao final deste guia você tem um programa rodando que recebe os pedidos de uma loja pelo Open Delivery e confirma cada um deles. Ele usa o webhook como canal principal e o polling como reconciliação, o mesmo desenho recomendado para produção.
+
+## Como funciona
+
+1. **A credencial é da loja.** O token é pedido com o `client_id` do app e o `client_secret` **da loja** (`ods_...`), e só enxerga aquela loja. O mesmo `client_secret` assina os webhooks dela.
+2. **Evento é só um aviso.** O webhook diz *o que* mudou (`CREATED`, `CANCELLED`...). Os dados do pedido vêm de um `GET` na `orderURL` do evento.
+3. **Assinatura antes de tudo.** O webhook traz um HMAC-SHA256 do corpo bruto no header `X-App-Signature`. Valide antes de fazer o parse.
+4. **O mesmo evento pode chegar duas vezes.** Pelo webhook e pelo polling, ou por um reenvio. Deduplique por `eventId` e envie o acknowledgment dos eventos já processados para que saiam do polling.
+5. **Datas em UTC.** As datas da API Open Delivery vêm em UTC (sufixo `Z`), inclusive o `createdAt` dos webhooks.
+
+## Antes de começar
+
+<CardGroup cols={3}>
+<Card title="Um app com a extensão Open Delivery" icon="key" href="/guides/open-delivery/primeiros-passos">
+Scope `od.all`, com o `client_id` do app em mãos.
+</Card>
+<Card title="Uma loja com o app instalado" icon="store" href="/inicio/primeiros-passos/instalando-app-na-loja">
+E o `client_secret` dela (`ods_...`). Peça uma loja de teste no [Discord](https://discord.gg/AJF8Yha4).
+</Card>
+<Card title="Node.js 18+ ou Python 3.9+" icon="terminal">
+E uma URL pública HTTPS para o webhook, como um túnel (`cloudflared`, `ngrok`) apontando para a sua máquina.
+</Card>
+</CardGroup>
+
+Exporte as credenciais como variáveis de ambiente:
+
+```bash
+export OD_CLIENT_ID="client-id-do-app"
+export OD_STORE_SECRET="ods_xxxx_secret-da-loja"
+```
+
+## Passo a passo
+
+<Steps>
+<Step title="Obtenha o token da loja">
+O endpoint de token fica na **raiz** do host OD, fora do `/v1`. O token vale **24 horas** e só opera a loja daquele `client_secret`. Enquanto ele não expira, um novo pedido de token devolve o mesmo token.
+
+<CodeGroup>
+```bash cURL
+curl --request POST 'https://od.deliveryvip.com.br/oauth/token' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'grant_type=client_credentials' \
+  --data-urlencode "client_id=$OD_CLIENT_ID" \
+  --data-urlencode "client_secret=$OD_STORE_SECRET" \
+  --data-urlencode 'scope=od.all'
+```
+
+```js Node.js
+const response = await fetch('https://od.deliveryvip.com.br/oauth/token', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+  body: new URLSearchParams({
+    grant_type: 'client_credentials',
+    client_id: process.env.OD_CLIENT_ID,
+    client_secret: process.env.OD_STORE_SECRET,
+    scope: 'od.all',
+  }),
+})
+const { access_token } = await response.json()
+```
+
+```python Python
+import os
+import requests
+
+response = requests.post(
+    "https://od.deliveryvip.com.br/oauth/token",
+    data={
+        "grant_type": "client_credentials",
+        "client_id": os.environ["OD_CLIENT_ID"],
+        "client_secret": os.environ["OD_STORE_SECRET"],
+        "scope": "od.all",
+    },
+)
+access_token = response.json()["access_token"]
+```
+</CodeGroup>
+</Step>
+
+<Step title="Registre o merchantId e a URL de webhook da loja">
+O [onboarding](/guides/open-delivery/onboarding-de-lojas) grava o `merchantId` da loja no seu sistema e a URL que recebe os webhooks dela. Faça isso uma vez por loja (ou preencha o formulário **"Dados da integração da loja"** no painel de developers). A URL precisa ser pública; para testar na sua máquina, use a URL do túnel.
+
+<CodeGroup>
+```bash cURL
+curl --request PUT 'https://od.deliveryvip.com.br/v1/merchantOnboarding?merchantId=loja-teste-001' \
+  --header 'Authorization: Bearer {token}' \
+  --header 'Content-Type: application/json' \
+  --data '{ "ordersWebhookURL": "https://seu-tunel.example.com/webhooks/deliveryvip" }'
+```
+
+```js Node.js
+const url = new URL('https://od.deliveryvip.com.br/v1/merchantOnboarding')
+url.searchParams.set('merchantId', 'loja-teste-001')
+
+const response = await fetch(url, {
+  method: 'PUT',
+  headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+  body: JSON.stringify({ ordersWebhookURL: 'https://seu-tunel.example.com/webhooks/deliveryvip' }),
+})
+console.log(response.status) // 201 ou 204
+```
+
+```python Python
+response = requests.put(
+    "https://od.deliveryvip.com.br/v1/merchantOnboarding",
+    params={"merchantId": "loja-teste-001"},
+    headers={"Authorization": f"Bearer {token}"},
+    json={"ordersWebhookURL": "https://seu-tunel.example.com/webhooks/deliveryvip"},
+)
+print(response.status_code)  # 201 ou 204
+```
+</CodeGroup>
+
+<Warning>
+O onboarding **substitui** a configuração inteira da loja. Se ela já tem um endpoint de catálogo (`getMerchantURL`), envie-o junto, ou ele é apagado.
+</Warning>
+
+<Info>
+Com o `merchantId` configurado, a `orderURL` dos eventos aponta para a API OD (`https://od.deliveryvip.com.br/v1/orders/...`). Sem ele, a loja é identificada pelo id interno da DeliveryVip e a `orderURL` aponta para a API Merchant V3.
+</Info>
+</Step>
+
+<Step title="Receba o evento CREATED no webhook">
+Cada evento chega em um `POST` próprio na URL da loja:
+
+```json Evento CREATED
+{
+  "eventId": "9a24ea9e-5743-4957-9b83-7a4b4f2a4597",
+  "eventType": "CREATED",
+  "orderId": "64939842-b9d7-44d1-a0fd-f68d18d410a6",
+  "orderURL": "https://od.deliveryvip.com.br/v1/orders/64939842-b9d7-44d1-a0fd-f68d18d410a6",
+  "orderType": "DELIVERY",
+  "merchantId": "loja-teste-001",
+  "createdAt": "2026-08-07T15:00:00Z"
+}
+```
+
+Antes do parse, recompute o HMAC-SHA256 dos **bytes recebidos** com o `client_secret` da loja e compare, em tempo constante, com o header `X-App-Signature` (hex minúsculo). Assinatura inválida: responda `401` e descarte. Válida: responda `200` na hora e processe depois. A DeliveryVip espera a resposta por até 5 segundos.
+
+<CodeGroup>
+```js Node.js
+const expected = crypto.createHmac('sha256', process.env.OD_STORE_SECRET).update(rawBody).digest('hex')
+const received = req.headers['x-app-signature'] ?? ''
+const valid =
+  received.length === expected.length &&
+  crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(received))
+```
+
+```python Python
+expected = hmac.new(os.environ["OD_STORE_SECRET"].encode(), raw_body, hashlib.sha256).hexdigest()
+valid = hmac.compare_digest(expected, request.headers.get("X-App-Signature", ""))
+```
+</CodeGroup>
+
+<Note>
+Com várias lojas, o header `X-App-MerchantId` diz de qual loja é o evento: use-o para escolher o secret certo. Veja [Validando a assinatura](/guides/open-delivery/recebendo-eventos#validando-a-assinatura).
+</Note>
+</Step>
+
+<Step title="Busque os detalhes do pedido">
+Faça um `GET` na `orderURL` do evento com o token da loja. O pedido segue a spec **Order `1.3.0`**, com datas em UTC.
+
+<CodeGroup>
+```bash cURL
+curl "$ORDER_URL" --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+const order = await (await fetch(event.orderURL, { headers: { Authorization: `Bearer ${token}` } })).json()
+```
+
+```python Python
+order = requests.get(event["orderURL"], headers={"Authorization": f"Bearer {token}"}).json()
+```
+</CodeGroup>
+</Step>
+
+<Step title="Confirme o pedido">
+A resposta é **202** com o `id` do pedido, e a plataforma emite o evento `CONFIRMED`.
+
+<CodeGroup>
+```bash cURL
+curl --request POST "https://od.deliveryvip.com.br/v1/orders/$ORDER_ID/confirm" \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+await fetch(`https://od.deliveryvip.com.br/v1/orders/${orderId}/confirm`, {
+  method: 'POST',
+  headers: { Authorization: `Bearer ${token}` },
+})
+```
+
+```python Python
+requests.post(
+    f"https://od.deliveryvip.com.br/v1/orders/{order_id}/confirm",
+    headers={"Authorization": f"Bearer {token}"},
+)
+```
+</CodeGroup>
+
+<Note>
+Neste guia o programa confirma todo pedido automaticamente. No seu PDV, confirme quando a loja aceitar, ou [cancele](/guides/open-delivery/ciclo-de-vida-do-pedido#fluxo-de-cancelamento) se ela recusar.
+</Note>
+</Step>
+
+<Step title="Confirme o recebimento do evento">
+Eventos entregues por webhook **também** aparecem no polling até serem confirmados. Envie o acknowledgment com o `eventId` no campo `id`. A resposta é **202** e a operação é idempotente.
+
+<CodeGroup>
+```bash cURL
+curl --request POST 'https://od.deliveryvip.com.br/v1/events/acknowledgment' \
+  --header 'Authorization: Bearer {token}' \
+  --header 'Content-Type: application/json' \
+  --data '[{ "id": "9a24ea9e-5743-4957-9b83-7a4b4f2a4597" }]'
+```
+
+```js Node.js
+await fetch('https://od.deliveryvip.com.br/v1/events/acknowledgment', {
+  method: 'POST',
+  headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+  body: JSON.stringify([{ id: event.eventId }]),
+})
+```
+
+```python Python
+requests.post(
+    "https://od.deliveryvip.com.br/v1/events/acknowledgment",
+    headers={"Authorization": f"Bearer {token}"},
+    json=[{"id": event["eventId"]}],
+)
+```
+</CodeGroup>
+</Step>
+
+<Step title="Reconcilie pelo polling">
+Se o seu endpoint ficar fora do ar, os eventos das últimas 24 horas continuam no `GET /v1/events:polling` até receberem o acknowledgment: **200** com até 100 eventos, do mais antigo para o mais recente, ou **204** sem corpo. Processe o que vier (deduplicando por `eventId`) e confirme. Se vierem 100, consulte de novo sem esperar.
+</Step>
+</Steps>
+
+## O programa completo
+
+Um único processo com as duas metades: o servidor do webhook e um loop de reconciliação a cada 30 segundos. Os dois passam pela mesma função `handle`, que deduplica por `eventId`, busca o pedido, confirma e só então marca o evento como processado. Se algo falhar, o evento não é confirmado e volta no próximo polling.
+
+<CodeGroup>
+```js primeiro-pedido-od.mjs
+import crypto from 'node:crypto'
+import http from 'node:http'
+
+const OD = 'https://od.deliveryvip.com.br'
+const STORE_SECRET = process.env.OD_STORE_SECRET // ods_... da loja
+const PORT = Number(process.env.PORT ?? 3000)
+const handled = new Map() // eventId -> Promise; em produção, guarde os eventIds no banco
+let token = null
+
+async function getToken() {
+  const response = await fetch(`${OD}/oauth/token`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      grant_type: 'client_credentials',
+      client_id: process.env.OD_CLIENT_ID,
+      client_secret: STORE_SECRET,
+      scope: 'od.all',
+    }),
+  })
+  if (!response.ok) throw new Error(`token: HTTP ${response.status}`)
+  return (await response.json()).access_token
+}
+
+async function api(url, options = {}, retry = true) {
+  token ??= await getToken()
+  const response = await fetch(url.startsWith('http') ? url : `${OD}${url}`, {
+    ...options,
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+  })
+  if (response.status === 401 && retry) {
+    token = null // expirou: pede outro e repete uma vez
+    return api(url, options, false)
+  }
+  if (!response.ok) throw new Error(`${options.method ?? 'GET'} ${url}: HTTP ${response.status}`)
+  return response.status === 204 ? null : response.json()
+}
+
+async function processEvent(event) {
+  if (event.eventType !== 'CREATED') return // outros tipos: só confirmamos o recebimento
+
+  const order = await api(event.orderURL)
+  console.log(`Pedido ${order.displayId} (${order.type}) de ${order.customer?.name}: R$ ${order.total?.orderAmount?.value}`)
+  await api(`/v1/orders/${event.orderId}/confirm`, { method: 'POST' })
+}
+
+// Webhook e polling podem trazer o mesmo evento ao mesmo tempo: os dois aguardam a mesma Promise
+function handle(event) {
+  if (!handled.has(event.eventId)) {
+    const work = processEvent(event).catch((error) => {
+      handled.delete(event.eventId) // falhou: o polling tenta de novo
+      throw error
+    })
+    handled.set(event.eventId, work)
+  }
+  return handled.get(event.eventId)
+}
+
+function acknowledge(events) {
+  return api('/v1/events/acknowledgment', {
+    method: 'POST',
+    body: JSON.stringify(events.map(({ eventId }) => ({ id: eventId }))),
+  })
+}
+
+function validSignature(rawBody, received = '') {
+  const expected = crypto.createHmac('sha256', STORE_SECRET).update(rawBody).digest('hex')
+  return received.length === expected.length && crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(received))
+}
+
+http
+  .createServer((req, res) => {
+    if (req.method !== 'POST' || req.url !== '/webhooks/deliveryvip') return res.writeHead(404).end()
+
+    const chunks = []
+    req.on('data', (chunk) => chunks.push(chunk))
+    req.on('end', async () => {
+      const rawBody = Buffer.concat(chunks)
+      if (!validSignature(rawBody, req.headers['x-app-signature'])) return res.writeHead(401).end()
+
+      res.writeHead(200).end() // responde já; a DeliveryVip espera no máximo 5 s
+
+      try {
+        const event = JSON.parse(rawBody) // parse só depois de validar
+        await handle(event)
+        await acknowledge([event])
+      } catch (error) {
+        console.error(`webhook: ${error.message}`)
+      }
+    })
+  })
+  .listen(PORT, () => console.log(`Webhook em http://localhost:${PORT}/webhooks/deliveryvip`))
+
+while (true) {
+  let batchSize = 0
+  try {
+    const events = (await api('/v1/events:polling')) ?? []
+    batchSize = events.length
+    const done = []
+    for (const event of events) {
+      try {
+        await handle(event)
+        done.push(event)
+      } catch (error) {
+        console.error(`evento ${event.eventId}: ${error.message}`)
+      }
+    }
+    if (done.length > 0) await acknowledge(done)
+    if (batchSize === 100 && done.length === 100) continue // fila acumulada: busca o próximo lote já
+  } catch (error) {
+    console.error(`polling: ${error.message}`)
+  }
+  await new Promise((resolve) => setTimeout(resolve, 30_000))
+}
+```
+
+```python primeiro_pedido_od.py
+import hashlib
+import hmac
+import os
+import threading
+import time
+
+import requests
+from flask import Flask, request
+
+OD = "https://od.deliveryvip.com.br"
+STORE_SECRET = os.environ["OD_STORE_SECRET"]  # ods_... da loja
+PORT = int(os.environ.get("PORT", "3000"))
+
+lock = threading.Lock()  # webhook e polling podem trazer o mesmo evento ao mesmo tempo
+done = set()  # em produção, guarde os eventIds no banco
+token = None
+
+app = Flask(__name__)
+
+
+def get_token():
+    response = requests.post(
+        f"{OD}/oauth/token",
+        data={
+            "grant_type": "client_credentials",
+            "client_id": os.environ["OD_CLIENT_ID"],
+            "client_secret": STORE_SECRET,
+            "scope": "od.all",
+        },
+        timeout=10,
+    )
+    response.raise_for_status()
+    return response.json()["access_token"]
+
+
+def api(url, method="GET", json=None, retry=True):
+    global token
+    if token is None:
+        token = get_token()
+    response = requests.request(
+        method,
+        url if url.startswith("http") else f"{OD}{url}",
+        headers={"Authorization": f"Bearer {token}"},
+        json=json,
+        timeout=10,
+    )
+    if response.status_code == 401 and retry:
+        token = None  # expirou: pede outro e repete uma vez
+        return api(url, method, json, retry=False)
+    response.raise_for_status()
+    return None if response.status_code == 204 else response.json()
+
+
+def handle(event):
+    with lock:
+        if event["eventId"] in done:
+            return
+        if event["eventType"] == "CREATED":  # outros tipos: só confirmamos o recebimento
+            order = api(event["orderURL"])
+            customer = (order.get("customer") or {}).get("name")
+            amount = order.get("total", {}).get("orderAmount", {}).get("value")
+            print(f"Pedido {order['displayId']} ({order['type']}) de {customer}: R$ {amount}")
+            api(f"/v1/orders/{event['orderId']}/confirm", method="POST")
+        done.add(event["eventId"])
+
+
+def acknowledge(events):
+    api("/v1/events/acknowledgment", method="POST", json=[{"id": event["eventId"]} for event in events])
+
+
+def process_in_background(event):
+    try:
+        handle(event)
+        acknowledge([event])
+    except Exception as error:  # o polling recupera o evento
+        print(f"webhook: {error}")
+
+
+@app.post("/webhooks/deliveryvip")
+def webhook():
+    raw_body = request.get_data()  # bytes exatamente como chegaram
+    expected = hmac.new(STORE_SECRET.encode(), raw_body, hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(expected, request.headers.get("X-App-Signature", "")):
+        return "", 401
+
+    event = request.get_json()  # parse só depois de validar
+    threading.Thread(target=process_in_background, args=(event,)).start()
+    return "", 200  # responde já; a DeliveryVip espera no máximo 5 s
+
+
+def reconcile():
+    while True:
+        full_batch = False
+        try:
+            events = api("/v1/events:polling") or []
+            processed = []
+            for event in events:
+                try:
+                    handle(event)
+                    processed.append(event)
+                except Exception as error:
+                    print(f"evento {event['eventId']}: {error}")
+            if processed:
+                acknowledge(processed)
+            full_batch = len(events) == 100 and len(processed) == 100
+        except Exception as error:
+            print(f"polling: {error}")
+        if not full_batch:  # fila acumulada: busca o próximo lote já
+            time.sleep(30)
+
+
+if __name__ == "__main__":
+    threading.Thread(target=reconcile, daemon=True).start()
+    app.run(port=PORT)
+```
+</CodeGroup>
+
+Rode, exponha a porta pelo túnel (a mesma URL do onboarding) e faça um pedido de teste na loja com **pagamento na entrega**. Um pedido com pagamento online responde `404` no `GET` da `orderURL` até o pagamento ser aprovado:
+
+<CodeGroup>
+```bash Node.js
+node primeiro-pedido-od.mjs
+```
+
+```bash Python
+pip install flask requests
+python primeiro_pedido_od.py
+```
+</CodeGroup>
+
+```text Saída esperada
+Pedido AGNCYO (DELIVERY) de Maria Silva: R$ 107.0
+```
+
+<Check>
+O pedido aparece como **confirmado** no painel da loja, e o evento `CONFIRMED` chega em seguida no webhook (o programa só confirma o recebimento dele). Para testar a reconciliação, pare o programa, faça outro pedido e suba de novo: o pedido chega pelo polling.
+</Check>
+
+## Erros comuns
+
+| Sintoma | Causa | Como resolver |
+| --- | --- | --- |
+| Toda chamada do webhook responde `401` | Assinatura calculada com o secret do app, ou sobre o JSON re-serializado | Use o `client_secret` **da loja** (`ods_...`) e os bytes do corpo como chegaram |
+| `invalid_client` no token | `client_secret` de outra loja, ou a loja desinstalou o app | Confira o secret da loja; depois de reinstalar, use o novo |
+| `404` em todas as chamadas | Rotas montadas sem o `/v1`, ou o token pedido em `/v1/oauth/token` | API em `https://od.deliveryvip.com.br/v1`; token em `https://od.deliveryvip.com.br/oauth/token` |
+| `orderURL` aponta para `api.deliveryvip.com.br/merchant/v3` | A loja ainda não tem `merchantId` configurado | Faça o [onboarding](/guides/open-delivery/onboarding-de-lojas) da loja |
+| O webhook não chega | URL não pública, loja sem `ordersWebhookURL`, ou entregas suspensas após 10 falhas | Confira a URL no onboarding; reenviar o onboarding religa as entregas |
+| Os mesmos eventos voltam no polling | Acknowledgment não enviado, ou enviado com `eventId` em vez de `id` | Envie `[{ "id": "<eventId>" }]` para cada evento processado |
+| `404` ao buscar o pedido | Pedido com pagamento online ainda não aprovado | Teste com pagamento na entrega; o programa tenta de novo no próximo polling |
+| `422` ao confirmar | O pedido não aceita a ação no estado atual (por exemplo, já cancelado) | Consulte o pedido e siga o [ciclo de vida](/guides/open-delivery/ciclo-de-vida-do-pedido) |
+
+## Próximos passos
+
+<CardGroup cols={2}>
+<Card title="Ciclo de vida do pedido" icon="arrows-rotate" href="/guides/open-delivery/ciclo-de-vida-do-pedido">
+Preparo, pronto para retirada, despacho, entrega, cancelamento e rastreio.
+</Card>
+<Card title="Recebendo eventos" icon="bell" href="/guides/open-delivery/recebendo-eventos">
+Retentativas, suspensão por loja e os filtros do polling.
+</Card>
+<Card title="Catálogo" icon="book-open" href="/guides/open-delivery/catalogo">
+Exponha o catálogo da loja no padrão OD Merchant para a DeliveryVip importar.
+</Card>
+<Card title="Referência rápida" icon="list" href="/guides/open-delivery/referencia-rapida">
+Endpoints, credenciais e limites em uma página.
+</Card>
+</CardGroup>

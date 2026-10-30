@@ -1,0 +1,148 @@
+---
+title: Changelog
+description: As principais alterações nas APIs da DeliveryVip, da mais recente para a mais antiga.
+icon: newspaper
+---
+
+Novidades, mudanças de comportamento e breaking changes nas APIs. Use os filtros por produto para ver só o que afeta a sua integração. Rotas em descontinuação ficam em [Deprecations](/deprecations).
+
+<Update label="22/10/2026" description="Faturas com valor proporcional e novos tipos de item" tags={["Partner API"]} rss={{ title: "22/10/2026: faturas com valor proporcional e novos tipos de item", description: "usageTimeValue nos blocos de preço, valores em reais nos itens, novos tipos de item, RECEIVABLE condicional em resales/invoices e planId ignorado em revendas." }}>
+- **Invoices:** os blocos de preço das faturas (`totalPrice[]` com `type`, `value` e `currency`) agora trazem também `usageTimeValue`, o valor **proporcional ao tempo em que a assinatura da loja ficou ativa** no mês. O `value` continua sendo o valor do mês cheio. Vale para `GET /partner/v2/{partnerId}/invoices`, `GET /partner/v2/{partnerId}/merchants/invoices` e `GET /partner/v2/{partnerId}/resales/invoices` (no resumo, nos itens e nos planos). [Saiba mais](/guides/partner/invoices/definicoes)
+- **Invoices:** os itens de `GET /partner/v2/merchants/invoices` e `GET /partner/v2/resales/invoices` passam a trazer o valor em reais: `totalPrice` (mês cheio) e `totalUsageTimePrice` (proporcional ao `usageTime`). Os dois campos só são enviados quando o token representa o parceiro dono da fatura; para token de revenda eles não aparecem, assim como o `tieredPricingRanges` do `metadata`. [Saiba mais](/guides/partner/merchant/utilizando-a-api/listar-faturas-dos-merchants)
+- **Invoices:** novos tipos de item nas faturas: `GROWTH_DISCOUNT` (descontos), `INTEGRATION_MARKETING` (integrações de marketing) e `INTEGRATION_LOGISTIC` (integrações de logística). [Saiba mais](/guides/partner/invoices/definicoes)
+- **Resales:** `POST /partner/v2/resales/{resaleId}/activate`, `PUT /partner/v2/resales/{resaleId}/subscription` e `PUT /partner/v2/resales/{resaleId}/agreementCode` passam a ignorar o `planId`, já que a assinatura de uma revenda não tem plano. Antes, enviar `planId` resultava em erro `500`. [Saiba mais](/guides/partner/resale/utilizando-a-api/gerenciar-assinatura-das-revendas)
+
+<Warning>
+**Breaking change, Invoices:** em `GET /partner/v2/{partnerId}/resales/invoices`, o bloco `RECEIVABLE` passa a ser enviado só quando a tabela de preços de recebíveis está habilitada para o parceiro, como já acontecia em `GET /partner/v2/{partnerId}/invoices`. Sem ela, os arrays `totalPrice` do resumo, de cada plano e de cada item trazem apenas o bloco `PAYABLE`. Integrações que leem `totalPrice[1]` ou assumem dois blocos devem passar a procurar pelo campo `type`. Além disso, o resumo passa a considerar só as faturas de lojas vinculadas a revendas: um parceiro sem revendas, que antes recebia um grupo com `resaleId: null` com as lojas diretas, agora recebe `204 No Content`. [Saiba mais](/guides/partner/invoices/utilizando-a-api/listando-resales-invoices)
+</Warning>
+</Update>
+
+<Update label="15/10/2026" description="Imagem nas opções e image.url só com https" tags={["Merchant API"]} rss={{ title: "15/10/2026: imagem nas opções e image.url só com https", description: "Opções retornam imagem no catálogo; image.url de produtos e opções passa a aceitar apenas URLs https (breaking change)." }}>
+- **Catálogo:** as opções (`options`) agora retornam a imagem no `GET /merchant/v3/{merchantId}`, no mesmo formato dos produtos (`image.url` e `image.checksum`). O campo só é enviado quando a opção possui imagem cadastrada. O envio de imagem para opções via `merchantUpdate`, `merchantUpsert` e `merchantForce` (`entityType: "OPTION"`) também passa a estar documentado. [Saiba mais](/guides/merchant/catalog-and-services/details)
+
+<Warning>
+**Breaking change, Catálogo:** o campo `image.url` de produtos (`ITEM`) e opções (`OPTION`) agora aceita **apenas URLs `https://`** no `merchantUpdate`, no `merchantUpsert` e no `merchantForce`. Até então, URLs `http://` também eram aceitas; agora a requisição é rejeitada com `422 Unprocessable Content`. Integrações que enviam imagens via `http://` devem migrar para `https://`. [Saiba mais](/guides/merchant/catalog-and-services/actions/update)
+</Warning>
+</Update>
+
+<Update label="24/09/2026" description="Limites comerciais de resgate na fidelidade" tags={["Fidelidade"]} rss={{ title: "24/09/2026: limites comerciais de resgate", description: "Programas declaram redemptionLimits (min e max) e o saldo da conta pode sobrescrever os limites por cliente." }}>
+- **Fidelidade:** o programa agora pode declarar **limites comerciais de resgate** por pedido em `capabilities.redemptionLimits` (`min` e `max`, cada um `fixed` em BRL ou `percent`). Omitir o objeto, ou um dos limites, significa **sem limite ali**: programas existentes seguem permitindo 100%. O teto estrutural continua valendo sempre, e percentuais incidem sobre os **itens** do pedido, nunca sobre o total (frete e taxas não são resgatáveis). [Saiba mais](/guides/merchant/loyalty/ativando-o-programa#limites-de-resgate-redemptionlimits)
+- **Fidelidade:** a resposta de saldo (`GET /v1/loyalty/accounts/{accountId}`) passa a aceitar o mesmo objeto `redemptionLimits`, opcional, para operadores cujas regras variam por cliente. Quando presente, ele **substitui integralmente** os limites do programa para aquele cliente: não é merge campo a campo. [Saiba mais](/guides/merchant/loyalty/contrato-do-operador/vinculo-e-pin#limites-por-conta)
+</Update>
+
+<Update label="23/09/2026" description="Open Delivery multi-loja e merchantStatus" tags={["Open Delivery"]} rss={{ title: "23/09/2026: Open Delivery multi-loja e merchantStatus", description: "Um app Open Delivery atende várias lojas com client_secret por loja; novo GET /v1/merchantStatus." }}>
+- **Open Delivery:** um mesmo app agora atende **várias lojas**. Declarando a extensão **Open Delivery**, cada loja que instala o app recebe um `client_secret` próprio (formato `ods_...`, o `client_id` continua sendo o do app) e o token emitido com ele vale só para aquela loja. A configuração (`merchantId`, URL de webhook e endpoint de catálogo) passa a ser **por loja**, assim como o circuito de webhooks: uma loja com endpoint fora do ar não interrompe as entregas das demais. [Saiba mais](/guides/open-delivery/primeiros-passos)
+- **Open Delivery:** novo endpoint `GET /v1/merchantStatus?merchantId={id}` para acompanhar o processamento assíncrono disparado pelo `merchantUpdate`. Retorna `lastRead`, `status` (`SUCCESS`, `PROCESSING` ou `FAIL`) e `moreInfo` com o detalhe da falha. [Saiba mais](/guides/open-delivery/catalogo#acompanhando-o-processamento-merchantstatus)
+</Update>
+
+<Update label="11/09/2026" description="Tipos individuais no menu dos produtos" tags={["Merchant API"]} rss={{ title: "11/09/2026: tipos individuais no menu dos produtos", description: "O campo menu passa a usar DELIVERY, TAKEOUT e INDOOR; DELIVERY_TAKEOUT segue aceito por retrocompatibilidade." }}>
+- **Catálogo:** o campo `menu` dos produtos agora usa os tipos individuais `DELIVERY`, `TAKEOUT` e `INDOOR`. O valor agregado `DELIVERY_TAKEOUT` continua **aceito no envio** por retrocompatibilidade (expandido automaticamente para `DELIVERY` + `TAKEOUT`) e ainda é **devolvido nas respostas** quando o produto tem entrega e retirada. Prefira os tipos individuais em novas integrações. [Saiba mais](/guides/merchant/catalog-and-services/details)
+</Update>
+
+<Update label="10/09/2026" description="Extensão de fidelidade" tags={["Fidelidade", "Merchant API"]} rss={{ title: "10/09/2026: extensão de fidelidade", description: "Nova extensão de fidelidade com scope dv.loyalty e bloco loyalty no pedido." }}>
+- **Fidelidade:** nova extensão de **fidelidade** para apps que operam programas de cashback: o cliente adere ao programa no checkout (com consentimento e PIN opcional), resgata saldo como desconto e acumula sobre pedidos concluídos. O app declara a extensão com uma `api_base_url`, ativa o programa por lojista via `PUT /merchant/v3/{merchantId}/loyalty/config` e implementa o contrato HTTP do operador (spec [loyalty\_operator.yaml](https://app.deliveryvip.com.br/swaggers/loyalty_operator.yaml)). Requer o novo scope `dv.loyalty` além do `od.all`. [Saiba mais](/guides/merchant/loyalty)
+- **Order:** o pedido agora pode trazer o bloco `loyalty` (visível apenas para o app cujo programa o cliente aderiu), com `accountId`, `programId` e o `redemption` do pedido (`status` `CONFIRMED`/`REVERSED`). [Saiba mais](/guides/merchant/loyalty/acumulo)
+</Update>
+
+<Update label="18/08/2026" description="Signup público na Partner API" tags={["Partner API"]} rss={{ title: "18/08/2026: signup público na Partner API", description: "Novo POST /partner/v2/{partnerId}/signup para cadastrar lojas a partir de uma landing page." }}>
+- **Signup:** novo endpoint público `POST /partner/v2/{partnerId}/signup` na API Partner para cadastrar lojas e contas de proprietários a partir de uma landing page. A resposta é a mesma para e-mail novo ou já cadastrado (proteção contra enumeração de usuários): a presença do campo `entryUrl` indica se a conta foi criada. [Saiba mais](/guides/partner/signup)
+</Update>
+
+<Update label="10/08/2026" description="Datas em UTC no Open Delivery e filtros de polling" tags={["Open Delivery", "Merchant API"]} rss={{ title: "10/08/2026: datas em UTC no Open Delivery e filtros de polling", description: "Open Delivery passa a usar UTC; eventType e orderType seguem style form com explode." }}>
+- **Open Delivery:** as datas da API Open Delivery agora são serializadas em **UTC** (RFC 3339, sufixo `Z`, ex.: `2026-08-10T17:39:28Z`), conforme exigido pela spec OD. A API Merchant V3 segue usando UTC-3. [Saiba mais](/inicio/conceitos/datas-e-horarios)
+- **Events:** os filtros `eventType` e `orderType` dos endpoints de polling (`GET /merchant/v3/events:polling` e `GET /v1/events:polling` do Open Delivery) seguem a serialização de arrays da spec OpenAPI (`style: form`, `explode: true`): repita o parâmetro na query, sem colchetes, ex.: `?eventType=CREATED&eventType=CANCELLED`. Valores inválidos retornam `403 Forbidden`. [Saiba mais](/guides/merchant/order/fluxo-de-integracao/consultar-novos-pedidos#filtros)
+</Update>
+
+<Update label="07/08/2026" description="Polling limitado a 100 eventos" tags={["Merchant API"]} rss={{ title: "07/08/2026: polling limitado a 100 eventos", description: "GET /merchant/v3/events:polling retorna no máximo 100 eventos por chamada, do mais antigo para o mais recente." }}>
+- **Events:** o endpoint `GET /merchant/v3/events:polling` agora retorna no máximo **100 eventos por chamada**, sempre do mais antigo para o mais recente. Se a resposta vier com 100 eventos, envie o acknowledgment e chame o polling novamente em seguida, sem aguardar o intervalo usual, até receber menos de 100 eventos (ou `204 No Content`). Integrações que precisam de eventos em tempo real devem considerar os [webhooks](/guides/merchant/webhooks) como canal principal. [Saiba mais](/guides/merchant/order/fluxo-de-integracao/consultar-novos-pedidos#a-fila-de-eventos)
+</Update>
+
+<Update label="30/06/2026" description="Webhooks e novo prazo das deprecations" tags={["Webhooks", "Merchant API", "Partner API"]} rss={{ title: "30/06/2026: webhooks e novo prazo das deprecations", description: "Eventos de pedido e indoor por webhook; prazo das rotas em deprecação adiado para 01/08/2026." }}>
+- **Webhooks:** agora a API Merchant pode enviar os eventos de pedido e de indoor em tempo real para uma URL sua, como complemento ao polling. Configure a URL de notificação no painel e valide a assinatura `X-App-Signature`. [Saiba mais](/guides/merchant/webhooks)
+- **Deprecations:** o prazo de descontinuação das rotas em deprecação (Merchant v1/v2, Tabs `available`/`unavailable` e Invoices/Agreement Code da Partner v2) foi adiado para **01/08/2026**. As rotas da Partner v1 já foram removidas e retornam `410 Gone`. [Saiba mais](/deprecations)
+</Update>
+
+<Update label="16/05/2025" description="Modos de Mesa e Comanda" tags={["Merchant API"]} rss={{ title: "16/05/2025: modos de Mesa e Comanda", description: "Abrir e fechar mesas, novos atributos indoor no pedido e nos eventos, e deprecação de available/unavailable das comandas." }}>
+- **Places:** com os novos modos de Mesa e Comanda, agora é possível abrir ou fechar uma mesa para consumo. [Saiba mais](/guides/merchant/indoor/places-api)
+- **Order:** novos atributos no objeto `indoor` do pedido para suportar os modos de Mesa e Comanda. [Saiba mais](/guides/merchant/order/fluxo-de-integracao/obter-detalhes-do-pedido)
+- **Event:** novos atributos nos eventos para suportar os modos de Mesa e Comanda. [Saiba mais](/guides/merchant/indoor/fluxo-de-integracao/eventos-de-indoor)
+- **Deprecations:** as rotas `available` e `unavailable` das comandas entram em descontinuação. [Saiba mais](/deprecations)
+</Update>
+
+<Update label="22/04/2025" description="Novo sistema de cobrança" tags={["Partner API"]} rss={{ title: "22/04/2025: novo sistema de cobrança", description: "Assinaturas vinculadas a planos, módulo de Invoices reestruturado e novas deprecations." }}>
+- **Plans:** implementamos um **novo sistema de cobrança**: toda assinatura agora deve estar vinculada a um **plano de cobrança** específico. [Saiba mais](/guides/partner/plans)
+- **Invoices:** com a mudança no modelo de cobrança, o módulo de **Invoices** foi reestruturado. Agora é possível listar as faturas de cada merchant para verificar o plano associado, o consumo de recursos e os valores calculados pela nova tabela de preços. [Saiba mais](/guides/partner/invoices)
+- **Deprecations:** para acomodar o novo sistema de cobrança, algumas rotas e versões de API serão descontinuadas. Consulte [Deprecations](/deprecations) para a lista completa e os prazos de remoção.
+</Update>
+
+<Update label="20/02/2025" description="Catálogo: MODIFIER dentro de ITEM e métodos de pagamento" tags={["Merchant API"]} rss={{ title: "20/02/2025: MODIFIER dentro de ITEM e métodos de pagamento", description: "entityType MODIFIER removido do merchantUpdate e merchantUpsert; métodos de pagamento pela API." }}>
+- **Catalog & Services:** no `merchantUpdate` e no `merchantUpsert`, o `entityType` `MODIFIER` foi removido. Ele agora fica dentro de `ITEM`, que deve ser usado para manter o modifier atualizado.
+- **Catalog & Services:** agora é possível adicionar os métodos de pagamento pela API.
+</Update>
+
+<Update label="21/01/2025" description="Campo salesChannel nos pedidos" tags={["Merchant API"]} rss={{ title: "21/01/2025: campo salesChannel nos pedidos", description: "Novo campo salesChannel no pedido." }}>
+- **SalesChannel:** novo campo `salesChannel` nos pedidos. [Saiba mais](/guides/merchant/order/fluxo-de-integracao/obter-detalhes-do-pedido)
+</Update>
+
+<Update label="05/08/2024" description="Endpoints de descontos" tags={["Merchant API"]} rss={{ title: "05/08/2024: endpoints de descontos", description: "Novos endpoints para adicionar, atualizar e remover descontos na API Merchant." }}>
+- **Descontos:** novos endpoints para adicionar, atualizar e remover descontos de um merchant na API Merchant. [Saiba mais](/guides/merchant/discount)
+</Update>
+
+<Update label="29/07/2024" description="Listagem de pedidos" tags={["Merchant API"]} rss={{ title: "29/07/2024: listagem de pedidos", description: "Novo endpoint para listar os pedidos de um merchant." }}>
+- **Listar pedidos:** novo endpoint para listar os pedidos de um merchant na API Merchant. [Saiba mais](/guides/merchant/order/listar-pedidos)
+</Update>
+
+<Update label="28/06/2024" description="Faturas de merchants e revendas" tags={["Partner API"]} rss={{ title: "28/06/2024: faturas de merchants e revendas", description: "Novos endpoints para listar as faturas mensais de merchants e de revendas." }}>
+- **Faturas dos merchants:** novo endpoint para listar as faturas do ano e mês dos merchants na API Partner. [Saiba mais](/guides/partner/merchant/utilizando-a-api/listar-faturas-dos-merchants)
+- **Faturas das revendas:** novo endpoint para listar as faturas do ano e mês das revendas na API Partner. [Saiba mais](/guides/partner/resale/utilizando-a-api/listar-faturas-das-revendas)
+</Update>
+
+<Update label="02/04/2024" description="Indoor no pedido, merchantId nos eventos, revendas e recursos" tags={["Merchant API", "Partner API"]} rss={{ title: "02/04/2024: indoor no pedido, merchantId nos eventos, revendas e recursos", description: "placeName e tabId no pedido INDOOR, merchantId nos eventos, aviso de bloqueio, API de revendas e de recursos." }}>
+- **Order:** `placeName` e `tabId` adicionados quando o pedido é do tipo `INDOOR`. [Saiba mais](/guides/merchant/order/fluxo-de-integracao/obter-detalhes-do-pedido#entrega-retirada-e-indoor)
+- **Order events:** `merchantId` adicionado aos eventos. [Saiba mais](/guides/merchant/order/fluxo-de-integracao/eventos-de-pedidos#estrutura-do-evento)
+- **Indoor events:** `merchantId`, `tabId`, `tabCode` e `tabName` adicionados. [Saiba mais](/guides/merchant/indoor/fluxo-de-integracao/eventos-de-indoor)
+- **Assinatura:** nova rota para avisar um merchant sobre um possível bloqueio. [Saiba mais](/guides/partner/merchant/utilizando-a-api/gerenciar-assinatura-dos-merchants#ativar-aviso)
+- **Revenda:** nova API para gerenciar as revendas. [Saiba mais](/guides/partner/resale)
+- **Recursos:** nova API para gerenciar os recursos dos merchants. [Saiba mais](/guides/partner/merchant/utilizando-a-api/gerenciar-recursos-dos-merchants)
+</Update>
+
+<Update label="10/10/2023" description="Entidade MODIFIER no catálogo" tags={["Merchant API"]} rss={{ title: "10/10/2023: entidade MODIFIER no catálogo", description: "MODIFIER adicionado ao merchantUpdate e merchantUpsert." }}>
+- **Catalog & Services:** entidade `MODIFIER` adicionada ao `merchantUpdate` e ao `merchantUpsert`. [Saiba mais](/guides/merchant/catalog-and-services)
+</Update>
+
+<Update label="04/10/2023" description="API de catálogo e novos filtros" tags={["Merchant API", "Partner API"]} rss={{ title: "04/10/2023: API de catálogo e novos filtros", description: "Gestão de catálogo pela API, filtro orderType no polling e filtro identifier na lista de merchants." }}>
+- **Catalog & Services:** agora é possível atualizar, inserir e administrar o catálogo de um merchant pela API. [Saiba mais](/guides/merchant/catalog-and-services)
+- **Order events:** o polling de eventos passa a aceitar o filtro `orderType`. [Saiba mais](/guides/merchant/order/fluxo-de-integracao/consultar-novos-pedidos#filtros)
+- **Listar merchants:** a lista de merchants passa a aceitar o filtro por `identifier`. [Saiba mais](/guides/partner/merchant/utilizando-a-api/listar-merchants#filtros)
+</Update>
+
+<Update label="01/08/2023" description="Tracking de pedidos" tags={["Merchant API"]} rss={{ title: "01/08/2023: tracking de pedidos", description: "A Order API passa a permitir o tracking de um pedido." }}>
+- **Order API:** agora é possível fazer o tracking de um pedido. [Saiba mais](/guides/merchant/order/fluxo-de-integracao/acoes-de-pedidos#tracking)
+</Update>
+
+<Update label="25/07/2023" description="Permissão de aplicativos por merchant" tags={["Partner API"]} rss={{ title: "25/07/2023: permissão de aplicativos por merchant", description: "A Partner API passa a adicionar ou remover a permissão de um aplicativo para um merchant." }}>
+- **Partner API:** agora é possível adicionar ou remover a permissão de uma aplicação para um merchant. [Saiba mais](/guides/partner/merchant/utilizando-a-api/gerenciar-permissao-de-aplicativos-dos-merchants)
+</Update>
+
+<Update label="02/03/2023" description="Taxa de entrega por coordenada" tags={["Merchant API"]} rss={{ title: "02/03/2023: taxa de entrega por coordenada", description: "Merchant Tools calcula a taxa de entrega a partir de latitude e longitude." }}>
+- **Merchant Tools:** agora é possível saber a taxa de entrega a partir de uma latitude e longitude. [Saiba mais](/guides/merchant/tools)
+</Update>
+
+<Update label="23/02/2023" description="Pedidos e comandas indoor" tags={["Merchant API"]} rss={{ title: "23/02/2023: pedidos e comandas indoor", description: "A Merchant API passa a receber pedidos e cadastrar comandas do tipo indoor." }}>
+- **Merchant Indoor:** agora é possível receber pedidos e cadastrar comandas do tipo indoor. [Saiba mais](/guides/merchant/indoor)
+</Update>
+
+<Update label="26/12/2022" description="MagicLink, membros e cadastro de merchants" tags={["Partner API"]} rss={{ title: "26/12/2022: MagicLink, membros e cadastro de merchants", description: "Login sem senha, gestão de membros, cadastro de merchants e filtro por partners na Partner API." }}>
+- **MagicLink:** agora é possível logar um membro sem senha. [Saiba mais](/guides/partner/merchant/utilizando-a-api/membros-do-merchant#magiclink)
+- **Membros:** agora é possível listar, adicionar, atualizar e remover membros de um merchant. [Saiba mais](/guides/partner/merchant/utilizando-a-api/membros-do-merchant)
+- **Cadastrar merchant:** agora é possível adicionar um merchant a um partner. [Saiba mais](/guides/partner/merchant/utilizando-a-api/adicionar-um-merchant)
+- **Novo filtro:** ao listar merchants ou vendas, agora é possível filtrar só os merchants dos partners desejados. [Saiba mais](/guides/partner/merchant/utilizando-a-api/listar-merchants#filtrar-por-partners)
+</Update>
+
+<Update label="21/12/2022" description="Ação delivered" tags={["Merchant API"]} rss={{ title: "21/12/2022: ação delivered", description: "Nova ação delivered na API de pedidos." }}>
+- **Nova order action:** nova ação `delivered` na API de pedidos. [Saiba mais](/guides/merchant/order/fluxo-de-integracao/acoes-de-pedidos#pedido-entregue)
+</Update>
+
+<Update label="31/10/2022" description="Partner API V2" tags={["Partner API"]} rss={{ title: "31/10/2022: Partner API V2", description: "Nova Partner API V2 para controlar assinaturas e faturamento dos merchants." }}>
+- **Partner API V2:** com ela é possível controlar as assinaturas dos merchants e acompanhar o faturamento delas. [Saiba mais](/guides/partner)
+</Update>

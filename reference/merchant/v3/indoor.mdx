@@ -1,0 +1,26 @@
+---
+title: Indoor
+description: Endpoints de eventos de autoatendimento, comandas e places.
+icon: utensils
+---
+
+Endpoints para receber os eventos do autoatendimento (`CALL_WAITER`, `CLOSE_ACCOUNT`) e gerenciar comandas e places. Todos exigem [autenticação](/reference/merchant/v3/authentication) com o scope `od.all`. Para o fluxo completo, veja o guia de [Indoor](/guides/merchant/indoor).
+
+| Grupo | Endpoints | Guia |
+| --- | --- | --- |
+| Eventos do salão | `GET /events:polling` e `POST /events/acknowledgment`, os mesmos dos pedidos | [Fluxo de integração](/guides/merchant/indoor/fluxo-de-integracao) |
+| Comandas | `GET`, `POST`, `PATCH` e `DELETE` em `/{merchantId}/tabs` | [Comanda API](/guides/merchant/indoor/comanda-api) |
+| Abrir e fechar comandas | `POST /{merchantId}/tabs/{tabId}/opened` e `closed` | [Ações das comandas](/guides/merchant/indoor/comanda-api/acoes-das-comandas) |
+| Places (mesas) | `GET /{merchantId}/places`, `POST .../opened` e `closed` | [Places API](/guides/merchant/indoor/places-api) |
+
+Os pedidos feitos no salão chegam como pedidos `INDOOR`, nos endpoints de [Pedidos](/reference/merchant/v3/orders). `available` e `unavailable` de comandas estão em deprecação: use `opened` e `closed`.
+
+<Info>
+**Filtros do polling.** `eventType` e `orderType` são repetidos na query, uma vez por valor e sem colchetes (`style: form`, `explode: true`). Um valor inválido retorna `403 Forbidden`.
+
+```text
+GET /merchant/v3/events:polling?eventType=CLOSE_ACCOUNT&eventType=CALL_WAITER
+```
+
+Veja os filtros em [Consultar novos eventos](/guides/merchant/indoor/fluxo-de-integracao/consultar-novos-eventos).
+</Info>

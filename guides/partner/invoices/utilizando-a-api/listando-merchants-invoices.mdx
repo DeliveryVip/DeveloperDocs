@@ -1,0 +1,90 @@
+---
+title: Listando faturas das lojas diretas
+sidebarTitle: Faturas das lojas diretas
+description: Liste a fatura do mês só das lojas atendidas diretamente pelo parceiro ou pela revenda.
+icon: store
+---
+
+`GET /partner/v2/{partnerId}/merchants/invoices` devolve as mesmas faturas de [Listando faturas](/guides/partner/invoices/utilizando-a-api/listando-invoices), mas só das lojas **atendidas diretamente** pelo `partnerId`.
+
+| `partnerId` | Lojas na resposta |
+| --- | --- |
+| ID do parceiro | Só as lojas sem revenda. As lojas das revendas ficam de fora. |
+| ID de uma revenda | As lojas da revenda (o mesmo que `GET /{partnerId}/invoices`). |
+
+| Status | Quando |
+| --- | --- |
+| `200 OK` | Lista de faturas. |
+| `204 No Content` | Nenhuma fatura no período. |
+| `403 Forbidden` | `partnerId` fora do alcance do token. |
+
+<Tip>
+Para fechar o mês de um parceiro com revendas, combine este endpoint (lojas diretas, uma a uma) com o [resumo por revenda](/guides/partner/invoices/utilizando-a-api/listando-resales-invoices).
+</Tip>
+
+## Requisição
+
+<ParamField path="partnerId" type="uuid" required>ID do parceiro ou de uma revenda.</ParamField>
+<ParamField query="year" type="integer">Ano. Sem ele, vale o ano corrente.</ParamField>
+<ParamField query="month" type="integer">Mês, de 1 a 12. Sem ele, vale o mês corrente.</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl 'https://api.deliveryvip.com.br/partner/v2/{partnerId}/merchants/invoices?year=2025&month=4' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+const response = await fetch(
+  `https://api.deliveryvip.com.br/partner/v2/${partnerId}/merchants/invoices?year=2025&month=4`,
+  { headers: { Authorization: `Bearer ${token}` } },
+)
+const invoices = response.status === 204 ? [] : await response.json()
+```
+
+```python Python
+response = requests.get(
+    f"https://api.deliveryvip.com.br/partner/v2/{partner_id}/merchants/invoices",
+    params={"year": 2025, "month": 4},
+    headers={"Authorization": f"Bearer {token}"},
+)
+invoices = [] if response.status_code == 204 else response.json()
+```
+</CodeGroup>
+
+## Resposta
+
+```json Resposta (200)
+[
+  {
+    "month": "4",
+    "year": "2025",
+    "merchantId": "aa67c98c-d81f-5a9c-b0bc-26caa0051aea",
+    "planId": "b01ea148-c315-486f-8511-57c72327d114",
+    "totalPrice": [
+      { "type": "PAYABLE", "value": 150.0, "usageTimeValue": 150.0, "currency": "BRL" },
+      { "type": "RECEIVABLE", "value": 300.0, "usageTimeValue": 300.0, "currency": "BRL" }
+    ],
+    "items": [
+      {
+        "itemType": "DELIVERY_TAKEOUT",
+        "quantity": 1,
+        "totalPrice": [
+          { "type": "PAYABLE", "value": 100.0, "usageTimeValue": 100.0, "currency": "BRL" },
+          { "type": "RECEIVABLE", "value": 200.0, "usageTimeValue": 200.0, "currency": "BRL" }
+        ]
+      },
+      {
+        "itemType": "MULTI_STORE",
+        "quantity": 1,
+        "totalPrice": [
+          { "type": "PAYABLE", "value": 50.0, "usageTimeValue": 50.0, "currency": "BRL" },
+          { "type": "RECEIVABLE", "value": 100.0, "usageTimeValue": 100.0, "currency": "BRL" }
+        ]
+      }
+    ]
+  }
+]
+```
+
+Os campos e a regra do bloco `RECEIVABLE` estão em [Definições de faturas](/guides/partner/invoices/definicoes).

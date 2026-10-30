@@ -1,0 +1,21 @@
+---
+title: Cadastro
+description: Endpoint para cadastrar loja e proprietário a partir de uma landing page pública.
+icon: user-plus
+---
+
+Endpoint de cadastro público de lojas, chamado pelo backend da sua landing page. Exige [autenticação](/reference/partner/v2/authentication) com o scope `dv.partner`. Veja o guia de [Cadastro](/guides/partner/signup).
+
+| Endpoint | Para quê |
+| --- | --- |
+| `POST /partner/v2/{partnerId}/signup` | Criar a loja e a conta do proprietário com os dados do formulário. Com o ID de uma revenda, a loja nasce nela. |
+
+O fluxo: o visitante preenche o formulário, o **seu backend** chama o endpoint e, se a resposta trouxer `entryUrl`, redireciona o visitante para ela. O `entryUrl` é de uso único e vale 5 minutos. Para cadastrar lojas a partir do seu próprio sistema, use [Cadastrar uma loja](/guides/partner/merchant/utilizando-a-api/adicionar-um-merchant).
+
+<Warning>
+A resposta é `201` com a mesma `message` para e-mail novo e e-mail já cadastrado. Só a presença de `entryUrl` indica que a conta foi criada.
+</Warning>
+
+<Danger>
+Nunca chame este endpoint do navegador: o token `dv.partner` daria acesso a toda a sua rede.
+</Danger>

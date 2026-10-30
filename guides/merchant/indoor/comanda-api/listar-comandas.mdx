@@ -1,0 +1,78 @@
+---
+title: Listar comandas
+description: Busque todas as comandas cadastradas numa loja, com status, situação e QR Code.
+icon: list
+---
+
+Retorna todas as comandas ativas da loja, em ordem alfabética de `name`. Use para sincronizar o cadastro do PDV ou conferir quais comandas estão abertas.
+
+| Resposta | Quando |
+| --- | --- |
+| `200 OK` | A loja tem comandas. O corpo é um array. |
+| `204 No Content` | A loja não tem comandas. A resposta vem sem corpo. |
+
+<Info>
+A lista não é paginada: todas as comandas vêm numa única resposta. Comandas removidas não aparecem.
+</Info>
+
+## Requisição
+
+<ParamField path="merchantId" type="uuid" required>
+A loja.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl 'https://api.deliveryvip.com.br/merchant/v3/{merchantId}/tabs' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+const response = await fetch(`https://api.deliveryvip.com.br/merchant/v3/${merchantId}/tabs`, {
+  headers: { Authorization: `Bearer ${token}` },
+})
+const tabs = response.status === 204 ? [] : await response.json()
+```
+
+```python Python
+response = requests.get(
+    f"https://api.deliveryvip.com.br/merchant/v3/{merchant_id}/tabs",
+    headers={"Authorization": f"Bearer {token}"},
+)
+tabs = [] if response.status_code == 204 else response.json()
+```
+</CodeGroup>
+
+## Resposta
+
+Cada item é um [objeto comanda](/guides/merchant/indoor/comanda-api#o-objeto-comanda).
+
+```json 200 OK
+[
+  {
+    "id": "6b7cd994-d8ff-4d12-8064-251becc39b08",
+    "createdAt": "2023-02-07T16:23:44-03:00",
+    "name": "0011",
+    "code": "Jaxh7JBmmtmRdJ2FuHFyiSUG",
+    "qrcode": "https://qrcode.dvstore.com/qrcode/indoor_tab_6b7cd994-d8ff-4d12-8064-251becc39b08",
+    "status": "AVAILABLE",
+    "situation": "OPENED"
+  },
+  {
+    "id": "51adb6a7-b19b-4bd0-8a64-1f1c56bd4059",
+    "createdAt": "2023-02-07T16:23:44-03:00",
+    "name": "0012",
+    "code": "Ja3nw1xsbWdZjGhVdNSNdz4a",
+    "qrcode": "https://qrcode.dvstore.com/qrcode/indoor_tab_51adb6a7-b19b-4bd0-8a64-1f1c56bd4059",
+    "status": "AVAILABLE",
+    "situation": "CLOSED"
+  }
+]
+```
+
+## Erros
+
+| Status | Quando |
+| --- | --- |
+| `401 Unauthorized` | Token ausente, expirado ou inválido. |
+| `404 Not Found` | O `merchantId` não autorizou o seu app. |

@@ -1,0 +1,68 @@
+---
+title: Instalando o app na loja
+description: O passo a passo que o lojista segue na Delivery Store para instalar e autorizar o seu app.
+icon: download
+---
+
+Sem instalação, o seu token não alcança a loja. Este guia mostra o que o **lojista** faz para instalar o seu app. Envie esta página para ele junto com o token de autorização.
+
+<Info>
+Os passos abaixo valem para os dois tipos de distribuição. Na [distribuição interativa](/inicio/primeiros-passos/distribuicao-interativa), depois de colar o token o lojista é levado para o seu app e autoriza o acesso por lá, em vez de clicar em **Instalar**.
+</Info>
+
+<Frame caption="Fluxo de instalação do app na loja">
+  <img src="/images/fluxo-instalacao-app.png" alt="Fluxo de instalação: token de autorização, busca do app, instalação e merchantId" />
+</Frame>
+
+<Steps>
+<Step title="Abra a Delivery Store">
+No painel da loja, o lojista abre o menu **Delivery Store** e clica em **Autorizar Aplicativo**.
+
+<Frame caption="Delivery Store no painel da loja">
+  <img src="/images/merchant-delivery-store.png" alt="Menu Delivery Store com o botão Autorizar Aplicativo" />
+</Frame>
+</Step>
+
+<Step title="Cole o token de autorização">
+Ele cola o **token de autorização** que você enviou e clica em **Buscar Aplicativo**.
+
+<Frame caption="Campo do token de autorização">
+  <img src="/images/merchant-autorizar-app.png" alt="Campo para colar o token de autorização e botão Buscar Aplicativo" />
+</Frame>
+
+<Tip>
+O token de autorização fica na tela de detalhes do app, no painel de developers.
+</Tip>
+</Step>
+
+<Step title="Revise as permissões e instale">
+A tela mostra o app e as permissões que ele pede, como pedidos, catálogo ou autoatendimento. Se concordar, o lojista clica em **Instalar**.
+
+<Frame caption="Revisão das permissões">
+  <img src="/images/merchant-instalar-app.png" alt="Detalhes do app com a lista de permissões e o botão Instalar" />
+</Frame>
+
+O e-mail de contato do app recebe um aviso de cada nova instalação.
+</Step>
+
+<Step title="Copie o merchantId">
+Depois de instalar, o lojista vê a tela do app instalado com o **`merchantId`**. Ele copia esse valor e envia para você.
+
+<Frame caption="App instalado, com o merchantId">
+  <img src="/images/merchant-app-instalado.png" alt="Tela do app instalado mostrando o merchantId" />
+</Frame>
+</Step>
+</Steps>
+
+<Check>
+Com o app instalado e o `merchantId` em mãos, [obtenha o token de acesso](/inicio/primeiros-passos/distribuicao-direta#obtendo-o-token-de-acesso). O mesmo token atende esta e todas as outras lojas que instalaram o app.
+</Check>
+
+<Warning>
+Guarde o `merchantId` associado à loja no seu sistema. É ele que identifica a loja nas rotas por loja (`/merchant/v3/{merchantId}/...`) e no header `x-polling-merchants` do polling.
+</Warning>
+
+
+## Desinstalação
+
+O lojista pode remover o app a qualquer momento pela Delivery Store. A partir daí, o seu token deixa de alcançar a loja. Para voltar, ela precisa instalar de novo.

@@ -1,0 +1,27 @@
+---
+title: Pedidos
+description: Endpoints para receber eventos, listar, consultar e atualizar pedidos.
+icon: receipt
+---
+
+Endpoints para receber eventos de pedido, listar e consultar pedidos e executar as ações do ciclo de vida. Todos exigem [autenticação](/reference/merchant/v3/authentication) com o scope `od.all`. Para o fluxo completo, veja o guia de [Pedidos](/guides/merchant/order).
+
+| Etapa | Endpoint | Guia |
+| --- | --- | --- |
+| 1. Receber eventos | `GET /events:polling` (ou [webhook](/guides/merchant/webhooks)) | [Consultar novos pedidos](/guides/merchant/order/fluxo-de-integracao/consultar-novos-pedidos) |
+| 2. Confirmar o recebimento | `POST /events/acknowledgment` | [Acknowledgment](/guides/merchant/order/fluxo-de-integracao/acknowledgment-de-eventos) |
+| 3. Buscar o pedido | `GET /orders/{orderId}` (a `orderURL` do evento) | [Obter detalhes do pedido](/guides/merchant/order/fluxo-de-integracao/obter-detalhes-do-pedido) |
+| 4. Atualizar o status | `POST /orders/{orderId}/confirm`, `dispatch`, `readyForPickup`... | [Ações de pedidos](/guides/merchant/order/fluxo-de-integracao/acoes-de-pedidos) |
+| Histórico | `GET /{merchantId}/orders` | [Listar pedidos](/guides/merchant/order/listar-pedidos) |
+
+Começando agora? [Receba seu primeiro pedido](/guides/merchant/order/fluxo-de-integracao/recepcao-de-pedidos) junta as quatro etapas num script.
+
+<Info>
+**Filtros do polling.** `eventType` e `orderType` são repetidos na query, uma vez por valor e sem colchetes (`style: form`, `explode: true`). Um valor inválido retorna `403 Forbidden`.
+
+```text
+GET /merchant/v3/events:polling?eventType=CREATED&eventType=CANCELLED
+```
+
+Na listagem de pedidos é diferente: o filtro usa colchetes (`orderType[]=DELIVERY`). Veja [Listar pedidos](/guides/merchant/order/listar-pedidos) e [Consultar novos pedidos](/guides/merchant/order/fluxo-de-integracao/consultar-novos-pedidos#filtros).
+</Info>

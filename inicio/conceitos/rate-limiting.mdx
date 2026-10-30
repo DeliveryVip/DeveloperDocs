@@ -1,0 +1,81 @@
+---
+title: Rate limiting
+description: O limite de requisições das APIs da DeliveryVip e como a sua integração deve reagir ao 429.
+icon: gauge-high
+---
+
+As APIs da DeliveryVip limitam o volume de requisições para manter a plataforma estável para todas as lojas. Acima do limite, a API responde `429 Too Many Requests` em vez de processar a chamada.
+
+## Limites
+
+| Limite | Valor |
+| --- | --- |
+| Requisições por janela | **150** |
+| Janela de tempo | **10 segundos** |
+
+Além do limite geral, o polling de eventos tem uma cadência própria: **uma chamada a cada 30 segundos**, exceto para drenar uma fila acumulada. Veja [Consultar novos pedidos](/guides/merchant/order/fluxo-de-integracao/consultar-novos-pedidos).
+
+## Ao receber 429
+
+<Steps>
+<Step title="Pare de enviar">
+Não repita a chamada imediatamente: cada tentativa dentro da janela conta para o limite.
+</Step>
+<Step title="Espere">
+Se a resposta trouxer o header `Retry-After`, espere o tempo indicado. Sem ele, espere ao menos a janela de 10 segundos.
+</Step>
+<Step title="Repita com backoff">
+Tente de novo dobrando a espera a cada `429` seguido (10 s, 20 s, 40 s...), com um teto.
+</Step>
+</Steps>
+
+<Warning>
+Trate o `429` **pelo status HTTP**. O corpo pode não seguir o [formato padrão de erros](/inicio/conceitos/erros) e pode nem ser JSON.
+</Warning>
+
+<CodeGroup>
+```js Node.js
+async function fetchWithRetry(url, options, attempt = 0) {
+  const response = await fetch(url, options)
+  if (response.status !== 429 || attempt >= 5) return response
+
+  const retryAfter = Number(response.headers.get('retry-after'))
+  const wait = (retryAfter > 0 ? retryAfter : 10 * 2 ** attempt) * 1000
+  await new Promise((resolve) => setTimeout(resolve, wait))
+  return fetchWithRetry(url, options, attempt + 1)
+}
+```
+
+```python Python
+import time
+import requests
+
+def request_with_retry(method, url, attempt=0, **kwargs):
+    response = requests.request(method, url, **kwargs)
+    if response.status_code != 429 or attempt >= 5:
+        return response
+
+    retry_after = response.headers.get("Retry-After", "")
+    wait = int(retry_after) if retry_after.isdigit() else 10 * 2**attempt
+    time.sleep(wait)
+    return request_with_retry(method, url, attempt + 1, **kwargs)
+```
+</CodeGroup>
+
+## Boas práticas
+
+<Check>
+**Reaproveite o token.** Ele vale 24 horas. Pedir um token por chamada dobra o número de requisições sem ganho nenhum.
+</Check>
+
+<Check>
+**Prefira webhook a polling agressivo.** O [webhook](/guides/merchant/webhooks) entrega cada evento na hora, sem consumir o seu limite.
+</Check>
+
+<Check>
+**Use cache para o que muda pouco.** Catálogo, dados da loja e horários de funcionamento não precisam ser consultados a cada pedido.
+</Check>
+
+<Check>
+**Espalhe as rotinas em lote.** Sincronizações de muitas lojas devem ser distribuídas no tempo, não disparadas todas no mesmo segundo.
+</Check>

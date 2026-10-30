@@ -1,0 +1,161 @@
+---
+title: Obter detalhes da loja
+sidebarTitle: Obter detalhes
+description: Consulte cadastro, responsável, endereço, assinatura e recursos de uma loja.
+icon: magnifying-glass
+---
+
+`GET /partner/v2/merchants/{merchantId}` devolve a loja completa. É o mesmo objeto que vem em cada item de [Listar lojas](/guides/partner/merchant/utilizando-a-api/listar-merchants) e na resposta do cadastro.
+
+| Status | Quando |
+| --- | --- |
+| `200 OK` | A loja. |
+| `404 Not Found` | A loja não existe ou não está abaixo de quem autorizou o app. |
+
+## Requisição
+
+<CodeGroup>
+```bash cURL
+curl 'https://api.deliveryvip.com.br/partner/v2/merchants/{merchantId}' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+const response = await fetch(`https://api.deliveryvip.com.br/partner/v2/merchants/${merchantId}`, {
+  headers: { Authorization: `Bearer ${token}` },
+})
+const merchant = await response.json()
+```
+
+```python Python
+response = requests.get(
+    f"https://api.deliveryvip.com.br/partner/v2/merchants/{merchant_id}",
+    headers={"Authorization": f"Bearer {token}"},
+)
+merchant = response.json()
+```
+</CodeGroup>
+
+```json Resposta (200)
+{
+  "id": "466caa37-ab0b-4f9d-b583-896681627367",
+  "name": "Cantina da Maria",
+  "corporateName": "Cantina da Maria LTDA",
+  "identifier": "11.222.333/0001-44",
+  "email": "contato@cantinadamaria.com.br",
+  "storeUrl": "https://cantinadamaria.dvstore.com.br",
+  "createdAt": "2025-09-30T17:35:03-03:00",
+  "updatedAt": "2025-10-02T10:12:41-03:00",
+  "personResponsible": {
+    "name": "Maria Silva",
+    "email": "maria@exemplo.com.br",
+    "phone": { "number": "5511999998888" },
+    "identifier": "123.456.789-09"
+  },
+  "address": {
+    "country": "Brasil",
+    "state": "SP",
+    "city": "São Paulo",
+    "district": "Bela Vista",
+    "street": "Avenida Paulista",
+    "number": "1000",
+    "postalCode": "01310-100",
+    "formattedAddress": "Avenida Paulista, 1000 - Bela Vista, São Paulo - SP",
+    "coordinates": { "latitude": -23.565, "longitude": -46.652 }
+  },
+  "subscription": {
+    "status": "ACTIVATED",
+    "warning": false,
+    "blocked": false,
+    "agreementCode": "123456",
+    "lastActivationAt": "2025-10-01T09:00:00-03:00",
+    "planId": "aa67c98c-d81f-5a9c-b0bc-26caa0051aea"
+  },
+  "features": [
+    { "featureType": "DELIVERYBOT_ASSISTANT", "status": "AVAILABLE" },
+    { "featureType": "INDOOR_QRCODE", "status": "ACTIVATED", "lastActivationAt": "2025-10-01T09:05:00-03:00" },
+    {
+      "featureType": "INDOOR_TABLET",
+      "status": "CANCELLED",
+      "lastActivationAt": "2025-10-01T09:05:00-03:00",
+      "lastCancellationAt": "2025-10-20T17:36:56-03:00"
+    }
+  ],
+  "partnerId": "32eeaefa-6a31-487f-9402-fd9a41683830",
+  "resaleId": "ea5705df-5537-4b1b-b291-3536839d3d6f"
+}
+```
+
+## Campos
+
+Campos opcionais vazios não são enviados, nem como `null`.
+
+<ResponseField name="id" type="uuid">ID da loja.</ResponseField>
+<ResponseField name="name" type="string">Nome fantasia.</ResponseField>
+<ResponseField name="corporateName" type="string">Razão social.</ResponseField>
+<ResponseField name="identifier" type="string">CNPJ ou CPF, formatado.</ResponseField>
+<ResponseField name="email" type="string">E-mail da loja.</ResponseField>
+<ResponseField name="phone" type="object">Telefone da loja, em `phone.number` (E.164 sem `+`).</ResponseField>
+<ResponseField name="storeUrl" type="string">URL do domínio principal da loja. Só aparece quando a loja tem domínio principal.</ResponseField>
+<ResponseField name="createdAt" type="datetime">Data do cadastro.</ResponseField>
+<ResponseField name="updatedAt" type="datetime">Data da última alteração.</ResponseField>
+
+<ResponseField name="personResponsible" type="object">
+Responsável pela loja.
+
+<Expandable title="propriedades">
+<ResponseField name="name" type="string">Nome.</ResponseField>
+<ResponseField name="email" type="string">E-mail.</ResponseField>
+<ResponseField name="phone.number" type="string">Telefone, em E.164 sem `+`.</ResponseField>
+<ResponseField name="identifier" type="string">CPF.</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseField name="address" type="object">
+Endereço da loja.
+
+<Expandable title="propriedades">
+<ResponseField name="country" type="string">País.</ResponseField>
+<ResponseField name="state" type="string">UF.</ResponseField>
+<ResponseField name="city" type="string">Cidade.</ResponseField>
+<ResponseField name="district" type="string">Bairro.</ResponseField>
+<ResponseField name="street" type="string">Rua.</ResponseField>
+<ResponseField name="number" type="string">Número.</ResponseField>
+<ResponseField name="complement" type="string">Complemento, quando houver.</ResponseField>
+<ResponseField name="reference" type="string">Ponto de referência, quando houver.</ResponseField>
+<ResponseField name="postalCode" type="string">CEP.</ResponseField>
+<ResponseField name="formattedAddress" type="string">Endereço completo em uma linha.</ResponseField>
+<ResponseField name="coordinates" type="object">`latitude` e `longitude`.</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseField name="subscription" type="object">
+Assinatura da loja. Veja [Definições](/guides/partner/merchant/definicoes).
+
+<Expandable title="propriedades">
+<ResponseField name="status" type="string">`TRIAL`, `TRIAL_EXPIRED`, `ACTIVATED`, `CANCELLED` ou `DEMO`.</ResponseField>
+<ResponseField name="warning" type="boolean">Se a loja está em aviso. Só com status `ACTIVATED`.</ResponseField>
+<ResponseField name="blocked" type="boolean">Se a loja está bloqueada. Só com status `ACTIVATED`.</ResponseField>
+<ResponseField name="agreementCode" type="string">Código do contrato, quando definido.</ResponseField>
+<ResponseField name="trialExpiresAt" type="datetime">Fim do período de teste. Só com status `TRIAL`.</ResponseField>
+<ResponseField name="lastActivationAt" type="datetime">Data da última ativação.</ResponseField>
+<ResponseField name="lastCancellationAt" type="datetime">Data do último cancelamento.</ResponseField>
+<ResponseField name="lastBlockedAt" type="datetime">Data do último bloqueio. Só com status `ACTIVATED`.</ResponseField>
+<ResponseField name="lastWarningAt" type="datetime">Data do último aviso. Só com status `ACTIVATED`.</ResponseField>
+<ResponseField name="planId" type="uuid">Plano de cobrança da assinatura. Veja [Planos](/guides/partner/plans).</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseField name="features" type="object[]">
+Recursos da loja.
+
+<Expandable title="propriedades">
+<ResponseField name="featureType" type="string">Tipo do recurso. Veja [Sobre os recursos](/guides/partner/merchant/utilizando-a-api/gerenciar-recursos-dos-merchants#sobre-os-recursos).</ResponseField>
+<ResponseField name="status" type="string">`AVAILABLE`, `ACTIVATED` ou `CANCELLED`.</ResponseField>
+<ResponseField name="lastActivationAt" type="datetime">Data da última contratação.</ResponseField>
+<ResponseField name="lastCancellationAt" type="datetime">Data do último cancelamento. Só quando o recurso não está contratado.</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseField name="partnerId" type="uuid">ID do parceiro da loja.</ResponseField>
+<ResponseField name="resaleId" type="uuid">ID da revenda. Só aparece em lojas de revenda.</ResponseField>

@@ -1,0 +1,57 @@
+---
+title: Fechar um place para consumo
+sidebarTitle: Fechar para consumo
+description: Bloqueie novos pedidos numa mesa com QR Code ou tablet, por exemplo depois que a conta foi paga.
+icon: lock
+---
+
+Fecha a mesa para consumo. O cliente que lê o QR Code ou usa o tablet dela vê o aviso de mesa fechada e não consegue finalizar pedidos. Na [listagem](/guides/merchant/indoor/places-api/listar-places), o `status` passa a `CLOSED`.
+
+Use quando a conta da mesa for paga ou quando a mesa sair de uso, e [reabra](/guides/merchant/indoor/places-api/acoes-de-places/abrir-para-consumo-um-place) quando ela voltar a receber clientes.
+
+## Requisição
+
+<ParamField path="merchantId" type="uuid" required>
+A loja.
+</ParamField>
+
+<ParamField path="placeId" type="string" required>
+O `id` completo do place, com o prefixo, como `indoor_tablet_b63d1110-bf0f-4d0e-82d9-e91609829655`.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl --request POST 'https://api.deliveryvip.com.br/merchant/v3/{merchantId}/places/{placeId}/closed' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+await fetch(`https://api.deliveryvip.com.br/merchant/v3/${merchantId}/places/${placeId}/closed`, {
+  method: 'POST',
+  headers: { Authorization: `Bearer ${token}` },
+})
+```
+
+```python Python
+requests.post(
+    f"https://api.deliveryvip.com.br/merchant/v3/{merchant_id}/places/{place_id}/closed",
+    headers={"Authorization": f"Bearer {token}"},
+)
+```
+</CodeGroup>
+
+## Resposta
+
+```json 202 Accepted
+{ "id": "indoor_tablet_b63d1110-bf0f-4d0e-82d9-e91609829655" }
+```
+
+<Info>
+Fechar a mesa não cancela nem conclui os pedidos já feitos nela. Eles seguem o próprio [ciclo de vida](/guides/merchant/order/definicoes).
+</Info>
+
+## Erros
+
+| Status | Quando |
+| --- | --- |
+| `404 Not Found` | O `merchantId` não autorizou o seu app, o place não existe, pertence a outra loja ou o `placeId` não começa com `indoor_qrcode_` ou `indoor_tablet_`. |

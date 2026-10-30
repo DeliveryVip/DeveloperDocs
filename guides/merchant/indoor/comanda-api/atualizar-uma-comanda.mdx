@@ -1,0 +1,86 @@
+---
+title: Atualizar uma comanda
+description: Altere o nome ou o código de uma comanda existente.
+icon: pen
+---
+
+Altera o `name` e o `code` de uma comanda. Envie só o que quer mudar: os campos omitidos ficam como estão.
+
+## Requisição
+
+<ParamField path="merchantId" type="uuid" required>
+A loja.
+</ParamField>
+
+<ParamField path="tabId" type="uuid" required>
+O `id` da comanda.
+</ParamField>
+
+<ParamField body="name" type="string">
+Nova identificação da comanda.
+</ParamField>
+
+<ParamField body="code" type="string">
+Novo código. Precisa continuar único entre as comandas da loja.
+</ParamField>
+
+<Warning>
+Mudar o `code` não muda a URL do `qrcode`, que usa o `id` da comanda: QR Codes impressos a partir do campo `qrcode` continuam valendo. Mas qualquer processo que identifique a comanda pelo código antigo, como um código digitado no checkout ou QR Codes impressos no formato antigo com o código embutido, deixa de encontrá-la.
+</Warning>
+
+<Info>
+Para abrir ou fechar a comanda, use as [ações](/guides/merchant/indoor/comanda-api/acoes-das-comandas). `status` e `situation` são ignorados aqui.
+</Info>
+
+<CodeGroup>
+```bash cURL
+curl --request PATCH 'https://api.deliveryvip.com.br/merchant/v3/{merchantId}/tabs/{tabId}' \
+  --header 'Authorization: Bearer {token}' \
+  --header 'Content-Type: application/json' \
+  --data '{ "name": "Comanda 14" }'
+```
+
+```js Node.js
+const response = await fetch(
+  `https://api.deliveryvip.com.br/merchant/v3/${merchantId}/tabs/${tabId}`,
+  {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: 'Comanda 14' }),
+  },
+)
+const tab = await response.json()
+```
+
+```python Python
+response = requests.patch(
+    f"https://api.deliveryvip.com.br/merchant/v3/{merchant_id}/tabs/{tab_id}",
+    headers={"Authorization": f"Bearer {token}"},
+    json={"name": "Comanda 14"},
+)
+tab = response.json()
+```
+</CodeGroup>
+
+## Resposta
+
+Retorna `200 OK` com o [objeto comanda](/guides/merchant/indoor/comanda-api#o-objeto-comanda) atualizado.
+
+```json 200 OK
+{
+  "id": "6b7cd994-d8ff-4d12-8064-251becc39b08",
+  "createdAt": "2023-02-09T17:56:43-03:00",
+  "name": "Comanda 14",
+  "code": "0014",
+  "qrcode": "https://qrcode.dvstore.com/qrcode/indoor_tab_6b7cd994-d8ff-4d12-8064-251becc39b08",
+  "status": "AVAILABLE",
+  "situation": "OPENED"
+}
+```
+
+## Erros
+
+| Status | Quando |
+| --- | --- |
+| `404 Not Found` | O `merchantId` não autorizou o seu app, ou a comanda não existe ou foi removida. |
+| `422 Unprocessable Content` | `name` vazio ou `code` já usado por outra comanda da loja. O `title` traz os campos com problema. |

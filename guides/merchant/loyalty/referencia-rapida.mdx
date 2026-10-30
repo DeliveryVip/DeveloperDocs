@@ -1,0 +1,66 @@
+---
+title: Referência rápida
+description: Endpoints, rotas do contrato, headers, limites e regras da extensão de fidelidade em uma página.
+icon: list
+---
+
+Tudo o que você consulta com frequência durante a integração, dividido pelas duas metades: o que você **chama** e o que você **implementa**.
+
+## Você chama: API da DeliveryVip
+
+Host: `https://api.deliveryvip.com.br`. Autenticação: `Authorization: Bearer {token}`, com token de `scope=od.all dv.loyalty`.
+
+| Método | Endpoint | Descrição |
+| ------ | -------- | --------- |
+| `POST` | `/authentication/v1/oauth/token` | Token OAuth2 (client credentials), válido por 24 horas. |
+| `PUT` | `/merchant/v3/{merchantId}/loyalty/config` | [Ativar/atualizar o programa](/guides/merchant/loyalty/ativando-o-programa) da loja (last-write-wins; dispara o ping síncrono). Requer `dv.loyalty`. |
+| `DELETE` | `/merchant/v3/{merchantId}/loyalty/config` | Desativar o programa da loja (idempotente, `204`; preserva vínculos e histórico). Requer `dv.loyalty`. |
+| `GET` | `/merchant/v3/events:polling` | Consultar eventos de pedido (alternativa ao webhook). Requer `od.all`. |
+| `GET` | `/merchant/v3/orders/{orderId}` | Detalhes do pedido, com o bloco [`loyalty`](/guides/merchant/loyalty/acumulo). Requer `od.all`. |
+
+## Você implementa: contrato do operador
+
+Sob a `api_base_url` da extensão. Autenticação: `X-App-Signature` (HMAC-SHA256 do corpo bruto com o Client Secret). Spec completa: [loyalty\_operator.yaml](https://app.deliveryvip.com.br/swaggers/loyalty_operator.yaml).
+
+| Método | Rota | Sucesso | Respostas de negócio |
+| ------ | ---- | ------- | -------------------- |
+| `GET` | `/v1/loyalty/ping` | `204` (qualquer `2xx`) | - |
+| `POST` | `/v1/loyalty/accounts:link` | `200` (conta **ou** desafio de PIN) | `403` PIN reprovado (corpo genérico); `404` adesão fechada e não-membro |
+| `GET` | `/v1/loyalty/accounts/{accountId}` | `200` | `404` conta não existe mais (desfaz o vínculo) |
+| `POST` | `/v1/loyalty/redemptions` | `201` `{redemptionId}` | `409` saldo insuficiente; `422` `{code}` (ex.: `idempotency_conflict`, `below_minimum_order`) |
+| `POST` | `/v1/loyalty/redemptions/{redemptionId}/reversal` | `2xx` (idempotente) | `404` resgate desconhecido (terminal) |
+
+### Headers das chamadas assinadas
+
+| Header | Conteúdo |
+| ------ | -------- |
+| `X-App-Id` | `client_id` (`uid`) da sua aplicação. |
+| `X-App-MerchantId` | UUID da loja da chamada. |
+| `X-App-Signature` | HMAC-SHA256 hex do **corpo bruto** (string vazia quando não há corpo), chave = Client Secret. |
+
+## Limites e janelas
+
+| Item | Valor |
+| ---- | ----- |
+| Timeouts das chamadas da DeliveryVip | **3 s** conexão / **5 s** leitura |
+| Circuit breaker | **5 falhas** (timeout, erro de conexão, `5xx`, código não previsto ou corpo malformado) em 5 minutos suspendem a extensão por **5 minutos**. Respostas de negócio nunca contam. |
+| Cache de saldo | **60 segundos** por conta (os `redemptionLimits` da conta viajam no mesmo cache) |
+| Teto do resgate | `min(saldo, subtotal dos itens − demais descontos de CART, total corrente)`. `redemptionLimits` só **estreita** esse teto. |
+| Débito | **Síncrono**, dentro da criação do pedido: não-`201` ou timeout = o pedido não nasce |
+| Idempotência do débito | `relatedOrderId`: mesmo amount → mesmo `201`/`redemptionId`; amount diferente → `422 idempotency_conflict` |
+| Estorno | Assíncrono, até **5 tentativas** no total; `404` é terminal. Disparado em cancelamento, rejeição e não-pagamento (pedido aguardando pagamento há **30 min**). |
+| Webhooks | Retry só para `408`/`429` (3 tentativas); outros não-2xx (inclusive `5xx`) = recusa definitiva; **10 falhas consecutivas** suspendem as entregas |
+| Datas da API Merchant V3 | **UTC-3**. Veja [Datas e horários](/inicio/conceitos/datas-e-horarios). |
+
+## Regras que valem decorar
+
+* `accountId` é **opaco e estável**: revincular devolve o mesmo id.
+* O PIN é validado **só do seu lado**; nunca aparece em logs ou armazenamento da DeliveryVip.
+* `amount` e `balance` são **números JSON** (`25.0` ≡ `25.00`).
+* `externalCode` de item só viaja quando o produto tem código PDV/ERP (nunca `null`).
+* Eventos são **notificação**: o dado de fidelidade vive no pedido (`GET /merchant/v3/orders/{orderId}`), campo `orderURL` (grafia exata).
+* `CONCLUDED` = acumular; `CANCELLED` = estornar o acúmulo; `REVERSED` no bloco = somar `redemption.amount.value` de volta à base.
+* `redemptionLimits` **omitido = sem limite** (programa sem limites permite 100%); nunca envie `null`. Limite malformado é descartado em silêncio.
+* Percentual de resgate incide sobre os **itens**, nunca sobre o total do pedido.
+* `min` decide **se** pode resgatar, não **quanto**: valor abaixo dele é rejeitado, nunca ajustado.
+* `redemptionLimits` na **conta substitui integralmente** o do programa: não é merge campo a campo.

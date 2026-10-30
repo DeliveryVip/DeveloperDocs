@@ -1,0 +1,5 @@
+# Ferramentas de migração e fontes das artes (kit.css/kit.js seriam injetados como CSS/JS global do site)
+scripts/
+
+# Instruções internas do repositório
+CLAUDE.md

@@ -1,0 +1,72 @@
+---
+title: Listar revendas
+description: Liste as revendas do parceiro com filtros por status da assinatura, contrato, CNPJ/CPF e parceiro.
+icon: list
+---
+
+`GET /partner/v2/resales` traz as revendas dos parceiros que autorizaram o seu app, da mais recente para a mais antiga, sem paginação.
+
+| Status | Quando |
+| --- | --- |
+| `200 OK` | Lista de revendas. |
+| `204 No Content` | Nenhuma revenda encontrada (também com token de revenda). |
+| `403 Forbidden` | `subscriptionStatus` inválido ou `x-partners` fora do alcance do token. |
+
+## Requisição
+
+<CodeGroup>
+```bash cURL
+curl 'https://api.deliveryvip.com.br/partner/v2/resales?subscriptionStatus[]=ACTIVATED' \
+  --header 'Authorization: Bearer {token}' \
+  --header 'x-partners: {partnerId}'
+```
+
+```js Node.js
+const url = new URL('https://api.deliveryvip.com.br/partner/v2/resales')
+url.searchParams.append('subscriptionStatus[]', 'ACTIVATED')
+
+const response = await fetch(url, {
+  headers: { Authorization: `Bearer ${token}`, 'x-partners': partnerId },
+})
+const resales = response.status === 204 ? [] : await response.json()
+```
+
+```python Python
+response = requests.get(
+    "https://api.deliveryvip.com.br/partner/v2/resales",
+    params={"subscriptionStatus[]": ["ACTIVATED"]},
+    headers={"Authorization": f"Bearer {token}", "x-partners": partner_id},
+)
+resales = [] if response.status_code == 204 else response.json()
+```
+</CodeGroup>
+
+Cada item tem o formato de [Obter detalhes da revenda](/guides/partner/resale/utilizando-a-api/obter-detalhes-da-resale).
+
+## Filtros
+
+<ParamField query="subscriptionStatus[]" type="string[]">
+Status da assinatura: `TRIAL`, `TRIAL_EXPIRED`, `ACTIVATED`, `CANCELLED` ou `DEMO`. Repita o parâmetro para cada valor, com colchetes. Valor desconhecido retorna `403`.
+
+```text
+/partner/v2/resales?subscriptionStatus[]=TRIAL&subscriptionStatus[]=ACTIVATED
+```
+</ParamField>
+
+<ParamField query="subscriptionAgreementCode" type="string">
+Código do contrato da assinatura, comparação exata.
+</ParamField>
+
+<ParamField query="resaleIdentifier" type="string">
+CNPJ ou CPF da revenda, formatado como a API devolve em `identifier`.
+
+```text
+/partner/v2/resales?resaleIdentifier=08.460.509/1101-45
+```
+</ParamField>
+
+### Filtrar por Partners
+
+<ParamField header="x-partners" type="string[]">
+IDs de parceiros, separados por vírgula ou em headers repetidos. Restringe a resposta às revendas desses parceiros. Um ID fora do alcance do token retorna `403` com os IDs sem acesso no `title`. Detalhes em [Listar lojas](/guides/partner/merchant/utilizando-a-api/listar-merchants#filtrar-por-partners).
+</ParamField>

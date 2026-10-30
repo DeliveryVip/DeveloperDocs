@@ -1,0 +1,565 @@
+---
+title: Atualizar objetos (update)
+sidebarTitle: Update
+description: Altere campos de objetos que já existem, abra ou feche a loja e mude os tempos de entrega e retirada.
+icon: pen
+---
+
+`POST /merchant/v3/{merchantId}/merchantUpdate` altera objetos que **já existem** na loja. Só o `id` é obrigatório: envie o identificador e os campos que mudaram. É a rota para o dia a dia, como trocar preço, pausar um produto em falta ou abrir e fechar a loja.
+
+<Info>
+Se um `id` enviado não existir na loja, a chamada inteira falha com `422` e nada é gravado. Para criar objetos, use o [upsert](/guides/merchant/catalog-and-services/actions/upsert). As regras de formato, imagens e erros comuns às três rotas estão em [Ações](/guides/merchant/catalog-and-services/actions).
+</Info>
+
+## Corpo da requisição
+
+<ParamField body="merchantStatus" type="string">
+`AVAILABLE` abre a loja, `UNAVAILABLE` fecha. Obrigatório quando não houver `entityType`.
+</ParamField>
+
+<ParamField body="entityType" type="string">
+Tipo dos objetos em `updatedObjects`: `SERVICE`, `PAYMENT_METHOD`, `OPTION`, `OPTION_GROUP`, `CATEGORY` ou `ITEM`. Um tipo por chamada.
+</ParamField>
+
+<ParamField body="updatedObjects" type="object[]">
+Objetos a alterar, no formato do `entityType` ([veja abaixo](#objetos-por-entitytype)). Obrigatório e não pode ser vazio quando houver `entityType`.
+</ParamField>
+
+Combine os campos conforme o que você precisa:
+
+| Você envia | Efeito |
+| --- | --- |
+| Só `merchantStatus` | Abre ou fecha a loja. |
+| `entityType` + `updatedObjects` | Altera só os objetos enviados. |
+| Os três | Faz as duas coisas na mesma chamada. |
+
+## Requisição
+
+Pausar um produto em falta e corrigir o preço de outro:
+
+<CodeGroup>
+```bash cURL
+curl --request POST 'https://api.deliveryvip.com.br/merchant/v3/{merchantId}/merchantUpdate' \
+  --header 'Authorization: Bearer {token}' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "entityType": "ITEM",
+    "updatedObjects": [
+      { "id": "8cd0cfb4-3288-4345-bcc6-37e78fb42221", "status": "UNAVAILABLE" },
+      {
+        "id": "89bef249-bdce-4d2a-b949-f71bcd91e2f5",
+        "price": { "value": 79.9, "originalValue": 85.0, "currency": "BRL" }
+      }
+    ]
+  }'
+```
+
+```js Node.js
+const response = await fetch(
+  `https://api.deliveryvip.com.br/merchant/v3/${merchantId}/merchantUpdate`,
+  {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      entityType: 'ITEM',
+      updatedObjects: [
+        { id: '8cd0cfb4-3288-4345-bcc6-37e78fb42221', status: 'UNAVAILABLE' },
+        {
+          id: '89bef249-bdce-4d2a-b949-f71bcd91e2f5',
+          price: { value: 79.9, originalValue: 85.0, currency: 'BRL' },
+        },
+      ],
+    }),
+  },
+)
+if (response.status !== 204) console.error(await response.json())
+```
+
+```python Python
+response = requests.post(
+    f"https://api.deliveryvip.com.br/merchant/v3/{merchant_id}/merchantUpdate",
+    headers={"Authorization": f"Bearer {token}"},
+    json={
+        "entityType": "ITEM",
+        "updatedObjects": [
+            {"id": "8cd0cfb4-3288-4345-bcc6-37e78fb42221", "status": "UNAVAILABLE"},
+            {
+                "id": "89bef249-bdce-4d2a-b949-f71bcd91e2f5",
+                "price": {"value": 79.9, "originalValue": 85.0, "currency": "BRL"},
+            },
+        ],
+    },
+)
+if response.status_code != 204:
+    print(response.json())
+```
+</CodeGroup>
+
+A resposta de sucesso é `204 No Content`, sem corpo. Veja os [erros possíveis](/guides/merchant/catalog-and-services/actions#respostas-e-erros).
+
+## Objetos por entityType
+
+Em todos os tipos, só os campos enviados são alterados.
+
+### SERVICE
+
+Disponibilidade e tempo dos serviços de entrega e retirada.
+
+<ParamField body="serviceType" type="string" required>
+`DELIVERY` (entrega) ou `TAKEOUT` (retirada).
+</ParamField>
+<ParamField body="serviceTime" type="integer" required>
+Tempo do serviço, em minutos.
+</ParamField>
+<ParamField body="status" type="string">
+`AVAILABLE` ativa o serviço, `UNAVAILABLE` desativa. Sem o campo, a disponibilidade atual é mantida.
+</ParamField>
+
+<Accordion title="Exemplo: abrir a loja e mudar os tempos" icon="code">
+```json
+{
+  "merchantStatus": "AVAILABLE",
+  "entityType": "SERVICE",
+  "updatedObjects": [
+    { "status": "AVAILABLE", "serviceType": "DELIVERY", "serviceTime": 40 },
+    { "status": "AVAILABLE", "serviceType": "TAKEOUT", "serviceTime": 40 }
+  ]
+}
+```
+</Accordion>
+
+### PAYMENT_METHOD
+
+<ParamField body="id" type="uuid" required>
+ID da forma de pagamento.
+</ParamField>
+<ParamField body="name" type="string">
+Nome exibido ao cliente.
+</ParamField>
+<ParamField body="mode" type="string">
+`CASH`, `CREDIT`, `DEBIT`, `PIX`, `MEAL_VOUCHER`, `FOOD_VOUCHER` ou `OTHER`.
+</ParamField>
+<ParamField body="index" type="integer">
+Posição na lista, a partir de `1`.
+</ParamField>
+<ParamField body="externalCode" type="string">
+Código no seu sistema.
+</ParamField>
+<ParamField body="status" type="string">
+`AVAILABLE` ou `UNAVAILABLE`.
+</ParamField>
+
+<Accordion title="Exemplo" icon="code">
+```json
+{
+  "entityType": "PAYMENT_METHOD",
+  "updatedObjects": [
+    {
+      "id": "44b34740-e8a1-44ea-8ef1-c0b896877df3",
+      "index": 1,
+      "name": "Visa - Crédito",
+      "mode": "CREDIT",
+      "status": "AVAILABLE",
+      "externalCode": "VISA_CREDIT"
+    },
+    {
+      "id": "2a8d8227-663b-464a-8afe-b44a214c82f2",
+      "index": 2,
+      "name": "Visa - Débito",
+      "mode": "DEBIT",
+      "status": "AVAILABLE",
+      "externalCode": "VISA_DEBIT"
+    }
+  ]
+}
+```
+</Accordion>
+
+### OPTION
+
+<ParamField body="id" type="uuid" required>
+ID da opção.
+</ParamField>
+<ParamField body="name" type="string">
+Nome da opção.
+</ParamField>
+<ParamField body="description" type="string">
+Descrição da opção.
+</ParamField>
+<ParamField body="externalCode" type="string">
+Código no seu sistema.
+</ParamField>
+<ParamField body="status" type="string">
+`AVAILABLE` ou `UNAVAILABLE`.
+</ParamField>
+<ParamField body="image" type="object">
+Imagem da opção. Veja as [regras de imagem](/guides/merchant/catalog-and-services/actions#imagens).
+
+<Expandable title="propriedades">
+<ParamField body="url" type="string" required>
+Endereço `https://` da imagem.
+</ParamField>
+<ParamField body="checksum" type="string" required>
+MD5 do arquivo em Base64.
+</ParamField>
+</Expandable>
+</ParamField>
+
+<Accordion title="Exemplo" icon="code">
+```json
+{
+  "entityType": "OPTION",
+  "updatedObjects": [
+    {
+      "id": "fce12ae5-0b64-458f-9794-b1580fb9bd26",
+      "name": "Alemanha",
+      "description": "Molho de tomate, mussarela, requeijão, bacon picado, cebola e orégano.",
+      "externalCode": "152",
+      "status": "AVAILABLE",
+      "image": {
+        "url": "https://storage.com/alemanha.jpg",
+        "checksum": "3sQ1rVvGw0T7bH2pYk9xNw=="
+      }
+    },
+    {
+      "id": "e3080d59-6e2a-478b-b63e-8b78679444f2",
+      "status": "UNAVAILABLE"
+    }
+  ]
+}
+```
+</Accordion>
+
+### OPTION_GROUP
+
+<ParamField body="id" type="uuid" required>
+ID do grupo de opções.
+</ParamField>
+<ParamField body="name" type="string">
+Nome do grupo.
+</ParamField>
+<ParamField body="externalCode" type="string">
+Código no seu sistema.
+</ParamField>
+<ParamField body="status" type="string">
+`AVAILABLE` ou `UNAVAILABLE`.
+</ParamField>
+<ParamField body="optionIds" type="uuid[]">
+Lista **completa** das opções do grupo. Substitui a lista atual. Todas as opções precisam existir na loja.
+</ParamField>
+
+<Note>
+Um grupo pode ser usado por vários produtos. Mudar `optionIds` muda as opções do grupo em **todos** os modificadores que o usam. Um array vazio (`"optionIds": []`) remove todas as opções do grupo. Sem o campo, as opções atuais são mantidas.
+</Note>
+
+<Accordion title="Exemplo" icon="code">
+```json
+{
+  "entityType": "OPTION_GROUP",
+  "updatedObjects": [
+    {
+      "id": "a0f77d73-e8eb-434a-924e-d63883657288",
+      "name": "Bordas",
+      "externalCode": "2",
+      "status": "AVAILABLE",
+      "optionIds": [
+        "1591c35a-6286-41c2-b6af-d3ccf64d8363",
+        "50e6c17f-41c6-41c0-bc3a-37fcea6dd500"
+      ]
+    },
+    {
+      "id": "98e0ca6b-0e2d-4b3a-beba-ef48ab05c6d0",
+      "name": "Novo grupo de coberturas",
+      "optionIds": []
+    }
+  ]
+}
+```
+
+O segundo objeto renomeia o grupo e remove todas as opções dele.
+</Accordion>
+
+### CATEGORY
+
+<ParamField body="id" type="uuid" required>
+ID da categoria.
+</ParamField>
+<ParamField body="name" type="string">
+Nome da categoria.
+</ParamField>
+<ParamField body="index" type="integer">
+Posição no cardápio, a partir de `1`.
+</ParamField>
+<ParamField body="description" type="string">
+Descrição da categoria.
+</ParamField>
+<ParamField body="externalCode" type="string">
+Código no seu sistema.
+</ParamField>
+<ParamField body="status" type="string">
+`AVAILABLE` ou `UNAVAILABLE`.
+</ParamField>
+
+<Accordion title="Exemplo" icon="code">
+```json
+{
+  "entityType": "CATEGORY",
+  "updatedObjects": [
+    { "id": "44b34740-e8a1-44ea-8ef1-c0b896877df3", "index": 1, "name": "Promoções", "status": "AVAILABLE" },
+    { "id": "2a8d8227-663b-464a-8afe-b44a214c82f2", "index": 2, "name": "Entradas", "status": "AVAILABLE" }
+  ]
+}
+```
+</Accordion>
+
+### ITEM
+
+<ParamField body="id" type="uuid" required>
+ID do produto.
+</ParamField>
+<ParamField body="name" type="string">
+Nome do produto.
+</ParamField>
+<ParamField body="categoryId" type="uuid">
+Categoria do produto. Precisa existir na loja.
+</ParamField>
+<ParamField body="index" type="integer">
+Posição dentro da categoria, a partir de `1`.
+</ParamField>
+<ParamField body="description" type="string">
+Descrição do produto.
+</ParamField>
+<ParamField body="externalCode" type="string">
+Código no seu sistema.
+</ParamField>
+<ParamField body="status" type="string">
+`AVAILABLE` ou `UNAVAILABLE`.
+</ParamField>
+<ParamField body="ean" type="string">
+Código de barras EAN.
+</ParamField>
+<ParamField body="menu" type="string[]">
+Onde o produto é vendido: `DELIVERY`, `TAKEOUT` e `INDOOR`. A lista substitui a atual: um tipo que não vier deixa de valer. `DELIVERY_TAKEOUT` ainda é aceito por retrocompatibilidade e vira `DELIVERY` + `TAKEOUT`. Prefira os tipos individuais.
+</ParamField>
+<ParamField body="price" type="object">
+<Expandable title="propriedades">
+<ParamField body="value" type="number" required>
+Preço atual.
+</ParamField>
+<ParamField body="originalValue" type="number" required>
+Preço original. Quando `value` é menor que `originalValue`, o produto aparece **em promoção**: por exemplo, `value` 80.0 e `originalValue` 100.0.
+</ParamField>
+<ParamField body="currency" type="string" required>
+Sempre `BRL`.
+</ParamField>
+</Expandable>
+</ParamField>
+<ParamField body="image" type="object">
+`url` (`https://`) e `checksum` da imagem, como em `OPTION`. Veja as [regras de imagem](/guides/merchant/catalog-and-services/actions#imagens).
+</ParamField>
+<ParamField body="modifiers" type="object[]">
+Lista **completa** de modificadores do produto. Substitui a atual.
+
+<Expandable title="propriedades">
+<ParamField body="id" type="uuid" required>
+ID do modificador.
+</ParamField>
+<ParamField body="name" type="string" required>
+Pergunta exibida ao cliente, por exemplo "Escolha os sabores".
+</ParamField>
+<ParamField body="index" type="integer">
+Posição no produto, a partir de `1`.
+</ParamField>
+<ParamField body="externalCode" type="string">
+Código no seu sistema.
+</ParamField>
+<ParamField body="status" type="string">
+`AVAILABLE` ou `UNAVAILABLE`.
+</ParamField>
+<ParamField body="rule" type="string">
+`ADDITION`, `APPORTIONMENT` ou `HIGHEST`. Veja as [regras de preço](/guides/merchant/catalog-and-services/actions#regras-de-preço-do-modificador).
+</ParamField>
+<ParamField body="minPermitted" type="integer">
+Mínimo de opções. Envie junto com `maxPermitted`.
+</ParamField>
+<ParamField body="maxPermitted" type="integer">
+Máximo de opções. `0` significa sem limite.
+</ParamField>
+<ParamField body="optionGroups" type="object[]">
+Lista **completa** de grupos de opções do modificador. Substitui a atual.
+
+<Expandable title="propriedades">
+<ParamField body="optionGroupId" type="uuid" required>
+ID de um grupo de opções que já existe na loja.
+</ParamField>
+<ParamField body="index" type="integer">
+Posição do grupo no modificador, a partir de `1`.
+</ParamField>
+<ParamField body="options" type="object[]">
+Preço, posição e status de opções do grupo **neste modificador**.
+
+<Expandable title="propriedades">
+<ParamField body="optionId" type="uuid" required>
+ID da opção.
+</ParamField>
+<ParamField body="index" type="integer">
+Posição da opção, a partir de `1`.
+</ParamField>
+<ParamField body="status" type="string">
+`AVAILABLE` ou `UNAVAILABLE`.
+</ParamField>
+<ParamField body="price" type="object">
+`value`, `originalValue` e `currency` (`BRL`), todos obrigatórios. O preço cobrado é o `value`.
+</ParamField>
+</Expandable>
+</ParamField>
+</Expandable>
+</ParamField>
+</Expandable>
+</ParamField>
+
+<AccordionGroup>
+<Accordion title="Como os modificadores são gravados" icon="layer-group">
+* O produto precisa existir, mas os modificadores dentro dele são **criados ou atualizados**: um modificador com `id` novo é criado. Por isso `name` é obrigatório no modificador mesmo no update.
+* `"modifiers": []` remove todos os modificadores do produto. Um modificador que existia e não veio na lista é **apagado**. Sem o campo `modifiers`, os modificadores atuais são mantidos.
+* `"optionGroups": []` remove todos os grupos do modificador. Sem o campo, os grupos atuais são mantidos.
+* Todas as opções do grupo entram no modificador automaticamente. A lista `options` só ajusta preço, posição e status de cada uma. Uma opção que não faz parte do grupo é ignorada.
+</Accordion>
+
+<Accordion title="Exemplo: remover todos os modificadores de um produto" icon="code">
+```json
+{
+  "entityType": "ITEM",
+  "updatedObjects": [
+    { "id": "98e0ca6b-0e2d-4b3a-beba-ef48ab05c6d0", "modifiers": [] }
+  ]
+}
+```
+</Accordion>
+
+<Accordion title="Exemplo: trocar os grupos de um modificador" icon="code">
+```json
+{
+  "entityType": "ITEM",
+  "updatedObjects": [
+    {
+      "id": "98e0ca6b-0e2d-4b3a-beba-ef48ab05c6d0",
+      "modifiers": [
+        {
+          "id": "2488c7a1-0706-409d-bb69-d248f4c81358",
+          "name": "Escolha a cobertura",
+          "optionGroups": [
+            { "optionGroupId": "a0f77d73-e8eb-434a-924e-d63883657288", "index": 1 }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+O produto passa a ter só esse modificador, e o modificador passa a ter só esse grupo. Para tirar todos os grupos, envie `"optionGroups": []`.
+</Accordion>
+
+<Accordion title="Exemplo completo de ITEM" icon="code">
+```json
+{
+  "merchantStatus": "AVAILABLE",
+  "entityType": "ITEM",
+  "updatedObjects": [
+    {
+      "id": "8cd0cfb4-3288-4345-bcc6-37e78fb42221",
+      "index": 1,
+      "name": "Água Mineral sem Gás 500ml",
+      "description": "500ml",
+      "externalCode": "6",
+      "status": "AVAILABLE",
+      "menu": ["DELIVERY", "TAKEOUT"],
+      "price": { "value": 4.5, "originalValue": 4.5, "currency": "BRL" },
+      "categoryId": "9d68e128-ac01-4627-a8f9-064f44da3d8f",
+      "image": {
+        "url": "https://storage.com/image.jpg",
+        "checksum": "ZwfVoHMiCU7FgxzoSfC4Vg=="
+      }
+    },
+    {
+      "id": "89bef249-bdce-4d2a-b949-f71bcd91e2f5",
+      "index": 2,
+      "name": "Pizza Gigante",
+      "description": "Pizza Gigante",
+      "externalCode": "104",
+      "status": "UNAVAILABLE",
+      "menu": ["DELIVERY", "TAKEOUT"],
+      "price": { "value": 85.0, "originalValue": 85.0, "currency": "BRL" },
+      "categoryId": "44b34740-e8a1-44ea-8ef1-c0b896877df3",
+      "image": {
+        "url": "https://storage.com/image.jpg",
+        "checksum": "8UhRfj73ostwpfgzHWD47Q=="
+      },
+      "modifiers": [
+        {
+          "id": "03670695-aaa7-4f9c-95f2-12803a7ec9a3",
+          "index": 1,
+          "name": "Escolha os Sabores da sua Pizza",
+          "status": "AVAILABLE",
+          "rule": "HIGHEST",
+          "minPermitted": 1,
+          "maxPermitted": 4,
+          "externalCode": "123",
+          "optionGroups": [
+            {
+              "optionGroupId": "ba13187c-8bd8-4b3a-a506-8a129485b701",
+              "index": 1,
+              "options": [
+                {
+                  "optionId": "635899c6-1d99-47d7-864e-e7413c3837f3",
+                  "index": 64,
+                  "status": "AVAILABLE",
+                  "price": { "value": 0.0, "originalValue": 0.0, "currency": "BRL" }
+                },
+                {
+                  "optionId": "abaae840-3c34-448a-8637-a7ee1f8048e7",
+                  "index": 85,
+                  "status": "AVAILABLE",
+                  "price": { "value": 0.0, "originalValue": 0.0, "currency": "BRL" }
+                }
+              ]
+            },
+            {
+              "optionGroupId": "1915b8cf-d419-446b-90fd-612e11778c61",
+              "index": 2,
+              "options": [
+                {
+                  "optionId": "874f6327-22e8-4190-8003-8ef1e74f3068",
+                  "index": 172,
+                  "status": "AVAILABLE",
+                  "price": { "value": 0.0, "originalValue": 0.0, "currency": "BRL" }
+                },
+                {
+                  "optionId": "14c32301-b84d-4f7f-b8b8-9d6410cf66a0",
+                  "index": 504,
+                  "status": "AVAILABLE",
+                  "price": { "value": 0.0, "originalValue": 0.0, "currency": "BRL" }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+</Accordion>
+</AccordionGroup>
+
+## Próximos passos
+
+<CardGroup cols={2}>
+<Card title="Upsert" icon="file-import" href="/guides/merchant/catalog-and-services/actions/upsert">
+Crie objetos novos no catálogo.
+</Card>
+<Card title="Regras comuns e erros" icon="list-check" href="/guides/merchant/catalog-and-services/actions">
+Formato dos campos, imagens e mensagens de erro.
+</Card>
+</CardGroup>

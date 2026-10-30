@@ -1,0 +1,25 @@
+---
+title: Ações de places
+sidebarTitle: Ações
+description: Abra e feche mesas com QR Code ou tablet para consumo.
+icon: arrows-rotate
+---
+
+Cada ação é um `POST` sem corpo em `/merchant/v3/{merchantId}/places/{placeId}/<ação>`, onde `placeId` é o `id` completo do place, com o prefixo (`indoor_qrcode_…` ou `indoor_tablet_…`). A resposta de sucesso é `202 Accepted` com esse mesmo `id`.
+
+| Ação | Endpoint | Efeito |
+| --- | --- | --- |
+| [Abrir para consumo](/guides/merchant/indoor/places-api/acoes-de-places/abrir-para-consumo-um-place) | `opened` | A mesa volta a aceitar pedidos. O `status` passa a `AVAILABLE`, ou `BUSY` se houver pedidos em andamento. |
+| [Fechar para consumo](/guides/merchant/indoor/places-api/acoes-de-places/fechar-para-consumo-um-place) | `closed` | A mesa para de aceitar pedidos. O `status` passa a `CLOSED`. |
+
+As ações são idempotentes: abrir uma mesa já aberta, ou fechar uma já fechada, responde `202` sem mudar nada.
+
+```json 202 Accepted
+{ "id": "indoor_qrcode_a7f4a8b1-8e6d-4614-be9a-b81b10a0de99" }
+```
+
+## Erros
+
+| Status | Quando |
+| --- | --- |
+| `404 Not Found` | O `merchantId` não autorizou o seu app, o place não existe, pertence a outra loja ou o `placeId` não tem um prefixo válido. |

@@ -1,0 +1,172 @@
+---
+title: Primeiros passos
+description: Crie o app com a extensão Open Delivery, receba a credencial de cada loja e obtenha o token OAuth que opera aquela loja.
+icon: rocket
+---
+
+Ao final desta página você tem um token válido para uma loja e sabe como guardar a credencial de cada loja que instalar o seu app.
+
+<Steps>
+<Step title="Crie um app no painel de developers">
+A integração Open Delivery usa as credenciais de app da plataforma:
+
+1. Acesse o painel de developers da DeliveryVip em [https://developer.deliveryvip.com.br/](https://developer.deliveryvip.com.br/).
+2. Cadastre um app com o scope **`od.all`**.
+3. Declare a extensão **Open Delivery** no app. É ela que habilita o modelo de **um app para várias lojas**.
+4. Guarde o **`client_id`** do app. Ele é o mesmo para todas as lojas.
+
+<Info>
+Com a extensão Open Delivery declarada, o mesmo app atende **todas** as lojas que o instalarem: você cadastra o app uma única vez e cada loja recebe a própria credencial e a própria configuração (webhook, endpoint de catálogo, `merchantId`).
+</Info>
+</Step>
+
+<Step title="Receba a credencial da loja">
+Quando uma loja instala o seu app, a DeliveryVip emite um **`client_secret` exclusivo daquela loja**, no formato `ods_<hint>_<random>`. O `client_id` continua sendo o do app.
+
+| Credencial | Escopo |
+| ---------- | ------ |
+| `client_id` | Do **app**: o mesmo para todas as lojas. |
+| `client_secret` | Da **loja**: um por loja instalada (`ods_...`). |
+
+Você recebe esses dados de duas formas:
+
+* **Por e-mail**, no momento da instalação, com o passo a passo de ativação.
+* **Pelo botão "Copiar dados de conexão"**, disponível tanto no painel do lojista quanto no seu painel de developers.
+
+<Warning>
+**Guarde o secret de cada loja.** O `client_secret` da loja identifica qual loja está falando com a API e é também a chave que assina os [webhooks](/guides/open-delivery/recebendo-eventos#validando-a-assinatura) dela. Armazene-o associado à loja no seu sistema.
+</Warning>
+</Step>
+
+<Step title="Obtenha um token OAuth">
+A autenticação é **OAuth2 client credentials**. O endpoint de token fica na raiz do host OD, fora do prefixo `/v1`.
+
+<CodeGroup>
+```bash cURL
+curl --request POST 'https://od.deliveryvip.com.br/oauth/token' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'grant_type=client_credentials' \
+  --data-urlencode "client_id=$OD_CLIENT_ID" \
+  --data-urlencode "client_secret=$OD_STORE_SECRET" \
+  --data-urlencode 'scope=od.all'
+```
+
+```js Node.js
+const response = await fetch('https://od.deliveryvip.com.br/oauth/token', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+  body: new URLSearchParams({
+    grant_type: 'client_credentials',
+    client_id: process.env.OD_CLIENT_ID,
+    client_secret: process.env.OD_STORE_SECRET, // ods_... da loja
+    scope: 'od.all',
+  }),
+})
+const { access_token, expires_in } = await response.json()
+```
+
+```python Python
+import os
+import requests
+
+response = requests.post(
+    "https://od.deliveryvip.com.br/oauth/token",
+    data={
+        "grant_type": "client_credentials",
+        "client_id": os.environ["OD_CLIENT_ID"],
+        "client_secret": os.environ["OD_STORE_SECRET"],  # ods_... da loja
+        "scope": "od.all",
+    },
+)
+access_token = response.json()["access_token"]
+```
+</CodeGroup>
+
+O token retornado vale **apenas para a loja** daquele `client_secret`: todos os endpoints passam a operar sobre ela, sem precisar informar a loja em cada chamada. Para operar outra loja, peça um token com o `client_secret` dela.
+
+<Info>
+**Expiração e reutilização.** Tokens expiram em **24 horas**. Enquanto o token vigente não expira, novas requisições de token retornam **o mesmo token**: não é preciso (nem útil) pedir um token novo a cada chamada. Guarde o token por loja e renove apenas quando expirar ou receber `401`.
+</Info>
+
+<Warning>
+**Loja desinstalada.** Se a loja desinstalar o seu app, a credencial dela deixa de emitir tokens (`invalid_client`) e os tokens vigentes são revogados. Uma nova instalação emite um **novo** `client_secret`.
+</Warning>
+</Step>
+
+<Step title="Teste o token">
+Faça uma chamada autenticada. O polling de eventos é a mais simples: responde `200` com eventos ou `204` quando não há nada pendente.
+
+<CodeGroup>
+```bash cURL
+curl --request GET 'https://od.deliveryvip.com.br/v1/events:polling' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+const response = await fetch('https://od.deliveryvip.com.br/v1/events:polling', {
+  headers: { Authorization: `Bearer ${access_token}` },
+})
+console.log(response.status) // 200 ou 204; 401 = token inválido
+```
+
+```python Python
+response = requests.get(
+    "https://od.deliveryvip.com.br/v1/events:polling",
+    headers={"Authorization": f"Bearer {access_token}"},
+)
+print(response.status_code)  # 200 ou 204; 401 = token inválido
+```
+</CodeGroup>
+
+<Note>
+Neste teste, não envie o acknowledgment dos eventos que vierem: eles continuam disponíveis para o seu fluxo real.
+</Note>
+</Step>
+</Steps>
+
+## Endpoints de versão
+
+Os endpoints de versão informam o que a DeliveryVip suporta. Eles são **públicos**: respondem com ou sem token, então não servem para validar credenciais.
+
+<CodeGroup>
+```bash Ordering App
+curl 'https://od.deliveryvip.com.br/v1/versions/orderingApp'
+```
+
+```bash Merchant
+curl 'https://od.deliveryvip.com.br/v1/versions/merchant'
+```
+</CodeGroup>
+
+<CodeGroup>
+```json Ordering App
+{
+  "merchant": { "version": "1.0.0" },
+  "order": {
+    "version": "1.3.0",
+    "availableEventsMethods": ["POLLING", "WEBHOOK"]
+  }
+}
+```
+
+```json Merchant
+{
+  "merchantEndpoint": "1.2.1"
+}
+```
+</CodeGroup>
+
+## Erros comuns
+
+| Sintoma | Causa | Como resolver |
+| --- | --- | --- |
+| `invalid_client` no token | `client_secret` errado, de outra loja, ou a loja desinstalou o app | Confira o secret da loja; após reinstalação, use o novo secret |
+| `404` em todas as chamadas | Rotas montadas sem o `/v1` | Use `https://od.deliveryvip.com.br/v1` como URL base da API |
+| `401 Unauthorized` | Token ausente, inválido ou expirado | Gere um token novo com o secret da loja |
+| `403 Forbidden` | Token sem o scope `od.all` | Peça o token com `scope=od.all` |
+
+## Próximo passo
+
+<Card title="Onboarding de lojas" icon="store" href="/guides/open-delivery/onboarding-de-lojas">
+Registre a configuração de cada loja: `merchantId`, webhook e endpoint de catálogo.
+</Card>

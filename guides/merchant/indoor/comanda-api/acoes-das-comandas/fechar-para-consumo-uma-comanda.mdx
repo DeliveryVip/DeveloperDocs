@@ -1,0 +1,57 @@
+---
+title: Fechar uma comanda para consumo
+sidebarTitle: Fechar para consumo
+description: Bloqueie novos pedidos numa comanda, por exemplo depois que a conta foi paga.
+icon: lock
+---
+
+Muda a `situation` da comanda para `CLOSED`. Com a comanda fechada, o cliente que lê o QR Code dela vê o aviso de comanda fechada e não consegue finalizar pedidos nem pedir a conta com ela.
+
+Use quando a conta for paga, para que ninguém faça pedidos na comanda até ela ser [reaberta](/guides/merchant/indoor/comanda-api/acoes-das-comandas/abrir-para-consumo-uma-comanda) para o próximo cliente.
+
+## Requisição
+
+<ParamField path="merchantId" type="uuid" required>
+A loja.
+</ParamField>
+
+<ParamField path="tabId" type="uuid" required>
+O `id` da comanda.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl --request POST 'https://api.deliveryvip.com.br/merchant/v3/{merchantId}/tabs/{tabId}/closed' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+await fetch(`https://api.deliveryvip.com.br/merchant/v3/${merchantId}/tabs/${tabId}/closed`, {
+  method: 'POST',
+  headers: { Authorization: `Bearer ${token}` },
+})
+```
+
+```python Python
+requests.post(
+    f"https://api.deliveryvip.com.br/merchant/v3/{merchant_id}/tabs/{tab_id}/closed",
+    headers={"Authorization": f"Bearer {token}"},
+)
+```
+</CodeGroup>
+
+## Resposta
+
+```json 202 Accepted
+{ "id": "6b7cd994-d8ff-4d12-8064-251becc39b08" }
+```
+
+<Info>
+Fechar a comanda não cancela nem conclui pedidos já feitos com ela. Eles seguem o próprio [ciclo de vida](/guides/merchant/order/definicoes).
+</Info>
+
+## Erros
+
+| Status | Quando |
+| --- | --- |
+| `404 Not Found` | O `merchantId` não autorizou o seu app, a comanda não existe ou foi removida, ou o `tabId` não é um UUID válido. |

@@ -1,0 +1,96 @@
+---
+title: Gerenciar recursos das lojas
+sidebarTitle: Gerenciar recursos
+description: Contrate e cancele recursos adicionais, como DeliveryBot, cardápio por QR Code e domínio próprio.
+icon: puzzle-piece
+---
+
+Recursos são funcionalidades cobradas à parte ou incluídas no plano da loja. Os incluídos já vêm ativos; os adicionais (`inclusionType: ADDITIONAL` no [plano](/guides/partner/plans/definicoes)) são contratados e cancelados por aqui.
+
+| Ação | Endpoint | Sucesso |
+| --- | --- | --- |
+| [Ativar recursos](#ativar-recursos) | `POST /partner/v2/merchants/{merchantId}/features/activate` | `202` |
+| [Cancelar recursos](#cancelar-recursos) | `POST /partner/v2/merchants/{merchantId}/features/cancel` | `202` |
+
+Os dois recebem a lista de recursos e respondem com o ID da loja:
+
+<ParamField body="feature.featureTypes" type="string[]" required>
+Um ou mais [tipos de recurso](#sobre-os-recursos).
+</ParamField>
+
+```json Resposta (202)
+{ "merchantId": "d7240afd-d47c-4ae8-b79d-f14d3e8e1dd8" }
+```
+
+## Ativar Recursos
+
+<CodeGroup>
+```bash cURL
+curl --request POST 'https://api.deliveryvip.com.br/partner/v2/merchants/{merchantId}/features/activate' \
+  --header 'Authorization: Bearer {token}' \
+  --header 'Content-Type: application/json' \
+  --data '{ "feature": { "featureTypes": ["DELIVERYBOT_NOTIFICATION", "INDOOR_QRCODE"] } }'
+```
+
+```js Node.js
+await fetch(`https://api.deliveryvip.com.br/partner/v2/merchants/${merchantId}/features/activate`, {
+  method: 'POST',
+  headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+  body: JSON.stringify({ feature: { featureTypes: ['DELIVERYBOT_NOTIFICATION', 'INDOOR_QRCODE'] } }),
+})
+```
+
+```python Python
+requests.post(
+    f"https://api.deliveryvip.com.br/partner/v2/merchants/{merchant_id}/features/activate",
+    headers={"Authorization": f"Bearer {token}"},
+    json={"feature": {"featureTypes": ["DELIVERYBOT_NOTIFICATION", "INDOOR_QRCODE"]}},
+)
+```
+</CodeGroup>
+
+Recursos já contratados são ignorados. Os erros vêm com **`406 Not Acceptable`**:
+
+| `title` | Causa |
+| --- | --- |
+| `Invalid featureType` | Lista vazia ou tipo desconhecido. |
+| `Feature type not exists in plan` | O plano da loja não tem preço para os recursos pedidos. |
+| `Merchant does not have a valid license` | A loja não está em `TRIAL`, `DEMO` ou `ACTIVATED`, está bloqueada, ou o parceiro ou a revenda dela está com teste expirado, bloqueado ou cancelado. |
+| `Feature type is hidden` | O recurso foi ocultado para essa loja. |
+
+## Cancelar Recursos
+
+Mesmo corpo, em `features/cancel`.
+
+```bash
+curl --request POST 'https://api.deliveryvip.com.br/partner/v2/merchants/{merchantId}/features/cancel' \
+  --header 'Authorization: Bearer {token}' \
+  --header 'Content-Type: application/json' \
+  --data '{ "feature": { "featureTypes": ["INDOOR_QRCODE"] } }'
+```
+
+Erros, também com `406`:
+
+| `title` | Causa |
+| --- | --- |
+| `Invalid featureType` | Lista vazia ou tipo desconhecido. |
+| `Feature type is included in plan` | O recurso faz parte do plano e não pode ser cancelado sozinho. |
+| `Feature type not hired` | O recurso não está contratado. |
+
+<Info>
+Um recurso cancelado aparece como `CANCELLED` até o fim do mês (ou por 24 horas) e depois volta a `AVAILABLE`. Recontratar dentro desse período não muda a data de contratação. Veja [Status dos recursos](/guides/partner/merchant/definicoes#status-dos-recursos).
+</Info>
+
+## Sobre os recursos
+
+| Recurso | Descrição |
+| --- | --- |
+| `DELIVERYBOT_NOTIFICATION` | Mensagens no WhatsApp sobre o status do pedido para o cliente. [Saiba mais](https://delivery.ajuda.cc/geral/deliverybot/notificacao-de-pedidos). |
+| `DELIVERYBOT_ASSISTANT` | Pré-atendimento ao cliente no WhatsApp. [Saiba mais](https://delivery.ajuda.cc/geral/deliverybot/assistente-de-atendimento). |
+| `INDOOR_VIEWER` | Cardápio por QR Code no local, só para visualização. |
+| `INDOOR_QRCODE` | Cardápio por QR Code no local, com pedidos pelo celular do cliente. |
+| `INDOOR_TABLET` | Tablet no local para o cliente fazer pedidos. |
+| `DOMAIN_CUSTOM` | Domínio personalizado para a loja. |
+| `GROWTH_DISCOUNT` | Módulo de descontos. |
+| `INTEGRATION_MARKETING` | Integrações de marketing. |
+| `INTEGRATION_LOGISTIC` | Integrações de logística. |

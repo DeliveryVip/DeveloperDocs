@@ -1,0 +1,389 @@
+---
+title: Autenticação
+description: Obtenha, use, renove e revogue o token OAuth2 que autentica o seu app nas APIs da DeliveryVip.
+icon: key
+---
+
+Todas as APIs da DeliveryVip usam **OAuth2**. O seu app troca as credenciais por um token de acesso e envia esse token no header `Authorization` de cada chamada.
+
+| Endpoint | Para quê |
+| --- | --- |
+| `POST /authentication/v1/oauth/token` | Obter um token (`client_credentials`, `authorization_code` ou `refresh_token`). |
+| `GET /authentication/v1/oauth/token/info` | Ver app, scopes e tempo restante do token atual. |
+| `POST /authentication/v1/oauth/introspect` | Verificar se um token está ativo (RFC 7662). |
+| `POST /authentication/v1/oauth/revoke` | Revogar um token antes de expirar (RFC 7009). |
+
+Todos ficam em `https://api.deliveryvip.com.br`. O endpoint de token só aceita `Content-Type: application/x-www-form-urlencoded`.
+
+<Info>
+O **Open Delivery** tem endpoint de token próprio, em `https://od.deliveryvip.com.br/oauth/token`, com um `client_secret` por loja. Veja [Primeiros passos do Open Delivery](/guides/open-delivery/primeiros-passos).
+</Info>
+
+## Obtendo o token
+
+O fluxo depende do tipo de distribuição do app.
+
+<Tabs>
+<Tab title="Client credentials (direta)" icon="plug">
+Usado por apps de [distribuição direta](/inicio/primeiros-passos/distribuicao-direta). Um token atende todas as lojas que instalaram o app.
+
+<ParamField body="grant_type" type="string" required>
+`client_credentials`
+</ParamField>
+<ParamField body="client_id" type="string" required>
+Client ID do app.
+</ParamField>
+<ParamField body="client_secret" type="string" required>
+Client Secret do app.
+</ParamField>
+<ParamField body="scope" type="string" default="od.all">
+Scopes separados por espaço, entre os que o app tem.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl --request POST 'https://api.deliveryvip.com.br/authentication/v1/oauth/token' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'grant_type=client_credentials' \
+  --data-urlencode 'client_id=<clientId>' \
+  --data-urlencode 'client_secret=<clientSecret>' \
+  --data-urlencode 'scope=od.all'
+```
+
+```js Node.js
+const response = await fetch('https://api.deliveryvip.com.br/authentication/v1/oauth/token', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+  body: new URLSearchParams({
+    grant_type: 'client_credentials',
+    client_id: process.env.DV_CLIENT_ID,
+    client_secret: process.env.DV_CLIENT_SECRET,
+    scope: 'od.all',
+  }),
+})
+const token = await response.json()
+```
+
+```python Python
+response = requests.post(
+    "https://api.deliveryvip.com.br/authentication/v1/oauth/token",
+    data={
+        "grant_type": "client_credentials",
+        "client_id": os.environ["DV_CLIENT_ID"],
+        "client_secret": os.environ["DV_CLIENT_SECRET"],
+        "scope": "od.all",
+    },
+)
+token = response.json()
+```
+</CodeGroup>
+
+<Note>
+Tokens de client credentials **não têm `refresh_token`**. Quando expirarem, peça outro com as mesmas credenciais.
+</Note>
+</Tab>
+
+<Tab title="Authorization code (interativa)" icon="window-maximize">
+Usado por apps de [distribuição interativa](/inicio/primeiros-passos/distribuicao-interativa), depois que a loja aprova a tela de consentimento e você recebe o `code` na Redirect URI.
+
+<ParamField body="grant_type" type="string" required>
+`authorization_code`
+</ParamField>
+<ParamField body="client_id" type="string" required>
+Client ID do app.
+</ParamField>
+<ParamField body="client_secret" type="string" required>
+Client Secret do app.
+</ParamField>
+<ParamField body="code" type="string" required>
+O `code` recebido na Redirect URI. Uso único.
+</ParamField>
+<ParamField body="redirect_uri" type="string" required>
+A mesma Redirect URI usada na autorização.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl --request POST 'https://api.deliveryvip.com.br/authentication/v1/oauth/token' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'grant_type=authorization_code' \
+  --data-urlencode 'client_id=<clientId>' \
+  --data-urlencode 'client_secret=<clientSecret>' \
+  --data-urlencode 'code=<authorizationCode>' \
+  --data-urlencode 'redirect_uri=<redirectUri>'
+```
+
+```js Node.js
+const response = await fetch('https://api.deliveryvip.com.br/authentication/v1/oauth/token', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+  body: new URLSearchParams({
+    grant_type: 'authorization_code',
+    client_id: process.env.DV_CLIENT_ID,
+    client_secret: process.env.DV_CLIENT_SECRET,
+    code,
+    redirect_uri: process.env.DV_REDIRECT_URI,
+  }),
+})
+const token = await response.json()
+```
+
+```python Python
+response = requests.post(
+    "https://api.deliveryvip.com.br/authentication/v1/oauth/token",
+    data={
+        "grant_type": "authorization_code",
+        "client_id": os.environ["DV_CLIENT_ID"],
+        "client_secret": os.environ["DV_CLIENT_SECRET"],
+        "code": code,
+        "redirect_uri": os.environ["DV_REDIRECT_URI"],
+    },
+)
+token = response.json()
+```
+</CodeGroup>
+</Tab>
+</Tabs>
+
+### Resposta
+
+```json 200 OK
+{
+  "access_token": "{token}",
+  "token_type": "Bearer",
+  "expires_in": 86400,
+  "refresh_token": "{refreshToken}",
+  "scope": "od.all",
+  "created_at": 1761750000
+}
+```
+
+<ResponseField name="access_token" type="string">
+O token para o header `Authorization`. É uma string opaca: não tente decodificá-la.
+</ResponseField>
+<ResponseField name="token_type" type="string">
+Sempre `Bearer`.
+</ResponseField>
+<ResponseField name="expires_in" type="integer">
+Segundos até o token expirar. Um token novo vale 86400 (24 horas); um token reaproveitado volta com o tempo que ainda resta.
+</ResponseField>
+<ResponseField name="refresh_token" type="string">
+Só no fluxo `authorization_code` (e nas renovações dele). Ausente em `client_credentials`.
+</ResponseField>
+<ResponseField name="scope" type="string">
+Scopes concedidos, separados por espaço.
+</ResponseField>
+<ResponseField name="created_at" type="integer">
+Emissão do token, em Unix timestamp (segundos).
+</ResponseField>
+
+## Scopes
+
+| Scope | Acesso |
+| --- | --- |
+| `od.all` | Merchant API V3 (eventos, pedidos, catálogo, indoor, descontos, tools) e Open Delivery. É o scope padrão quando `scope` é omitido. |
+| `dv.loyalty` | Configuração do programa de [fidelidade](/guides/merchant/loyalty) (`/merchant/v3/{merchantId}/loyalty/config`). Peça junto com `od.all`. |
+| `dv.partner` | Partner API V2: lojas, revendas, assinaturas, recursos e faturas. |
+| `dv.marketplace` | API de marketplace. |
+
+Você só pode pedir scopes marcados nas permissões do app. Um token sem o scope que o endpoint exige recebe `403 Forbidden`.
+
+## Usando o token
+
+Envie o token no header `Authorization` em todas as chamadas:
+
+<CodeGroup>
+```bash cURL
+curl 'https://api.deliveryvip.com.br/merchant/v3/{merchantId}/orders' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+const response = await fetch(`https://api.deliveryvip.com.br/merchant/v3/${merchantId}/orders`, {
+  headers: { Authorization: `Bearer ${token}` },
+})
+```
+
+```python Python
+response = requests.get(
+    f"https://api.deliveryvip.com.br/merchant/v3/{merchant_id}/orders",
+    headers={"Authorization": f"Bearer {token}"},
+)
+```
+</CodeGroup>
+
+## Expiração e reaproveitamento
+
+O token de acesso expira em **24 horas**. Depois disso, as chamadas retornam `401 Unauthorized`.
+
+<Check>
+**Guarde o token e reaproveite.** Peça um token novo só quando ele estiver perto de expirar ou quando receber `401`. Pedir um token por chamada é desnecessário e só gera carga.
+</Check>
+
+<Info>
+Enquanto o token vigente tiver usado menos de 80% da validade (cerca de 19 horas), um novo pedido com as mesmas credenciais e scopes devolve **o mesmo token**, com o `expires_in` restante. Passado esse ponto, a API emite um token novo.
+</Info>
+
+### Renovando com refresh_token
+
+Tokens do fluxo `authorization_code` vêm com `refresh_token`. Use-o para obter um novo token sem pedir nova autorização à loja:
+
+<CodeGroup>
+```bash cURL
+curl --request POST 'https://api.deliveryvip.com.br/authentication/v1/oauth/token' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'grant_type=refresh_token' \
+  --data-urlencode 'refresh_token=<refreshToken>' \
+  --data-urlencode 'client_id=<clientId>' \
+  --data-urlencode 'client_secret=<clientSecret>'
+```
+
+```js Node.js
+const response = await fetch('https://api.deliveryvip.com.br/authentication/v1/oauth/token', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+  body: new URLSearchParams({
+    grant_type: 'refresh_token',
+    refresh_token: refreshToken,
+    client_id: process.env.DV_CLIENT_ID,
+    client_secret: process.env.DV_CLIENT_SECRET,
+  }),
+})
+const token = await response.json()
+```
+
+```python Python
+response = requests.post(
+    "https://api.deliveryvip.com.br/authentication/v1/oauth/token",
+    data={
+        "grant_type": "refresh_token",
+        "refresh_token": refresh_token,
+        "client_id": os.environ["DV_CLIENT_ID"],
+        "client_secret": os.environ["DV_CLIENT_SECRET"],
+    },
+)
+token = response.json()
+```
+</CodeGroup>
+
+<Warning>
+A resposta traz um `access_token` **e** um `refresh_token` novos. Substitua os dois no seu armazenamento.
+</Warning>
+
+## Verificando o token
+
+`GET /authentication/v1/oauth/token/info` descreve o token enviado no header. Útil como primeira chamada e para depurar `401` e `403`.
+
+<CodeGroup>
+```bash cURL
+curl 'https://api.deliveryvip.com.br/authentication/v1/oauth/token/info' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+const response = await fetch('https://api.deliveryvip.com.br/authentication/v1/oauth/token/info', {
+  headers: { Authorization: `Bearer ${token}` },
+})
+const info = await response.json()
+```
+
+```python Python
+response = requests.get(
+    "https://api.deliveryvip.com.br/authentication/v1/oauth/token/info",
+    headers={"Authorization": f"Bearer {token}"},
+)
+info = response.json()
+```
+</CodeGroup>
+
+```json 200 OK
+{
+  "resource_owner_id": null,
+  "resource_owner_type": null,
+  "scope": ["od.all"],
+  "expires_in": 86321,
+  "application": { "uid": "<clientId>" },
+  "created_at": 1761750000
+}
+```
+
+<ResponseField name="scope" type="string[]">
+Scopes do token, como lista.
+</ResponseField>
+<ResponseField name="expires_in" type="integer">
+Segundos restantes até expirar.
+</ResponseField>
+<ResponseField name="application.uid" type="string">
+O Client ID do app dono do token.
+</ResponseField>
+<ResponseField name="resource_owner_id" type="string | null">
+Dono que autorizou o token no fluxo `authorization_code`, com o tipo em `resource_owner_type`. `null` em `client_credentials`.
+</ResponseField>
+
+Para checar um token sem usá-lo como Bearer, há também o [introspect](/reference/merchant/v3/authentication), que responde `{ "active": false }` para tokens inválidos ou expirados.
+
+## Revogando o token
+
+Revogue um token (de acesso ou de refresh) quando ele não for mais usado, por exemplo ao desconectar uma loja do seu sistema. A resposta é sempre `200`, mesmo para tokens já inválidos.
+
+<CodeGroup>
+```bash cURL
+curl --request POST 'https://api.deliveryvip.com.br/authentication/v1/oauth/revoke' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'token={token}' \
+  --data-urlencode 'client_id=<clientId>' \
+  --data-urlencode 'client_secret=<clientSecret>'
+```
+
+```js Node.js
+await fetch('https://api.deliveryvip.com.br/authentication/v1/oauth/revoke', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+  body: new URLSearchParams({
+    token,
+    client_id: process.env.DV_CLIENT_ID,
+    client_secret: process.env.DV_CLIENT_SECRET,
+  }),
+})
+```
+
+```python Python
+requests.post(
+    "https://api.deliveryvip.com.br/authentication/v1/oauth/revoke",
+    data={
+        "token": token,
+        "client_id": os.environ["DV_CLIENT_ID"],
+        "client_secret": os.environ["DV_CLIENT_SECRET"],
+    },
+)
+```
+</CodeGroup>
+
+## Erros de autenticação
+
+Os erros do endpoint de token seguem o padrão OAuth2 (`error` e `error_description`), diferente do [formato de erros](/inicio/conceitos/erros) das demais rotas.
+
+```json 401 Unauthorized
+{
+  "error": "invalid_client",
+  "error_description": "Client authentication failed due to unknown client, no client authentication included, or unsupported authentication method."
+}
+```
+
+| Status | `error` | Causa e solução |
+| --- | --- | --- |
+| `400` | `invalid_scope` | Pediu um scope que o app não tem. Ajuste `scope` ou as permissões do app. |
+| `400` | `invalid_grant` | `code` ou `refresh_token` inválido, expirado ou já usado, ou `redirect_uri` diferente. Refaça a autorização. |
+| `400` | `unsupported_grant_type` | `grant_type` diferente de `client_credentials`, `authorization_code` ou `refresh_token`. |
+| `401` | `invalid_client` | `client_id` ou `client_secret` errado. Confira as credenciais no painel. |
+
+Nas demais rotas:
+
+| Status | Quando | O que fazer |
+| --- | --- | --- |
+| `401` | Token ausente, expirado ou revogado. | Peça um novo token (ou renove com `refresh_token`) e repita a chamada uma vez. |
+| `403` | Token válido sem o scope que a rota exige. A resposta vem **sem corpo**. | Peça o token com o scope certo; se o app não tiver a permissão, ajuste-a no painel. |
+
+```json 401 Unauthorized
+{ "title": "Unauthorized", "status": 401 }
+```

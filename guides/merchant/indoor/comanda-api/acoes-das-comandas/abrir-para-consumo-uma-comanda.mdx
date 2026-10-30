@@ -1,0 +1,57 @@
+---
+title: Abrir uma comanda para consumo
+sidebarTitle: Abrir para consumo
+description: Libere uma comanda fechada para voltar a receber pedidos.
+icon: lock-open
+---
+
+Muda a `situation` da comanda para `OPENED`. A partir daí, o cliente que lê o QR Code dela volta a fazer pedidos e a chamar o garçom.
+
+Use quando a comanda for entregue a um novo cliente depois de ter sido [fechada](/guides/merchant/indoor/comanda-api/acoes-das-comandas/fechar-para-consumo-uma-comanda).
+
+## Requisição
+
+<ParamField path="merchantId" type="uuid" required>
+A loja.
+</ParamField>
+
+<ParamField path="tabId" type="uuid" required>
+O `id` da comanda.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl --request POST 'https://api.deliveryvip.com.br/merchant/v3/{merchantId}/tabs/{tabId}/opened' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+await fetch(`https://api.deliveryvip.com.br/merchant/v3/${merchantId}/tabs/${tabId}/opened`, {
+  method: 'POST',
+  headers: { Authorization: `Bearer ${token}` },
+})
+```
+
+```python Python
+requests.post(
+    f"https://api.deliveryvip.com.br/merchant/v3/{merchant_id}/tabs/{tab_id}/opened",
+    headers={"Authorization": f"Bearer {token}"},
+)
+```
+</CodeGroup>
+
+## Resposta
+
+```json 202 Accepted
+{ "id": "6b7cd994-d8ff-4d12-8064-251becc39b08" }
+```
+
+<Info>
+Esta ação muda só a `situation`. Uma comanda com `status` `UNAVAILABLE`, deixado pela rota descontinuada [desativar](/guides/merchant/indoor/comanda-api/acoes-das-comandas/desativar-uma-comanda), continua sem aceitar pedidos.
+</Info>
+
+## Erros
+
+| Status | Quando |
+| --- | --- |
+| `404 Not Found` | O `merchantId` não autorizou o seu app, a comanda não existe ou foi removida, ou o `tabId` não é um UUID válido. |

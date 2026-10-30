@@ -1,0 +1,103 @@
+---
+title: Obter taxa de entrega
+sidebarTitle: Taxa de entrega
+description: Calcule se a loja entrega numa coordenada, a distância e o valor da taxa de entrega.
+icon: route
+---
+
+Informe a coordenada do endereço do cliente e receba se ele está dentro da área de entrega da loja, a distância até a loja e a taxa cobrada. Útil para lançar pedidos por telefone ou no balcão com o mesmo valor que o cardápio digital cobraria.
+
+## Requisição
+
+<CodeGroup>
+```bash cURL
+curl 'https://api.deliveryvip.com.br/merchant/v3/{merchantId}/delivery-fee/-29.7202754/-53.7744837' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+const response = await fetch(
+  `https://api.deliveryvip.com.br/merchant/v3/${merchantId}/delivery-fee/${latitude}/${longitude}`,
+  { headers: { Authorization: `Bearer ${token}` } },
+)
+const deliveryFee = await response.json()
+```
+
+```python Python
+response = requests.get(
+    f"https://api.deliveryvip.com.br/merchant/v3/{merchant_id}/delivery-fee/{latitude}/{longitude}",
+    headers={"Authorization": f"Bearer {token}"},
+)
+delivery_fee = response.json()
+```
+</CodeGroup>
+
+<ParamField path="merchantId" type="uuid" required>
+A loja.
+</ParamField>
+
+<ParamField path="latitude" type="number" required>
+Latitude do endereço do cliente, em graus decimais com ponto, como `-29.7202754`.
+</ParamField>
+
+<ParamField path="longitude" type="number" required>
+Longitude do endereço do cliente, em graus decimais com ponto, como `-53.7744837`.
+</ParamField>
+
+<Tip>
+O endpoint trabalha com coordenadas, não com endereço em texto. Geocodifique o endereço do cliente antes de chamar.
+</Tip>
+
+## Resposta
+
+<ResponseField name="id" type="uuid" required>
+Identificador desta cotação. Cada chamada gera um novo.
+</ResponseField>
+
+<ResponseField name="status" type="string" required>
+`AVAILABLE` quando a coordenada está dentro de uma área de entrega ativa da loja; `UNAVAILABLE` quando não está.
+</ResponseField>
+
+<ResponseField name="distanceInMeters" type="integer" required>
+Distância em linha reta entre a loja e a coordenada, em metros.
+</ResponseField>
+
+<ResponseField name="fee" type="string">
+Valor da taxa de entrega, em reais, como string decimal (`"17.0"`). Só vem quando `status` é `AVAILABLE`.
+</ResponseField>
+
+<ResponseField name="createdAt" type="datetime" required>
+Quando a cotação foi calculada.
+</ResponseField>
+
+<CodeGroup>
+```json AVAILABLE
+{
+  "id": "d765df02-6234-42dc-bfba-346c88a0de83",
+  "status": "AVAILABLE",
+  "distanceInMeters": 5373,
+  "fee": "17.0",
+  "createdAt": "2026-10-02T17:50:40-03:00"
+}
+```
+
+```json UNAVAILABLE
+{
+  "id": "0b3e4c1a-9f2d-4e7b-8a6c-5d1f2e3a4b5c",
+  "status": "UNAVAILABLE",
+  "distanceInMeters": 18240,
+  "createdAt": "2026-10-02T17:51:12-03:00"
+}
+```
+</CodeGroup>
+
+<Info>
+A taxa segue a configuração da loja: por **raio**, o valor da faixa de distância (arredondada para cima, em quilômetros); por **área**, o valor da área de entrega que contém a coordenada.
+</Info>
+
+## Erros comuns
+
+| Status | Causa |
+| --- | --- |
+| `401 Unauthorized` | Token ausente, inválido ou expirado. |
+| `404 Not Found` | A loja não existe, o token não tem acesso a ela, ou a latitude/longitude não está no formato numérico com ponto. |

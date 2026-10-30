@@ -1,0 +1,87 @@
+---
+title: Adicionar uma comanda
+description: Cadastre uma nova comanda com nome e código, pronta para uso.
+icon: plus
+---
+
+Cadastra uma comanda na loja. Ela nasce `AVAILABLE` e `OPENED`, ou seja, já aceita pedidos. Use o `qrcode` da resposta para imprimir o QR Code da comanda.
+
+## Requisição
+
+<ParamField path="merchantId" type="uuid" required>
+A loja.
+</ParamField>
+
+<ParamField body="name" type="string" required>
+Identificação que a equipe vê, como `0013` ou `Comanda 13`.
+</ParamField>
+
+<ParamField body="code" type="string" required>
+Código da comanda. Precisa ser único entre as comandas da loja, sem diferenciar maiúsculas de minúsculas.
+</ParamField>
+
+<Info>
+`status` e `situation` não são aceitos no cadastro e são ignorados se enviados. Para fechar a comanda, use a ação [fechar para consumo](/guides/merchant/indoor/comanda-api/acoes-das-comandas/fechar-para-consumo-uma-comanda).
+</Info>
+
+<CodeGroup>
+```bash cURL
+curl --request POST 'https://api.deliveryvip.com.br/merchant/v3/{merchantId}/tabs' \
+  --header 'Authorization: Bearer {token}' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "name": "0013",
+    "code": "0013"
+  }'
+```
+
+```js Node.js
+const response = await fetch(`https://api.deliveryvip.com.br/merchant/v3/${merchantId}/tabs`, {
+  method: 'POST',
+  headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+  body: JSON.stringify({ name: '0013', code: '0013' }),
+})
+const tab = await response.json()
+```
+
+```python Python
+response = requests.post(
+    f"https://api.deliveryvip.com.br/merchant/v3/{merchant_id}/tabs",
+    headers={"Authorization": f"Bearer {token}"},
+    json={"name": "0013", "code": "0013"},
+)
+tab = response.json()
+```
+</CodeGroup>
+
+## Resposta
+
+Retorna `201 Created` com o [objeto comanda](/guides/merchant/indoor/comanda-api#o-objeto-comanda).
+
+```json 201 Created
+{
+  "id": "7ddccf97-1079-4a61-9b21-2e931c9560bd",
+  "createdAt": "2023-02-09T17:56:43-03:00",
+  "name": "0013",
+  "code": "0013",
+  "qrcode": "https://qrcode.dvstore.com/qrcode/indoor_tab_7ddccf97-1079-4a61-9b21-2e931c9560bd",
+  "status": "AVAILABLE",
+  "situation": "OPENED"
+}
+```
+
+## Erros
+
+Em `422`, o `title` traz os campos com problema e as mensagens de validação.
+
+```json 422 Unprocessable Content
+{
+  "status": "422",
+  "title": { "code": ["has already been taken"] }
+}
+```
+
+| Status | Quando |
+| --- | --- |
+| `404 Not Found` | O `merchantId` não autorizou o seu app. |
+| `422 Unprocessable Content` | `name` ou `code` ausente, ou `code` já usado por outra comanda da loja. |

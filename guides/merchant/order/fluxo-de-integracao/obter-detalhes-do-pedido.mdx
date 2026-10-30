@@ -1,0 +1,1272 @@
+---
+title: Obter detalhes do pedido
+sidebarTitle: Detalhes do pedido
+description: Busque itens, cliente, entrega, pagamento e totais de um pedido e entenda cada campo da resposta.
+icon: magnifying-glass
+---
+
+O evento só avisa que algo mudou. Para saber o que foi pedido, para quem e como vai ser pago, busque o pedido em `GET /merchant/v3/orders/{orderId}`, ou direto na `orderURL` do evento. Faça isso antes de confirmar, para que a loja possa conferir se tem os itens e se atende o endereço.
+
+## Requisição
+
+<CodeGroup>
+```bash cURL
+curl 'https://api.deliveryvip.com.br/merchant/v3/orders/{orderId}' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+const response = await fetch(`https://api.deliveryvip.com.br/merchant/v3/orders/${orderId}`, {
+  headers: { Authorization: `Bearer ${token}` },
+})
+const order = await response.json()
+```
+
+```python Python
+response = requests.get(
+    f"https://api.deliveryvip.com.br/merchant/v3/orders/{order_id}",
+    headers={"Authorization": f"Bearer {token}"},
+)
+order = response.json()
+```
+</CodeGroup>
+
+<ParamField path="orderId" type="uuid" required>
+O `orderId` do evento.
+</ParamField>
+
+<ParamField query="views[]" type="string">
+Envie `optionGroups` para receber as opções agrupadas por grupo em `items[].optionGroups`, em vez da lista simples `items[].options`.
+
+```text
+/merchant/v3/orders/{orderId}?views[]=optionGroups
+```
+</ParamField>
+
+| Status | Quando |
+| --- | --- |
+| `200 OK` | O pedido. |
+| `404 Not Found` | O pedido não existe, é de uma loja que o token não alcança ou ainda aguarda a confirmação do pagamento online. |
+
+<Tip>
+Pedidos com pagamento online só ficam disponíveis depois que o pagamento é aprovado. Até lá, a busca responde `404`.
+</Tip>
+
+## O que tem num pedido
+
+<CardGroup cols={3}>
+<Card title="Identificação" icon="hashtag" href="#identificação">`id`, `type`, `displayId`, `orderTiming`, `lastEvent`</Card>
+<Card title="Itens" icon="pizza-slice" href="#itens">Produtos, opções e preços</Card>
+<Card title="Valores" icon="calculator" href="#valores">Taxas, descontos e total</Card>
+<Card title="Pagamento" icon="credit-card" href="#pagamento">Valores pagos, a pagar e formas</Card>
+<Card title="Cliente" icon="user" href="#cliente">Nome, documento e contato</Card>
+<Card title="Entrega e retirada" icon="motorcycle" href="#entrega-retirada-e-indoor">`delivery`, `takeout`, `indoor`, `schedule`</Card>
+</CardGroup>
+
+## Campos do pedido
+
+Campos opcionais só aparecem quando têm conteúdo. Valores monetários são objetos `{ "value": número, "currency": "BRL" }`, e datas seguem ISO 8601 com o fuso da loja.
+
+### Identificação
+
+<ResponseField name="id" type="uuid" required>
+Identificador do pedido.
+</ResponseField>
+
+<ResponseField name="type" type="string" required>
+`DELIVERY`, `TAKEOUT` ou `INDOOR`. Veja [tipos de pedido](/guides/merchant/order/definicoes#tipos-de-pedido).
+</ResponseField>
+
+<ResponseField name="displayId" type="string" required>
+Código curto do pedido para a loja identificá-lo. **Exiba-o na interface do seu sistema.**
+</ResponseField>
+
+<ResponseField name="salesChannel" type="string" required>
+Canal de venda: `STORE`, `MARKETPLACE`, `TABLET`, `QRCODE` ou `TAB`.
+</ResponseField>
+
+<ResponseField name="orderTiming" type="string" required>
+`INSTANT` ou `SCHEDULED`. Pedidos agendados trazem o bloco [`schedule`](#entrega-retirada-e-indoor).
+</ResponseField>
+
+<ResponseField name="createdAt" type="datetime" required>
+Quando o pedido foi criado.
+</ResponseField>
+
+<ResponseField name="preparationStartDateTime" type="datetime" required>
+Recomendação de início do preparo. Hoje é igual a `createdAt`; em pedidos agendados, guie-se pelo `schedule`.
+</ResponseField>
+
+<ResponseField name="lastEvent" type="string">
+Situação atual do pedido: `CREATED`, `CONFIRMED`, `READY_FOR_PICKUP`, `CONCLUDED` ou `CANCELLED`.
+</ResponseField>
+
+<ResponseField name="merchant" type="object" required>
+A loja do pedido.
+
+<Expandable title="propriedades">
+<ResponseField name="id" type="string" required>
+Identificador da loja: o `merchantId` que você configurou para ela, quando houver, ou o id da loja na DeliveryVip.
+</ResponseField>
+<ResponseField name="name" type="string" required>
+Nome da loja.
+</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseField name="extraInfo" type="string">
+Observação do cliente sobre o pedido.
+</ResponseField>
+
+### Itens
+
+<ResponseField name="items" type="object[]" required>
+Produtos do pedido.
+
+<Expandable title="propriedades">
+<ResponseField name="id" type="uuid" required>
+Identificador do item no pedido.
+</ResponseField>
+<ResponseField name="index" type="integer" required>
+Posição do item no pedido, a partir de `0`.
+</ResponseField>
+<ResponseField name="name" type="string" required>
+Nome do produto.
+</ResponseField>
+<ResponseField name="externalCode" type="string">
+Código do produto no seu sistema, configurado no catálogo.
+</ResponseField>
+<ResponseField name="ean" type="string">
+Código de barras do produto.
+</ResponseField>
+<ResponseField name="unit" type="string" required>
+Unidade de medida. Hoje sempre `UN`.
+</ResponseField>
+<ResponseField name="quantity" type="integer" required>
+Quantidade.
+</ResponseField>
+<ResponseField name="specialInstructions" type="string">
+Observação do cliente sobre o item.
+</ResponseField>
+<ResponseField name="unitPrice" type="object" required>
+Preço unitário do produto, sem as opções.
+</ResponseField>
+<ResponseField name="optionsPrice" type="object">
+Soma das opções do item. Só vem quando o item tem opções.
+</ResponseField>
+<ResponseField name="totalPrice" type="object" required>
+`(unitPrice + optionsPrice) × quantity`.
+</ResponseField>
+<ResponseField name="options" type="object[]">
+Opções escolhidas (sabores, adicionais, bordas). Opções iguais do mesmo grupo vêm numa só entrada, com a `quantity` somada. Não vem quando você pede `views[]=optionGroups`.
+
+<Expandable title="propriedades">
+<ResponseField name="id" type="uuid" required>
+Identificador da opção no pedido.
+</ResponseField>
+<ResponseField name="index" type="integer" required>
+Posição da opção no item.
+</ResponseField>
+<ResponseField name="name" type="string" required>
+Nome da opção.
+</ResponseField>
+<ResponseField name="externalCode" type="string">
+Código da opção no seu sistema, configurado no catálogo.
+</ResponseField>
+<ResponseField name="unit" type="string" required>
+Hoje sempre `UN`.
+</ResponseField>
+<ResponseField name="quantity" type="integer" required>
+Quantidade da opção.
+</ResponseField>
+<ResponseField name="unitPrice" type="object" required>
+Preço unitário da opção.
+</ResponseField>
+<ResponseField name="totalPrice" type="object" required>
+`unitPrice × quantity`.
+</ResponseField>
+</Expandable>
+</ResponseField>
+<ResponseField name="optionGroups" type="object[]">
+Só com `views[]=optionGroups`: as opções agrupadas pelo grupo do catálogo.
+
+<Expandable title="propriedades">
+<ResponseField name="id" type="uuid" required>
+Identificador do grupo no pedido.
+</ResponseField>
+<ResponseField name="name" type="string" required>
+Nome do grupo, como "Sabores" ou "Bordas".
+</ResponseField>
+<ResponseField name="externalCode" type="string">
+Código do grupo no seu sistema.
+</ResponseField>
+<ResponseField name="totalPrice" type="object" required>
+Soma das opções do grupo.
+</ResponseField>
+<ResponseField name="options" type="object[]" required>
+As opções do grupo, com os mesmos campos de `options`. Aqui cada opção vem com `quantity: 1`.
+</ResponseField>
+</Expandable>
+</ResponseField>
+</Expandable>
+</ResponseField>
+
+<Accordion title="Exemplo de item com optionGroups" icon="layer-group">
+```json
+"optionGroups": [
+  {
+    "id": "3e94cbcf-359a-4ed3-bcdb-c36a15b48971",
+    "name": "Sabores Pizza",
+    "totalPrice": { "value": 12.0, "currency": "BRL" },
+    "options": [
+      {
+        "id": "4e4faed4-aea0-48dd-b25e-fdff503c98f0",
+        "index": 0,
+        "name": "Chocolate Preto M&Ms",
+        "externalCode": "23",
+        "unit": "UN",
+        "quantity": 1,
+        "unitPrice": { "value": 6.0, "currency": "BRL" },
+        "totalPrice": { "value": 6.0, "currency": "BRL" }
+      },
+      {
+        "id": "ae909b21-d1dc-45f1-880b-bcba53a7afa8",
+        "index": 1,
+        "name": "Bombom Chocolate Branco",
+        "externalCode": "8",
+        "unit": "UN",
+        "quantity": 1,
+        "unitPrice": { "value": 6.0, "currency": "BRL" },
+        "totalPrice": { "value": 6.0, "currency": "BRL" }
+      }
+    ]
+  }
+]
+```
+</Accordion>
+
+### Valores
+
+<ResponseField name="otherFees" type="object[]">
+Taxas cobradas no pedido. Só vem em pedidos `DELIVERY`.
+
+<Expandable title="propriedades">
+<ResponseField name="name" type="string" required>
+Nome da taxa. Hoje igual ao `type`.
+</ResponseField>
+<ResponseField name="type" type="string" required>
+`DELIVERY_FEE`, `SERVICE_FEE`, `TIP` ou `MIN_ORDER_FEE`.
+</ResponseField>
+<ResponseField name="receivedBy" type="string" required>
+Quem recebe a taxa: `MERCHANT`, `MARKETPLACE` ou `LOGISTIC_SERVICES`.
+</ResponseField>
+<ResponseField name="receiverDocument" type="string">
+Documento de quem recebe. Só aparece em pedidos antigos, sem o detalhamento de taxas.
+</ResponseField>
+<ResponseField name="price" type="object" required>
+Valor da taxa.
+</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseField name="discounts" type="object[]">
+Descontos aplicados. Só vem quando o pedido tem desconto.
+
+<Expandable title="propriedades">
+<ResponseField name="target" type="string" required>
+Onde o desconto incide: `CART` (subtotal) ou `DELIVERY_FEE` (taxa de entrega).
+</ResponseField>
+<ResponseField name="amount" type="object" required>
+Valor do desconto.
+</ResponseField>
+<ResponseField name="sponsorshipValues" type="object[]" required>
+Quem paga o desconto.
+
+<Expandable title="propriedades">
+<ResponseField name="name" type="string" required>
+`MERCHANT` ou `MARKETPLACE`.
+</ResponseField>
+<ResponseField name="discountCode" type="string">
+Identificação do desconto, como o código do cupom.
+</ResponseField>
+<ResponseField name="amount" type="object" required>
+Parte do desconto paga por esse patrocinador.
+</ResponseField>
+</Expandable>
+</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseField name="total" type="object" required>
+Resumo dos valores.
+
+<Expandable title="propriedades">
+<ResponseField name="itemsPrice" type="object" required>
+Soma dos itens.
+</ResponseField>
+<ResponseField name="otherFees" type="object" required>
+Soma das taxas.
+</ResponseField>
+<ResponseField name="discount" type="object" required>
+Soma dos descontos.
+</ResponseField>
+<ResponseField name="orderAmount" type="object" required>
+Total do pedido: `itemsPrice + otherFees - discount`.
+</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseField name="loyalty" type="object">
+Só para apps com a extensão de fidelidade, quando o cliente tem conta vinculada ao seu programa. Traz `accountId`, `programId` e, se houve resgate neste pedido, `redemption`. Veja [Acúmulo](/guides/merchant/loyalty/acumulo).
+</ResponseField>
+
+### Pagamento
+
+<ResponseField name="payments" type="object" required>
+<Expandable title="propriedades">
+<ResponseField name="prepaid" type="number" required>
+Valor já pago online pelo cliente.
+</ResponseField>
+<ResponseField name="pending" type="number" required>
+Valor que a loja ainda precisa receber, na entrega ou na retirada.
+</ResponseField>
+<ResponseField name="methods" type="object[]" required>
+Formas de pagamento.
+
+<Expandable title="propriedades">
+<ResponseField name="value" type="number" required>
+Valor pago nessa forma.
+</ResponseField>
+<ResponseField name="currency" type="string" required>
+`BRL`.
+</ResponseField>
+<ResponseField name="type" type="string" required>
+`PREPAID` (pago online) ou `PENDING` (a receber).
+</ResponseField>
+<ResponseField name="method" type="string" required>
+`CREDIT`, `DEBIT`, `MEAL_VOUCHER`, `FOOD_VOUCHER`, `DIGITAL_WALLET`, `PIX`, `CASH`, `CREDIT_DEBIT`, `COUPON`, `REDEEM`, `PREPAID_REDEEM` ou `OTHER`.
+</ResponseField>
+<ResponseField name="methodInfo" type="string">
+Detalhe da forma de pagamento, como o nome cadastrado pela loja.
+</ResponseField>
+<ResponseField name="brand" type="string">
+Bandeira do cartão: `VISA`, `MASTERCARD`, `DINERS`, `AMEX`, `HIPERCARD`, `ELO`, `AURA`, `DISCOVER`, `VR_BENEFICIOS`, `SODEXO`, `TICKET`, `GOOD_CARD`, `BANESCARD`, `SOROCARD`, `POLICARD`, `VALECARD`, `AGICARD`, `JCB`, `CREDSYSTEM`, `CABAL`, `GREEN_CARD`, `VEROCHEQUE`, `AVISTA` ou `OTHER`.
+</ResponseField>
+<ResponseField name="changeFor" type="number">
+Valor para o qual o cliente precisa de troco. Só em `CASH`, quando informado.
+</ResponseField>
+</Expandable>
+</ResponseField>
+</Expandable>
+</ResponseField>
+
+### Cliente
+
+<ResponseField name="customer" type="object">
+Quem fez o pedido. Só vem quando o cliente informou o nome.
+
+<Expandable title="propriedades">
+<ResponseField name="id" type="uuid" required>
+Identificador do cliente.
+</ResponseField>
+<ResponseField name="name" type="string" required>
+Nome.
+</ResponseField>
+<ResponseField name="documentNumber" type="string">
+CPF ou CNPJ, quando informado. Se o cliente pediu nota fiscal com documento, é o documento da nota.
+</ResponseField>
+<ResponseField name="phone" type="object">
+`{ "number": "5511999990000" }`: telefone com DDI e DDD, só dígitos.
+</ResponseField>
+<ResponseField name="email" type="string">
+E-mail. Não vem para clientes que compraram sem cadastro.
+</ResponseField>
+<ResponseField name="ordersCountOnMerchant" type="integer" required>
+Quantos pedidos esse cliente já fez na loja. Clientes sem cadastro sempre vêm com `1`.
+</ResponseField>
+</Expandable>
+</ResponseField>
+
+### Entrega, retirada e indoor
+
+Cada pedido traz o bloco do seu `type`, e pedidos agendados trazem também `schedule`.
+
+<ResponseField name="delivery" type="object">
+Só em pedidos `DELIVERY`.
+
+<Expandable title="propriedades">
+<ResponseField name="deliveredBy" type="string" required>
+Hoje sempre `MERCHANT`: a loja faz a entrega.
+</ResponseField>
+<ResponseField name="estimatedDeliveryDateTime" type="datetime">
+Previsão de entrega.
+</ResponseField>
+<ResponseField name="deliveryAddress" type="object" required>
+Endereço de entrega.
+
+<Expandable title="propriedades">
+<ResponseField name="country" type="string">Sigla do país, como `BR`.</ResponseField>
+<ResponseField name="state" type="string">Sigla do estado, como `SP`.</ResponseField>
+<ResponseField name="city" type="string">Cidade.</ResponseField>
+<ResponseField name="district" type="string">Bairro.</ResponseField>
+<ResponseField name="street" type="string">Rua.</ResponseField>
+<ResponseField name="number" type="string">Número.</ResponseField>
+<ResponseField name="complement" type="string">Complemento, quando informado.</ResponseField>
+<ResponseField name="reference" type="string">Ponto de referência, quando informado.</ResponseField>
+<ResponseField name="postalCode" type="string">CEP.</ResponseField>
+<ResponseField name="formattedAddress" type="string">Endereço completo em uma linha.</ResponseField>
+<ResponseField name="coordinates" type="object">`latitude` e `longitude` do endereço.</ResponseField>
+</Expandable>
+</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseField name="takeout" type="object">
+Só em pedidos `TAKEOUT`.
+
+<Expandable title="propriedades">
+<ResponseField name="mode" type="string" required>
+Hoje sempre `DEFAULT`: o cliente retira no balcão.
+</ResponseField>
+<ResponseField name="takeoutDateTime" type="datetime">
+Previsão de retirada.
+</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseField name="indoor" type="object">
+Só em pedidos `INDOOR`.
+
+<Expandable title="propriedades">
+<ResponseField name="mode" type="string" required>
+`TAB` (comanda), `PLACE` (mesa ou local) ou `DEFAULT` (consumo no local pedido pelo cardápio de delivery).
+</ResponseField>
+<ResponseField name="indoorDateTime" type="datetime">
+Previsão de o pedido ficar pronto.
+</ResponseField>
+<ResponseField name="place" type="string">
+Nome do local de entrega, como "Mesa 10". Mesmo valor de `placeName`.
+</ResponseField>
+<ResponseField name="placeName" type="string">
+Nome do local de entrega.
+</ResponseField>
+<ResponseField name="placeId" type="string">
+Identificador do local de entrega.
+</ResponseField>
+<ResponseField name="tab" type="string">
+Código da comanda. Mesmo valor de `tabCode`. Só no modo `TAB`.
+</ResponseField>
+<ResponseField name="tabId" type="uuid">
+Identificador da comanda. Só no modo `TAB`.
+</ResponseField>
+<ResponseField name="tabCode" type="string">
+Código da comanda. Só no modo `TAB`.
+</ResponseField>
+<ResponseField name="tabName" type="string">
+Nome ou número da comanda. Só no modo `TAB`.
+</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseField name="schedule" type="object">
+Só quando `orderTiming` é `SCHEDULED`.
+
+<Expandable title="propriedades">
+<ResponseField name="scheduledDateTimeStart" type="datetime" required>
+Início da janela agendada.
+</ResponseField>
+<ResponseField name="scheduledDateTimeEnd" type="datetime" required>
+Fim da janela agendada.
+</ResponseField>
+</Expandable>
+</ResponseField>
+
+### O que o seu sistema deve informar
+
+Estes campos dizem quais [ações](/guides/merchant/order/fluxo-de-integracao/acoes-de-pedidos) a DeliveryVip espera do seu sistema neste pedido.
+
+<ResponseField name="sendPreparing" type="boolean" required>
+Sempre `true`: informe `preparing` quando o preparo começar.
+</ResponseField>
+
+<ResponseField name="sendDelivered" type="boolean" required>
+`true` quando não há um parceiro de logística externo cuidando da entrega: o seu sistema informa `delivered`.
+</ResponseField>
+
+<ResponseField name="sendPickedUp" type="boolean" required>
+`true` em pedidos `TAKEOUT` e de consumo no local pelo cardápio de delivery: informe `pickedUp` quando o cliente retirar.
+</ResponseField>
+
+<ResponseField name="sendTracking" type="boolean" required>
+`true` quando o seu sistema pode enviar dados de [rastreio](/guides/merchant/order/fluxo-de-integracao/acoes-de-pedidos#tracking).
+</ResponseField>
+
+## Exemplos
+
+<Tabs>
+<Tab title="Delivery imediato">
+```json
+{
+  "id": "dc8d922c-eaeb-4d52-aadf-d1771365eb8b",
+  "type": "DELIVERY",
+  "displayId": "AGNCYO",
+  "salesChannel": "STORE",
+  "createdAt": "2026-10-24T14:39:28-03:00",
+  "orderTiming": "INSTANT",
+  "preparationStartDateTime": "2026-10-24T14:39:28-03:00",
+  "lastEvent": "CREATED",
+  "merchant": {
+    "id": "fc5cda2a-6391-4001-9e53-2be75049e0fd",
+    "name": "Meu Delivery"
+  },
+  "items": [
+    {
+      "id": "3684f036-f738-4c44-bf04-f04a430ebc75",
+      "index": 0,
+      "name": "Pizza Gigante",
+      "externalCode": "104",
+      "unit": "UN",
+      "quantity": 1,
+      "unitPrice": {
+        "value": 92.0,
+        "currency": "BRL"
+      },
+      "optionsPrice": {
+        "value": 10.0,
+        "currency": "BRL"
+      },
+      "totalPrice": {
+        "value": 102.0,
+        "currency": "BRL"
+      },
+      "options": [
+        {
+          "id": "0296eeee-c6aa-47c7-be96-384513cd25a2",
+          "index": 0,
+          "name": "Marguerita",
+          "externalCode": "40",
+          "unit": "UN",
+          "quantity": 1,
+          "unitPrice": {
+            "value": 0.0,
+            "currency": "BRL"
+          },
+          "totalPrice": {
+            "value": 0.0,
+            "currency": "BRL"
+          }
+        },
+        {
+          "id": "1618523f-210e-4640-b91b-946cab227ecb",
+          "index": 1,
+          "name": "Portuguesa",
+          "externalCode": "51",
+          "unit": "UN",
+          "quantity": 1,
+          "unitPrice": {
+            "value": 0.0,
+            "currency": "BRL"
+          },
+          "totalPrice": {
+            "value": 0.0,
+            "currency": "BRL"
+          }
+        },
+        {
+          "id": "25dce2bb-1fcf-4834-9c07-26a63928ae33",
+          "index": 2,
+          "name": "Borda Doce de Leite",
+          "externalCode": "67",
+          "unit": "UN",
+          "quantity": 1,
+          "unitPrice": {
+            "value": 10.0,
+            "currency": "BRL"
+          },
+          "totalPrice": {
+            "value": 10.0,
+            "currency": "BRL"
+          }
+        }
+      ]
+    }
+  ],
+  "otherFees": [
+    {
+      "name": "DELIVERY_FEE",
+      "type": "DELIVERY_FEE",
+      "receivedBy": "MERCHANT",
+      "price": {
+        "value": 8.0,
+        "currency": "BRL"
+      }
+    }
+  ],
+  "total": {
+    "itemsPrice": {
+      "value": 102.0,
+      "currency": "BRL"
+    },
+    "otherFees": {
+      "value": 8.0,
+      "currency": "BRL"
+    },
+    "discount": {
+      "value": 0.0,
+      "currency": "BRL"
+    },
+    "orderAmount": {
+      "value": 110.0,
+      "currency": "BRL"
+    }
+  },
+  "payments": {
+    "prepaid": 0.0,
+    "pending": 110.0,
+    "methods": [
+      {
+        "value": 110.0,
+        "currency": "BRL",
+        "type": "PENDING",
+        "method": "CREDIT",
+        "methodInfo": "Master Crédito",
+        "brand": "MASTERCARD"
+      }
+    ]
+  },
+  "customer": {
+    "id": "b66b6abb-5098-4a03-b624-b72b911e8128",
+    "name": "Consumidor",
+    "documentNumber": "000.000.000-00",
+    "phone": {
+      "number": "5511900000000"
+    },
+    "email": "consumidor@exemplo.com",
+    "ordersCountOnMerchant": 3
+  },
+  "delivery": {
+    "deliveredBy": "MERCHANT",
+    "estimatedDeliveryDateTime": "2026-10-24T15:24:28-03:00",
+    "deliveryAddress": {
+      "country": "BR",
+      "state": "SP",
+      "city": "São Paulo",
+      "district": "Moema",
+      "street": "Rua Diamante",
+      "number": "240",
+      "complement": "Apto 12",
+      "formattedAddress": "Rua Diamante, 240, Moema, São Paulo, SP",
+      "postalCode": "04000-000",
+      "coordinates": {
+        "latitude": -23.6,
+        "longitude": -46.66
+      }
+    }
+  },
+  "sendDelivered": true,
+  "sendPreparing": true,
+  "sendPickedUp": false,
+  "sendTracking": true,
+  "extraInfo": "Sem cebola, por favor"
+}
+```
+</Tab>
+
+<Tab title="Delivery agendado">
+```json
+{
+  "id": "dc8d922c-eaeb-4d52-aadf-d1771365eb8b",
+  "type": "DELIVERY",
+  "displayId": "AGNCYO",
+  "salesChannel": "STORE",
+  "createdAt": "2026-10-24T14:39:28-03:00",
+  "orderTiming": "SCHEDULED",
+  "preparationStartDateTime": "2026-10-24T14:39:28-03:00",
+  "lastEvent": "CREATED",
+  "merchant": {
+    "id": "fc5cda2a-6391-4001-9e53-2be75049e0fd",
+    "name": "Meu Delivery"
+  },
+  "items": [
+    {
+      "id": "3684f036-f738-4c44-bf04-f04a430ebc75",
+      "index": 0,
+      "name": "Pizza Gigante",
+      "externalCode": "104",
+      "unit": "UN",
+      "quantity": 1,
+      "unitPrice": {
+        "value": 92.0,
+        "currency": "BRL"
+      },
+      "optionsPrice": {
+        "value": 10.0,
+        "currency": "BRL"
+      },
+      "totalPrice": {
+        "value": 102.0,
+        "currency": "BRL"
+      },
+      "options": [
+        {
+          "id": "0296eeee-c6aa-47c7-be96-384513cd25a2",
+          "index": 0,
+          "name": "Marguerita",
+          "externalCode": "40",
+          "unit": "UN",
+          "quantity": 1,
+          "unitPrice": {
+            "value": 0.0,
+            "currency": "BRL"
+          },
+          "totalPrice": {
+            "value": 0.0,
+            "currency": "BRL"
+          }
+        },
+        {
+          "id": "1618523f-210e-4640-b91b-946cab227ecb",
+          "index": 1,
+          "name": "Portuguesa",
+          "externalCode": "51",
+          "unit": "UN",
+          "quantity": 1,
+          "unitPrice": {
+            "value": 0.0,
+            "currency": "BRL"
+          },
+          "totalPrice": {
+            "value": 0.0,
+            "currency": "BRL"
+          }
+        },
+        {
+          "id": "25dce2bb-1fcf-4834-9c07-26a63928ae33",
+          "index": 2,
+          "name": "Borda Doce de Leite",
+          "externalCode": "67",
+          "unit": "UN",
+          "quantity": 1,
+          "unitPrice": {
+            "value": 10.0,
+            "currency": "BRL"
+          },
+          "totalPrice": {
+            "value": 10.0,
+            "currency": "BRL"
+          }
+        }
+      ]
+    }
+  ],
+  "otherFees": [
+    {
+      "name": "DELIVERY_FEE",
+      "type": "DELIVERY_FEE",
+      "receivedBy": "MERCHANT",
+      "price": {
+        "value": 8.0,
+        "currency": "BRL"
+      }
+    }
+  ],
+  "total": {
+    "itemsPrice": {
+      "value": 102.0,
+      "currency": "BRL"
+    },
+    "otherFees": {
+      "value": 8.0,
+      "currency": "BRL"
+    },
+    "discount": {
+      "value": 0.0,
+      "currency": "BRL"
+    },
+    "orderAmount": {
+      "value": 110.0,
+      "currency": "BRL"
+    }
+  },
+  "payments": {
+    "prepaid": 0.0,
+    "pending": 110.0,
+    "methods": [
+      {
+        "value": 110.0,
+        "currency": "BRL",
+        "type": "PENDING",
+        "method": "CREDIT",
+        "methodInfo": "Master Crédito",
+        "brand": "MASTERCARD"
+      }
+    ]
+  },
+  "customer": {
+    "id": "b66b6abb-5098-4a03-b624-b72b911e8128",
+    "name": "Consumidor",
+    "documentNumber": "000.000.000-00",
+    "phone": {
+      "number": "5511900000000"
+    },
+    "email": "consumidor@exemplo.com",
+    "ordersCountOnMerchant": 3
+  },
+  "schedule": {
+    "scheduledDateTimeStart": "2026-10-25T19:00:00-03:00",
+    "scheduledDateTimeEnd": "2026-10-25T19:30:00-03:00"
+  },
+  "delivery": {
+    "deliveredBy": "MERCHANT",
+    "estimatedDeliveryDateTime": "2026-10-24T15:24:28-03:00",
+    "deliveryAddress": {
+      "country": "BR",
+      "state": "SP",
+      "city": "São Paulo",
+      "district": "Moema",
+      "street": "Rua Diamante",
+      "number": "240",
+      "complement": "Apto 12",
+      "formattedAddress": "Rua Diamante, 240, Moema, São Paulo, SP",
+      "postalCode": "04000-000",
+      "coordinates": {
+        "latitude": -23.6,
+        "longitude": -46.66
+      }
+    }
+  },
+  "sendDelivered": true,
+  "sendPreparing": true,
+  "sendPickedUp": false,
+  "sendTracking": true,
+  "extraInfo": "Sem cebola, por favor"
+}
+```
+</Tab>
+
+<Tab title="Retirada imediata">
+```json
+{
+  "id": "dc8d922c-eaeb-4d52-aadf-d1771365eb8b",
+  "type": "TAKEOUT",
+  "displayId": "AGNCYO",
+  "salesChannel": "STORE",
+  "createdAt": "2026-10-24T14:39:28-03:00",
+  "orderTiming": "INSTANT",
+  "preparationStartDateTime": "2026-10-24T14:39:28-03:00",
+  "lastEvent": "CREATED",
+  "merchant": {
+    "id": "fc5cda2a-6391-4001-9e53-2be75049e0fd",
+    "name": "Meu Delivery"
+  },
+  "items": [
+    {
+      "id": "3684f036-f738-4c44-bf04-f04a430ebc75",
+      "index": 0,
+      "name": "Pizza Gigante",
+      "externalCode": "104",
+      "unit": "UN",
+      "quantity": 1,
+      "unitPrice": {
+        "value": 92.0,
+        "currency": "BRL"
+      },
+      "optionsPrice": {
+        "value": 10.0,
+        "currency": "BRL"
+      },
+      "totalPrice": {
+        "value": 102.0,
+        "currency": "BRL"
+      },
+      "options": [
+        {
+          "id": "0296eeee-c6aa-47c7-be96-384513cd25a2",
+          "index": 0,
+          "name": "Marguerita",
+          "externalCode": "40",
+          "unit": "UN",
+          "quantity": 1,
+          "unitPrice": {
+            "value": 0.0,
+            "currency": "BRL"
+          },
+          "totalPrice": {
+            "value": 0.0,
+            "currency": "BRL"
+          }
+        },
+        {
+          "id": "1618523f-210e-4640-b91b-946cab227ecb",
+          "index": 1,
+          "name": "Portuguesa",
+          "externalCode": "51",
+          "unit": "UN",
+          "quantity": 1,
+          "unitPrice": {
+            "value": 0.0,
+            "currency": "BRL"
+          },
+          "totalPrice": {
+            "value": 0.0,
+            "currency": "BRL"
+          }
+        },
+        {
+          "id": "25dce2bb-1fcf-4834-9c07-26a63928ae33",
+          "index": 2,
+          "name": "Borda Doce de Leite",
+          "externalCode": "67",
+          "unit": "UN",
+          "quantity": 1,
+          "unitPrice": {
+            "value": 10.0,
+            "currency": "BRL"
+          },
+          "totalPrice": {
+            "value": 10.0,
+            "currency": "BRL"
+          }
+        }
+      ]
+    }
+  ],
+  "total": {
+    "itemsPrice": {
+      "value": 102.0,
+      "currency": "BRL"
+    },
+    "otherFees": {
+      "value": 0.0,
+      "currency": "BRL"
+    },
+    "discount": {
+      "value": 0.0,
+      "currency": "BRL"
+    },
+    "orderAmount": {
+      "value": 102.0,
+      "currency": "BRL"
+    }
+  },
+  "payments": {
+    "prepaid": 0.0,
+    "pending": 102.0,
+    "methods": [
+      {
+        "value": 102.0,
+        "currency": "BRL",
+        "type": "PENDING",
+        "method": "PIX"
+      }
+    ]
+  },
+  "customer": {
+    "id": "b66b6abb-5098-4a03-b624-b72b911e8128",
+    "name": "Consumidor",
+    "documentNumber": "000.000.000-00",
+    "phone": {
+      "number": "5511900000000"
+    },
+    "email": "consumidor@exemplo.com",
+    "ordersCountOnMerchant": 3
+  },
+  "takeout": {
+    "mode": "DEFAULT",
+    "takeoutDateTime": "2026-10-24T15:09:28-03:00"
+  },
+  "sendDelivered": true,
+  "sendPreparing": true,
+  "sendPickedUp": true,
+  "sendTracking": true
+}
+```
+</Tab>
+
+<Tab title="Retirada agendada">
+```json
+{
+  "id": "dc8d922c-eaeb-4d52-aadf-d1771365eb8b",
+  "type": "TAKEOUT",
+  "displayId": "AGNCYO",
+  "salesChannel": "STORE",
+  "createdAt": "2026-10-24T14:39:28-03:00",
+  "orderTiming": "SCHEDULED",
+  "preparationStartDateTime": "2026-10-24T14:39:28-03:00",
+  "lastEvent": "CREATED",
+  "merchant": {
+    "id": "fc5cda2a-6391-4001-9e53-2be75049e0fd",
+    "name": "Meu Delivery"
+  },
+  "items": [
+    {
+      "id": "3684f036-f738-4c44-bf04-f04a430ebc75",
+      "index": 0,
+      "name": "Pizza Gigante",
+      "externalCode": "104",
+      "unit": "UN",
+      "quantity": 1,
+      "unitPrice": {
+        "value": 92.0,
+        "currency": "BRL"
+      },
+      "optionsPrice": {
+        "value": 10.0,
+        "currency": "BRL"
+      },
+      "totalPrice": {
+        "value": 102.0,
+        "currency": "BRL"
+      },
+      "options": [
+        {
+          "id": "0296eeee-c6aa-47c7-be96-384513cd25a2",
+          "index": 0,
+          "name": "Marguerita",
+          "externalCode": "40",
+          "unit": "UN",
+          "quantity": 1,
+          "unitPrice": {
+            "value": 0.0,
+            "currency": "BRL"
+          },
+          "totalPrice": {
+            "value": 0.0,
+            "currency": "BRL"
+          }
+        },
+        {
+          "id": "1618523f-210e-4640-b91b-946cab227ecb",
+          "index": 1,
+          "name": "Portuguesa",
+          "externalCode": "51",
+          "unit": "UN",
+          "quantity": 1,
+          "unitPrice": {
+            "value": 0.0,
+            "currency": "BRL"
+          },
+          "totalPrice": {
+            "value": 0.0,
+            "currency": "BRL"
+          }
+        },
+        {
+          "id": "25dce2bb-1fcf-4834-9c07-26a63928ae33",
+          "index": 2,
+          "name": "Borda Doce de Leite",
+          "externalCode": "67",
+          "unit": "UN",
+          "quantity": 1,
+          "unitPrice": {
+            "value": 10.0,
+            "currency": "BRL"
+          },
+          "totalPrice": {
+            "value": 10.0,
+            "currency": "BRL"
+          }
+        }
+      ]
+    }
+  ],
+  "total": {
+    "itemsPrice": {
+      "value": 102.0,
+      "currency": "BRL"
+    },
+    "otherFees": {
+      "value": 0.0,
+      "currency": "BRL"
+    },
+    "discount": {
+      "value": 0.0,
+      "currency": "BRL"
+    },
+    "orderAmount": {
+      "value": 102.0,
+      "currency": "BRL"
+    }
+  },
+  "payments": {
+    "prepaid": 0.0,
+    "pending": 102.0,
+    "methods": [
+      {
+        "value": 102.0,
+        "currency": "BRL",
+        "type": "PENDING",
+        "method": "PIX"
+      }
+    ]
+  },
+  "customer": {
+    "id": "b66b6abb-5098-4a03-b624-b72b911e8128",
+    "name": "Consumidor",
+    "documentNumber": "000.000.000-00",
+    "phone": {
+      "number": "5511900000000"
+    },
+    "email": "consumidor@exemplo.com",
+    "ordersCountOnMerchant": 3
+  },
+  "schedule": {
+    "scheduledDateTimeStart": "2026-10-25T19:00:00-03:00",
+    "scheduledDateTimeEnd": "2026-10-25T19:30:00-03:00"
+  },
+  "takeout": {
+    "mode": "DEFAULT",
+    "takeoutDateTime": "2026-10-24T15:09:28-03:00"
+  },
+  "sendDelivered": true,
+  "sendPreparing": true,
+  "sendPickedUp": true,
+  "sendTracking": true
+}
+```
+</Tab>
+
+<Tab title="Indoor (comanda)">
+```json
+{
+  "id": "dc8d922c-eaeb-4d52-aadf-d1771365eb8b",
+  "type": "INDOOR",
+  "displayId": "AGNCYO",
+  "salesChannel": "TAB",
+  "createdAt": "2026-10-24T14:39:28-03:00",
+  "orderTiming": "INSTANT",
+  "preparationStartDateTime": "2026-10-24T14:39:28-03:00",
+  "lastEvent": "CREATED",
+  "merchant": {
+    "id": "fc5cda2a-6391-4001-9e53-2be75049e0fd",
+    "name": "Meu Delivery"
+  },
+  "items": [
+    {
+      "id": "3684f036-f738-4c44-bf04-f04a430ebc75",
+      "index": 0,
+      "name": "Pizza Gigante",
+      "externalCode": "104",
+      "unit": "UN",
+      "quantity": 1,
+      "unitPrice": {
+        "value": 92.0,
+        "currency": "BRL"
+      },
+      "optionsPrice": {
+        "value": 10.0,
+        "currency": "BRL"
+      },
+      "totalPrice": {
+        "value": 102.0,
+        "currency": "BRL"
+      },
+      "options": [
+        {
+          "id": "0296eeee-c6aa-47c7-be96-384513cd25a2",
+          "index": 0,
+          "name": "Marguerita",
+          "externalCode": "40",
+          "unit": "UN",
+          "quantity": 1,
+          "unitPrice": {
+            "value": 0.0,
+            "currency": "BRL"
+          },
+          "totalPrice": {
+            "value": 0.0,
+            "currency": "BRL"
+          }
+        },
+        {
+          "id": "1618523f-210e-4640-b91b-946cab227ecb",
+          "index": 1,
+          "name": "Portuguesa",
+          "externalCode": "51",
+          "unit": "UN",
+          "quantity": 1,
+          "unitPrice": {
+            "value": 0.0,
+            "currency": "BRL"
+          },
+          "totalPrice": {
+            "value": 0.0,
+            "currency": "BRL"
+          }
+        },
+        {
+          "id": "25dce2bb-1fcf-4834-9c07-26a63928ae33",
+          "index": 2,
+          "name": "Borda Doce de Leite",
+          "externalCode": "67",
+          "unit": "UN",
+          "quantity": 1,
+          "unitPrice": {
+            "value": 10.0,
+            "currency": "BRL"
+          },
+          "totalPrice": {
+            "value": 10.0,
+            "currency": "BRL"
+          }
+        }
+      ]
+    }
+  ],
+  "total": {
+    "itemsPrice": {
+      "value": 102.0,
+      "currency": "BRL"
+    },
+    "otherFees": {
+      "value": 0.0,
+      "currency": "BRL"
+    },
+    "discount": {
+      "value": 0.0,
+      "currency": "BRL"
+    },
+    "orderAmount": {
+      "value": 102.0,
+      "currency": "BRL"
+    }
+  },
+  "payments": {
+    "prepaid": 0.0,
+    "pending": 102.0,
+    "methods": [
+      {
+        "value": 102.0,
+        "currency": "BRL",
+        "type": "PENDING",
+        "method": "OTHER"
+      }
+    ]
+  },
+  "indoor": {
+    "mode": "TAB",
+    "indoorDateTime": "2026-10-24T14:59:28-03:00",
+    "tab": "SA51LWb3wCZWCHHgpVRnRZwu",
+    "tabId": "fd7ea0c8-143b-4949-8182-a94c07d0d9c3",
+    "tabCode": "SA51LWb3wCZWCHHgpVRnRZwu",
+    "tabName": "0001"
+  },
+  "sendDelivered": true,
+  "sendPreparing": true,
+  "sendPickedUp": false,
+  "sendTracking": true
+}
+```
+</Tab>
+</Tabs>
+
+## Próximos passos
+
+<CardGroup cols={2}>
+<Card title="Ações de pedidos" icon="arrows-rotate" href="/guides/merchant/order/fluxo-de-integracao/acoes-de-pedidos">
+Confirme, prepare, despache e entregue o pedido.
+</Card>
+<Card title="Listar pedidos" icon="list" href="/guides/merchant/order/listar-pedidos">
+Consulte o histórico de pedidos da loja.
+</Card>
+</CardGroup>

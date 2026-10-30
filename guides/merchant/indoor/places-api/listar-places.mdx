@@ -1,0 +1,83 @@
+---
+title: Listar places
+description: Busque as mesas com QR Code e tablet da loja e veja quais estão livres, ocupadas ou fechadas.
+icon: list
+---
+
+Retorna todos os places da loja: primeiro as mesas com QR Code, depois os tablets, cada grupo em ordem alfabética de nome. Use para montar o mapa de mesas do PDV ou conferir quais estão ocupadas.
+
+| Resposta | Quando |
+| --- | --- |
+| `200 OK` | A loja tem places. O corpo é um array. |
+| `204 No Content` | A loja não tem places. A resposta vem sem corpo. |
+
+<Info>
+A lista não é paginada: todos os places vêm numa única resposta.
+</Info>
+
+## Requisição
+
+<ParamField path="merchantId" type="uuid" required>
+A loja.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl 'https://api.deliveryvip.com.br/merchant/v3/{merchantId}/places' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+const response = await fetch(`https://api.deliveryvip.com.br/merchant/v3/${merchantId}/places`, {
+  headers: { Authorization: `Bearer ${token}` },
+})
+const places = response.status === 204 ? [] : await response.json()
+```
+
+```python Python
+response = requests.get(
+    f"https://api.deliveryvip.com.br/merchant/v3/{merchant_id}/places",
+    headers={"Authorization": f"Bearer {token}"},
+)
+places = [] if response.status_code == 204 else response.json()
+```
+</CodeGroup>
+
+## Resposta
+
+<ResponseField name="id" type="string">
+`indoor_qrcode_{uuid}` ou `indoor_tablet_{uuid}`.
+</ResponseField>
+<ResponseField name="name" type="string">
+Nome da mesa.
+</ResponseField>
+<ResponseField name="status" type="string">
+`AVAILABLE`, `BUSY` ou `CLOSED`. Veja [o objeto place](/guides/merchant/indoor/places-api#o-objeto-place).
+</ResponseField>
+
+```json 200 OK
+[
+  {
+    "id": "indoor_qrcode_a7f4a8b1-8e6d-4614-be9a-b81b10a0de99",
+    "name": "Mesa 20",
+    "status": "BUSY"
+  },
+  {
+    "id": "indoor_qrcode_300b733f-2230-4128-8c0e-8b2690c170c6",
+    "name": "Mesa 30",
+    "status": "AVAILABLE"
+  },
+  {
+    "id": "indoor_tablet_b63d1110-bf0f-4d0e-82d9-e91609829655",
+    "name": "Mesa 10",
+    "status": "CLOSED"
+  }
+]
+```
+
+## Erros
+
+| Status | Quando |
+| --- | --- |
+| `401 Unauthorized` | Token ausente, expirado ou inválido. |
+| `404 Not Found` | O `merchantId` não autorizou o seu app. |

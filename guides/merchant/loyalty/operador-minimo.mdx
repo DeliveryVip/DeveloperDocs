@@ -1,0 +1,537 @@
+---
+title: Monte um operador de fidelidade mínimo
+sidebarTitle: Operador mínimo
+description: Um operador completo, em memória, com as cinco rotas do contrato e a assinatura validada. Ative o programa em uma loja de teste e veja adesão, saldo, resgate e estorno no checkout.
+icon: rocket
+---
+
+Ao final deste guia você tem um operador de fidelidade rodando, com as cinco rotas do [contrato](/guides/merchant/loyalty/contrato-do-operador), ativo em uma loja de teste. Um cliente adere ao programa no checkout, vê o saldo, resgata cashback no pedido e recebe o saldo de volta quando o pedido é cancelado.
+
+## Como funciona
+
+1. **A DeliveryVip chama você.** Durante o checkout, ela faz requisições HTTP às rotas sob a `api_base_url` da extensão de fidelidade do seu app. Você responde; o saldo vive só do seu lado.
+2. **Toda chamada é assinada.** O header `X-App-Signature` traz o HMAC-SHA256, em hex minúsculo, do **corpo bruto** da requisição, com o `client_secret` **do app** como chave. Sem corpo (`ping` e `reversal`), assina-se a string vazia. Não há timestamp na assinatura.
+3. **A ativação depende do ping.** O config push (`PUT .../loyalty/config`) chama o seu `GET /v1/loyalty/ping` antes de gravar qualquer coisa: o operador precisa estar no ar e validando a assinatura antes de ativar.
+4. **Débito e estorno são idempotentes.** O débito usa o `relatedOrderId` como chave: o mesmo pedido com o mesmo valor devolve o mesmo `redemptionId`. O estorno de um resgate já estornado responde `2xx` de novo.
+5. **Responda só os códigos do contrato.** Respostas de negócio (`404` no link, `409` e `422` no débito) são lidas como recusa. Qualquer outra coisa conta como falha para o [circuit breaker](/guides/merchant/loyalty/contrato-do-operador#timeouts-e-circuit-breaker).
+
+## Antes de começar
+
+<CardGroup cols={3}>
+<Card title="Um app com a extensão de fidelidade" icon="key" href="/guides/merchant/loyalty/primeiros-passos">
+Scopes `dv.loyalty` e `od.all`, com `client_id` e `client_secret` em mãos.
+</Card>
+<Card title="Uma loja de teste com o app instalado" icon="store" href="/inicio/primeiros-passos/instalando-app-na-loja">
+E o `merchantId` dela. Peça uma loja de teste no [Discord](https://discord.gg/AJF8Yha4).
+</Card>
+<Card title="Node.js 18+ ou Python 3.9+" icon="terminal">
+E uma URL pública HTTPS para o operador, como um túnel (`cloudflared`, `ngrok`) apontando para a sua máquina.
+</Card>
+</CardGroup>
+
+Exporte as credenciais do app como variáveis de ambiente:
+
+```bash
+export DV_CLIENT_ID="seu-client-id"
+export DV_CLIENT_SECRET="seu-client-secret"
+```
+
+## O operador completo
+
+Um único arquivo, sem banco: contas e resgates ficam em memória e somem quando o processo para. Toda conta nova ganha R$ 20,00 de saldo, só para você conseguir testar o resgate.
+
+| Rota | O que o operador faz |
+| ---- | -------------------- |
+| `GET /v1/loyalty/ping` | Responde `204`. |
+| `POST /v1/loyalty/accounts:link` | Localiza a conta pelo CPF (`customer.document`) e devolve o mesmo `id` a cada novo vínculo. CPF desconhecido: cadastra se `enroll` for `true`, senão responde `404`. |
+| `GET /v1/loyalty/accounts/{accountId}` | Devolve o saldo como número JSON, ou `404` se a conta não existe. |
+| `POST /v1/loyalty/redemptions` | Repetição do mesmo `relatedOrderId`: mesmo valor devolve o mesmo `redemptionId`, valor diferente responde `422 idempotency_conflict`. Saldo insuficiente: `409`. Senão debita e responde `201`. |
+| `POST /v1/loyalty/redemptions/{redemptionId}/reversal` | Devolve o saldo uma única vez e responde `204`, inclusive quando já estava estornado. Id desconhecido: `404`. |
+
+A assinatura é validada antes de qualquer rota, sobre os bytes recebidos, e o JSON só é lido depois disso.
+
+<CodeGroup>
+```js operador.mjs
+import crypto from 'node:crypto'
+import http from 'node:http'
+
+const CLIENT_SECRET = process.env.DV_CLIENT_SECRET // o client_secret do app
+const PROGRAM_ID = process.env.PROGRAM_ID ?? 'clube-teste' // o program.id do config push
+const WELCOME_BONUS = 2000 // centavos: R$ 20,00 de saldo inicial, para testar o resgate
+const PORT = Number(process.env.PORT ?? 4001)
+
+// Em memória: some quando o processo para. Em produção, o seu banco.
+const accounts = new Map() // accountId -> { id, document, name, balance (centavos), consent }
+const accountByDocument = new Map() // CPF -> accountId
+const redemptions = new Map() // redemptionId -> { id, accountId, relatedOrderId, amount, reversed }
+const redemptionByOrder = new Map() // relatedOrderId -> redemptionId
+
+const toCents = (value) => Math.round(Number(value) * 100)
+
+function validSignature(rawBody, received = '') {
+  const expected = crypto.createHmac('sha256', CLIENT_SECRET).update(rawBody).digest('hex')
+  return received.length === expected.length && crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(received))
+}
+
+function link(body) {
+  let accountId = accountByDocument.get(body.customer.document)
+
+  if (!accountId) {
+    if (!body.enroll) return [404] // adesão fechada e o CPF não é membro
+    accountId = `acc_${crypto.randomUUID()}`
+    accounts.set(accountId, {
+      id: accountId,
+      document: body.customer.document,
+      name: body.customer.name,
+      balance: WELCOME_BONUS,
+      consent: body.consent, // guarde o consentimento (LGPD)
+    })
+    accountByDocument.set(body.customer.document, accountId)
+  }
+
+  return [200, { id: accountId, programId: PROGRAM_ID, balanceType: 'cashback' }]
+}
+
+function balance(accountId) {
+  const account = accounts.get(accountId)
+  if (!account) return [404]
+  return [200, { id: account.id, programId: PROGRAM_ID, balanceType: 'cashback', balance: account.balance / 100, currency: 'BRL' }]
+}
+
+function redeem(body) {
+  const amount = toCents(body.amount)
+  const previous = redemptions.get(redemptionByOrder.get(body.relatedOrderId))
+
+  if (previous) {
+    // Idempotência por relatedOrderId: mesmo valor, mesma resposta
+    if (previous.amount === amount) return [201, { redemptionId: previous.id }]
+    return [422, { code: 'idempotency_conflict' }]
+  }
+
+  const account = accounts.get(body.accountId)
+  if (!account) return [422, { code: 'unknown_account' }]
+  if (!(amount > 0)) return [422, { code: 'invalid_amount' }]
+  if (account.balance < amount) return [409, { code: 'insufficient_balance' }]
+
+  const redemption = { id: `red_${crypto.randomUUID()}`, accountId: account.id, relatedOrderId: body.relatedOrderId, amount, reversed: false }
+  account.balance -= amount
+  redemptions.set(redemption.id, redemption)
+  redemptionByOrder.set(redemption.relatedOrderId, redemption.id)
+  return [201, { redemptionId: redemption.id }]
+}
+
+function reverse(redemptionId) {
+  const redemption = redemptions.get(redemptionId)
+  if (!redemption) return [404] // nunca vimos este id: terminal para a DeliveryVip
+
+  if (!redemption.reversed) {
+    accounts.get(redemption.accountId).balance += redemption.amount
+    redemption.reversed = true
+  }
+  return [204] // já estornado também responde 2xx
+}
+
+function route(method, path, body) {
+  if (method === 'GET' && path === '/v1/loyalty/ping') return [204]
+  if (method === 'POST' && path === '/v1/loyalty/accounts:link') return link(body)
+  if (method === 'POST' && path === '/v1/loyalty/redemptions') return redeem(body)
+
+  let match = path.match(/^\/v1\/loyalty\/accounts\/([^/]+)$/)
+  if (method === 'GET' && match) return balance(decodeURIComponent(match[1]))
+
+  match = path.match(/^\/v1\/loyalty\/redemptions\/([^/]+)\/reversal$/)
+  if (method === 'POST' && match) return reverse(decodeURIComponent(match[1]))
+
+  return [404]
+}
+
+http
+  .createServer((req, res) => {
+    const chunks = []
+    req.on('data', (chunk) => chunks.push(chunk))
+    req.on('end', () => {
+      const rawBody = Buffer.concat(chunks) // vazio no ping e no reversal: assinatura da string vazia
+      const path = new URL(req.url, 'http://localhost').pathname
+
+      if (!validSignature(rawBody, req.headers['x-app-signature'])) {
+        console.log(`${req.method} ${path} -> 401 (assinatura inválida)`)
+        return res.writeHead(401).end()
+      }
+
+      let status, payload
+      try {
+        const body = rawBody.length > 0 ? JSON.parse(rawBody) : null // parse só depois de validar
+        ;[status, payload] = route(req.method, path, body)
+      } catch (error) {
+        console.error(error)
+        status = 500
+      }
+
+      console.log(`${req.method} ${path} -> ${status}`, payload ? JSON.stringify(payload) : '')
+      if (payload === undefined) return res.writeHead(status).end()
+      res.writeHead(status, { 'Content-Type': 'application/json' }).end(JSON.stringify(payload))
+    })
+  })
+  .listen(PORT, () => console.log(`Operador em http://localhost:${PORT}`))
+```
+
+```python operador.py
+import hashlib
+import hmac
+import json
+import os
+import threading
+import uuid
+from decimal import Decimal
+
+from flask import Flask, Response, request
+
+CLIENT_SECRET = os.environ["DV_CLIENT_SECRET"].encode()  # o client_secret do app
+PROGRAM_ID = os.environ.get("PROGRAM_ID", "clube-teste")  # o program.id do config push
+WELCOME_BONUS = 2000  # centavos: R$ 20,00 de saldo inicial, para testar o resgate
+PORT = int(os.environ.get("PORT", "4001"))
+
+# Em memória: some quando o processo para. Em produção, o seu banco.
+accounts = {}  # account_id -> {id, document, name, balance (centavos), consent}
+account_by_document = {}  # CPF -> account_id
+redemptions = {}  # redemption_id -> {id, account_id, related_order_id, amount, reversed}
+redemption_by_order = {}  # related_order_id -> redemption_id
+lock = threading.Lock()  # o Flask atende requisições em paralelo
+
+app = Flask(__name__)
+
+
+def to_cents(value):
+    return int((Decimal(str(value)) * 100).to_integral_value())
+
+
+def reply(status, payload=None):
+    if payload is None:
+        return Response(status=status)
+    return Response(json.dumps(payload), status=status, mimetype="application/json")
+
+
+@app.before_request
+def verify_signature():
+    raw_body = request.get_data()  # bytes como chegaram; b"" no ping e no reversal
+    expected = hmac.new(CLIENT_SECRET, raw_body, hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(expected, request.headers.get("X-App-Signature", "")):
+        return reply(401)
+
+
+@app.get("/v1/loyalty/ping")
+def ping():
+    return reply(204)
+
+
+@app.post("/v1/loyalty/accounts:link")
+def link():
+    body = json.loads(request.get_data())  # parse só depois de validar
+    document = body["customer"]["document"]
+    with lock:
+        account_id = account_by_document.get(document)
+        if account_id is None:
+            if not body["enroll"]:
+                return reply(404)  # adesão fechada e o CPF não é membro
+            account_id = f"acc_{uuid.uuid4()}"
+            accounts[account_id] = {
+                "id": account_id,
+                "document": document,
+                "name": body["customer"]["name"],
+                "balance": WELCOME_BONUS,
+                "consent": body["consent"],  # guarde o consentimento (LGPD)
+            }
+            account_by_document[document] = account_id
+    return reply(200, {"id": account_id, "programId": PROGRAM_ID, "balanceType": "cashback"})
+
+
+@app.get("/v1/loyalty/accounts/<account_id>")
+def balance(account_id):
+    account = accounts.get(account_id)
+    if account is None:
+        return reply(404)
+    return reply(200, {
+        "id": account["id"],
+        "programId": PROGRAM_ID,
+        "balanceType": "cashback",
+        "balance": account["balance"] / 100,
+        "currency": "BRL",
+    })
+
+
+@app.post("/v1/loyalty/redemptions")
+def redeem():
+    body = json.loads(request.get_data())
+    amount = to_cents(body["amount"])
+    with lock:
+        previous = redemptions.get(redemption_by_order.get(body["relatedOrderId"]))
+        if previous:
+            # Idempotência por relatedOrderId: mesmo valor, mesma resposta
+            if previous["amount"] == amount:
+                return reply(201, {"redemptionId": previous["id"]})
+            return reply(422, {"code": "idempotency_conflict"})
+
+        account = accounts.get(body["accountId"])
+        if account is None:
+            return reply(422, {"code": "unknown_account"})
+        if amount <= 0:
+            return reply(422, {"code": "invalid_amount"})
+        if account["balance"] < amount:
+            return reply(409, {"code": "insufficient_balance"})
+
+        redemption_id = f"red_{uuid.uuid4()}"
+        account["balance"] -= amount
+        redemptions[redemption_id] = {
+            "id": redemption_id,
+            "account_id": account["id"],
+            "related_order_id": body["relatedOrderId"],
+            "amount": amount,
+            "reversed": False,
+        }
+        redemption_by_order[body["relatedOrderId"]] = redemption_id
+    return reply(201, {"redemptionId": redemption_id})
+
+
+@app.post("/v1/loyalty/redemptions/<redemption_id>/reversal")
+def reverse(redemption_id):
+    with lock:
+        redemption = redemptions.get(redemption_id)
+        if redemption is None:
+            return reply(404)  # nunca vimos este id: terminal para a DeliveryVip
+        if not redemption["reversed"]:
+            accounts[redemption["account_id"]]["balance"] += redemption["amount"]
+            redemption["reversed"] = True
+    return reply(204)  # já estornado também responde 2xx
+
+
+if __name__ == "__main__":
+    app.run(port=PORT)
+```
+</CodeGroup>
+
+<Note>
+A versão Node.js usa só o módulo `http`, sem dependências. Se você usar um framework, garanta que `accounts:link` seja tratado como caminho literal: em roteadores como o do Express, `:` marca o início de um parâmetro.
+</Note>
+
+## Passo a passo
+
+<Steps>
+<Step title="Rode o operador e teste a assinatura">
+Suba o operador:
+
+<CodeGroup>
+```bash Node.js
+node operador.mjs
+```
+
+```bash Python
+pip install flask
+python operador.py
+```
+</CodeGroup>
+
+Em outro terminal, assine as requisições como a DeliveryVip faz e chame o operador. A função `sign` calcula o HMAC-SHA256 do corpo com o `client_secret`:
+
+```bash
+sign() { printf '%s' "$1" | openssl dgst -sha256 -hmac "$DV_CLIENT_SECRET" | sed 's/^.*= //'; }
+
+# ping: assinatura da string vazia -> 204
+curl -i http://localhost:4001/v1/loyalty/ping --header "X-App-Signature: $(sign '')"
+
+# assinatura errada -> 401
+curl -i http://localhost:4001/v1/loyalty/ping --header 'X-App-Signature: 00'
+
+# adesão -> 200 com o id da conta
+BODY='{"programId":"clube-teste","customer":{"document":"12345678909","phone":"+5511999998888","email":"maria@example.com","name":"Maria","birthDate":"1990-01-01"},"consent":{"purpose":"loyalty_program","status":"granted","grantedAt":"2026-09-04T12:00:00-03:00"},"enroll":true}'
+curl http://localhost:4001/v1/loyalty/accounts:link \
+  --header 'Content-Type: application/json' \
+  --header "X-App-Signature: $(sign "$BODY")" \
+  --data "$BODY"
+```
+
+```json Resposta da adesão
+{ "id": "acc_5f0c...", "programId": "clube-teste", "balanceType": "cashback" }
+```
+
+<Check>
+`204` no ping assinado e `401` no ping com assinatura errada: a verificação está certa. Para testar o débito e o estorno, assine da mesma forma o corpo de [`redemptions`](/guides/merchant/loyalty/contrato-do-operador/resgate-e-estorno) com o `id` da conta.
+</Check>
+</Step>
+
+<Step title="Exponha o operador e declare a api_base_url">
+A DeliveryVip precisa alcançar o operador pela internet, em HTTPS. Abra um túnel para a porta `4001` e, na extensão de fidelidade do app, informe a URL do túnel como **`api_base_url`** (por exemplo, `https://seu-tunel.example.com`). A DeliveryVip acrescenta `/v1/loyalty/...` a ela.
+
+<Note>
+`http://` só é aceito em loopback (`localhost`, `127.x.x.x`, `::1`). Um operador em `localhost` não é alcançável pelo checkout da DeliveryVip: para o teste de ponta a ponta, use o túnel.
+</Note>
+</Step>
+
+<Step title="Obtenha o token com os dois scopes">
+O config push exige o scope `dv.loyalty`; o `od.all` serve para ler os pedidos no [acúmulo](/guides/merchant/loyalty/acumulo). Peça os dois no mesmo token, separados por espaço.
+
+<CodeGroup>
+```bash cURL
+curl --request POST 'https://api.deliveryvip.com.br/authentication/v1/oauth/token' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'grant_type=client_credentials' \
+  --data-urlencode "client_id=$DV_CLIENT_ID" \
+  --data-urlencode "client_secret=$DV_CLIENT_SECRET" \
+  --data-urlencode 'scope=od.all dv.loyalty'
+```
+
+```js Node.js
+const response = await fetch('https://api.deliveryvip.com.br/authentication/v1/oauth/token', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+  body: new URLSearchParams({
+    grant_type: 'client_credentials',
+    client_id: process.env.DV_CLIENT_ID,
+    client_secret: process.env.DV_CLIENT_SECRET,
+    scope: 'od.all dv.loyalty',
+  }),
+})
+const { access_token } = await response.json()
+```
+
+```python Python
+import os
+import requests
+
+response = requests.post(
+    "https://api.deliveryvip.com.br/authentication/v1/oauth/token",
+    data={
+        "grant_type": "client_credentials",
+        "client_id": os.environ["DV_CLIENT_ID"],
+        "client_secret": os.environ["DV_CLIENT_SECRET"],
+        "scope": "od.all dv.loyalty",
+    },
+)
+access_token = response.json()["access_token"]
+```
+</CodeGroup>
+</Step>
+
+<Step title="Ative o programa na loja">
+Com o operador no ar, envie o config push para a loja. O `program.id` precisa ser o mesmo `PROGRAM_ID` do operador (`clube-teste` por padrão): é ele que volta no `programId` das chamadas. Durante o `PUT`, o operador recebe o ping e registra `GET /v1/loyalty/ping -> 204`.
+
+<CodeGroup>
+```bash cURL
+curl --request PUT 'https://api.deliveryvip.com.br/merchant/v3/{merchantId}/loyalty/config' \
+  --header 'Authorization: Bearer {token}' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "program": { "id": "clube-teste", "name": "Clube de Teste" },
+    "capabilities": { "balanceTypes": ["cashback"], "partialRedemption": true, "enrollment": true }
+  }'
+```
+
+```js Node.js
+const response = await fetch(
+  `https://api.deliveryvip.com.br/merchant/v3/${merchantId}/loyalty/config`,
+  {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      program: { id: 'clube-teste', name: 'Clube de Teste' },
+      capabilities: { balanceTypes: ['cashback'], partialRedemption: true, enrollment: true },
+    }),
+  },
+)
+console.log(response.status, await response.json()) // 200 com a configuração gravada
+```
+
+```python Python
+response = requests.put(
+    f"https://api.deliveryvip.com.br/merchant/v3/{merchant_id}/loyalty/config",
+    headers={"Authorization": f"Bearer {token}"},
+    json={
+        "program": {"id": "clube-teste", "name": "Clube de Teste"},
+        "capabilities": {"balanceTypes": ["cashback"], "partialRedemption": True, "enrollment": True},
+    },
+)
+print(response.status_code, response.json())  # 200 com a configuração gravada
+```
+</CodeGroup>
+
+A resposta **200** ecoa a configuração gravada. Um **422** com `Verificação da api_base_url falhou` no `title` significa que o ping não passou e nada foi gravado. Veja os demais campos, como os [limites de resgate](/guides/merchant/loyalty/ativando-o-programa#limites-de-resgate-redemptionlimits), em [Ativando o programa](/guides/merchant/loyalty/ativando-o-programa).
+</Step>
+
+<Step title="Adira ao programa no checkout">
+Abra a loja de teste, entre com uma conta de cliente, monte um carrinho e vá ao checkout. O card do **Clube de Teste** aparece. A adesão só é oferecida a um cliente **logado** (convidados não aderem) e com o cadastro **completo**: nome, telefone, e-mail, CPF e data de nascimento. Se faltar CPF ou data de nascimento, o checkout pede para completar.
+
+Ao aceitar participar, o operador recebe o link e, em seguida, a consulta de saldo:
+
+```text Saída esperada (Node.js)
+POST /v1/loyalty/accounts:link -> 200 {"id":"acc_5f0c...","programId":"clube-teste","balanceType":"cashback"}
+GET /v1/loyalty/accounts/acc_5f0c... -> 200 {"id":"acc_5f0c...","programId":"clube-teste","balanceType":"cashback","balance":20,"currency":"BRL"}
+```
+
+O card mostra o saldo de R$ 20,00. A DeliveryVip guarda a resposta do saldo por até 60 segundos.
+</Step>
+
+<Step title="Resgate e finalize o pedido">
+Escolha quanto do saldo usar e finalize o pedido com **pagamento na entrega**. O débito acontece **dentro** da criação do pedido: o pedido só nasce se o operador responder `201`.
+
+<Tip>
+No teste, prefira pagamento na entrega. Um pedido com pagamento online responde `404` em `GET /merchant/v3/orders/{orderId}` até o pagamento ser aprovado, e um pedido que segue aguardando pagamento depois de 30 minutos é dado como não pago, o que dispara o estorno do resgate.
+</Tip>
+
+```text Saída esperada (Node.js)
+POST /v1/loyalty/redemptions -> 201 {"redemptionId":"red_8a1d..."}
+```
+
+<Check>
+O pedido aparece no painel da loja com o desconto do resgate, e o saldo do cliente no operador caiu no mesmo valor.
+</Check>
+</Step>
+
+<Step title="Cancele o pedido e veja o estorno">
+Cancele o pedido no painel da loja. A DeliveryVip chama o estorno de forma assíncrona, e o saldo volta para a conta:
+
+```text Saída esperada (Node.js)
+POST /v1/loyalty/redemptions/red_8a1d.../reversal -> 204
+```
+
+Volte ao checkout com o mesmo cliente: em até 60 segundos o card mostra de novo o saldo de R$ 20,00.
+</Step>
+</Steps>
+
+## Do mínimo para a produção
+
+Este operador cobre o contrato, mas não é um programa de verdade. Antes de produção:
+
+* **Persista tudo** em banco, com a idempotência do débito garantida por uma restrição única em `relatedOrderId`, e guarde o `consent` recebido no link.
+* **Acumule** saldo sobre os pedidos concluídos: receba o evento `CONCLUDED`, busque o pedido com `od.all` e leia o bloco `loyalty`. Veja [Acúmulo](/guides/merchant/loyalty/acumulo).
+* **Diferencie as lojas** pelo header `X-App-MerchantId`, se o seu programa tiver regras por loja.
+* **Exija PIN**, se o seu programa pedir confirmação na adesão. Veja [Vínculo e PIN](/guides/merchant/loyalty/contrato-do-operador/vinculo-e-pin).
+* **Responda rápido**: a DeliveryVip espera no máximo 5 segundos, e o débito roda dentro da criação do pedido.
+
+## Erros comuns
+
+| Sintoma | Causa | Como resolver |
+| --- | --- | --- |
+| `422` no config push e o operador não recebeu o ping | `api_base_url` errada, sem HTTPS ou inacessível pela internet | Confira a URL do túnel na extensão; ela recebe `/v1/loyalty/ping` acrescentado |
+| `422` no config push e o operador registrou `401` | Assinatura calculada com outra chave, ou sobre o JSON re-serializado | Use o `client_secret` **atual** do app e os bytes como chegaram; no ping, a string vazia |
+| `403` no config push | Token sem `dv.loyalty` | Peça o token com `scope=od.all dv.loyalty` |
+| `404` no config push | `merchantId` errado, ou a loja não instalou o app | Use o `merchantId` da loja que instalou o app |
+| O cliente não consegue aderir | Cliente convidado ou com cadastro incompleto (nome, telefone, e-mail, CPF e data de nascimento) | Entre com uma conta de cliente e complete o cadastro |
+| O card do programa não aparece no checkout | O programa não foi ativado nesta loja | Confira o `200` do config push |
+| `404` ao buscar o pedido | Pedido com pagamento online ainda não aprovado | Teste com pagamento na entrega |
+| O cliente adere de novo a cada reinício do operador | Contas em memória somem com o processo; a consulta de saldo responde `404` e a DeliveryVip desfaz o vínculo | Esperado neste exemplo. Em produção, persista as contas |
+
+## Próximos passos
+
+<CardGroup cols={2}>
+<Card title="Acúmulo" icon="coins" href="/guides/merchant/loyalty/acumulo">
+Credite cashback sobre os pedidos concluídos e desfaça no cancelamento.
+</Card>
+<Card title="Vínculo e PIN" icon="link" href="/guides/merchant/loyalty/contrato-do-operador/vinculo-e-pin">
+O desafio de PIN e os limites de resgate por conta.
+</Card>
+<Card title="Resgate e estorno" icon="money-bill-transfer" href="/guides/merchant/loyalty/contrato-do-operador/resgate-e-estorno">
+Todos os casos do débito síncrono e do estorno.
+</Card>
+<Card title="Referência rápida" icon="list" href="/guides/merchant/loyalty/referencia-rapida">
+Rotas, headers, limites e regras em uma página.
+</Card>
+</CardGroup>

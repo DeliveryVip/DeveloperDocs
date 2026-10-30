@@ -1,0 +1,53 @@
+---
+title: Abrir um place para consumo
+sidebarTitle: Abrir para consumo
+description: Libere uma mesa com QR Code ou tablet para voltar a receber pedidos.
+icon: lock-open
+---
+
+Abre a mesa para consumo. O cliente que lê o QR Code ou usa o tablet dela volta a fazer pedidos e a chamar o garçom. Na [listagem](/guides/merchant/indoor/places-api/listar-places), o `status` passa a `AVAILABLE`, ou `BUSY` se a mesa tiver pedidos em andamento.
+
+Use quando a mesa for liberada para novos clientes depois de ter sido [fechada](/guides/merchant/indoor/places-api/acoes-de-places/fechar-para-consumo-um-place).
+
+## Requisição
+
+<ParamField path="merchantId" type="uuid" required>
+A loja.
+</ParamField>
+
+<ParamField path="placeId" type="string" required>
+O `id` completo do place, com o prefixo, como `indoor_qrcode_a7f4a8b1-8e6d-4614-be9a-b81b10a0de99`.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl --request POST 'https://api.deliveryvip.com.br/merchant/v3/{merchantId}/places/{placeId}/opened' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+await fetch(`https://api.deliveryvip.com.br/merchant/v3/${merchantId}/places/${placeId}/opened`, {
+  method: 'POST',
+  headers: { Authorization: `Bearer ${token}` },
+})
+```
+
+```python Python
+requests.post(
+    f"https://api.deliveryvip.com.br/merchant/v3/{merchant_id}/places/{place_id}/opened",
+    headers={"Authorization": f"Bearer {token}"},
+)
+```
+</CodeGroup>
+
+## Resposta
+
+```json 202 Accepted
+{ "id": "indoor_qrcode_a7f4a8b1-8e6d-4614-be9a-b81b10a0de99" }
+```
+
+## Erros
+
+| Status | Quando |
+| --- | --- |
+| `404 Not Found` | O `merchantId` não autorizou o seu app, o place não existe, pertence a outra loja ou o `placeId` não começa com `indoor_qrcode_` ou `indoor_tablet_`. |

@@ -1,0 +1,65 @@
+---
+title: Datas e horários
+description: O formato das datas nas APIs da DeliveryVip, o fuso de cada API e como interpretar os valores sem errar por 3 horas.
+icon: clock
+---
+
+Todas as datas com horário seguem o **RFC 3339** (perfil do ISO 8601) e trazem o fuso explícito no próprio valor. O fuso usado, porém, muda conforme a API.
+
+| API | Fuso | Exemplo |
+| --- | --- | --- |
+| Merchant API V3 | **UTC-3** (horário de Brasília) | `2026-08-10T14:39:28-03:00` |
+| Partner API V2 | **UTC-3** (horário de Brasília) | `2026-08-10T14:39:28-03:00` |
+| [Open Delivery](/guides/open-delivery) | **UTC** (sufixo `Z`) | `2026-08-10T17:39:28Z` |
+
+Os três exemplos da tabela são **o mesmo instante**. O Open Delivery usa UTC porque a [especificação](https://abrasel-nacional.github.io/opendelivery/) exige: _"All dates must be sent using UTC as default"_.
+
+<Warning>
+**Não assuma o fuso: leia o offset.** Integrações que descartam o `-03:00` ou o `Z` e tratam o valor como hora local erram por 3 horas, principalmente quando falam com a Merchant API e com o Open Delivery ao mesmo tempo.
+</Warning>
+
+## Interpretando as datas
+
+Qualquer biblioteca de datas moderna converte a partir do offset:
+
+<CodeGroup>
+```js Node.js
+const createdAt = new Date('2026-08-10T14:39:28-03:00')
+createdAt.toISOString() // '2026-08-10T17:39:28.000Z'
+
+createdAt.getTime() === new Date('2026-08-10T17:39:28Z').getTime() // true
+```
+
+```python Python
+from datetime import datetime, timezone
+
+created_at = datetime.fromisoformat("2026-08-10T14:39:28-03:00")
+created_at.astimezone(timezone.utc)  # 2026-08-10 17:39:28+00:00
+
+created_at == datetime.fromisoformat("2026-08-10T17:39:28+00:00")  # True
+```
+</CodeGroup>
+
+<Tip>
+Guarde as datas no seu banco em UTC (ou com o offset) e converta para o fuso da loja só na exibição.
+</Tip>
+
+## Datas sem horário
+
+Filtros que recebem só a data, como `starts_at` e `ends_in` da [listagem de pedidos](/guides/merchant/order/listar-pedidos), usam `YYYY-MM-DD` e são interpretados no fuso de Brasília: `starts_at` vale a partir de 00:00:00 e `ends_in` até 23:59:59 do dia informado.
+
+```text
+/merchant/v3/{merchantId}/orders?starts_at=2026-10-01&ends_in=2026-10-15
+```
+
+## Horários de funcionamento
+
+Os horários de funcionamento da loja (`timePeriods`, com `startTime` e `endTime`) são **hora local da loja**, no formato `HH:MM:SS` e sem offset. Eles descrevem um horário de relógio que se repete toda semana, não um instante.
+
+```json
+{ "dayOfWeek": ["MONDAY"], "timePeriods": { "startTime": "18:00:00", "endTime": "23:30:00" } }
+```
+
+## Timestamps de autenticação
+
+Os campos `created_at`, `exp` e `iat` das respostas de [autenticação](/inicio/conceitos/autenticacao) são **Unix timestamps** (segundos desde 1970, em UTC), e `expires_in` é uma duração em segundos.

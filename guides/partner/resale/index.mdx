@@ -1,0 +1,29 @@
+---
+title: Revendas
+sidebarTitle: Visão geral
+description: Cadastre e administre as revendas que vendem a DeliveryVip abaixo do seu parceiro.
+icon: compass
+---
+
+Uma revenda é um parceiro comercial abaixo de você: ela atende as próprias lojas, tem assinatura própria e pode ter membros e apps autorizados. Só o **parceiro** gerencia revendas; um token de revenda não acessa esta seção.
+
+<Steps>
+<Step title="Cadastre a revenda" icon="plus">
+`POST /partner/v2/{partnerId}/resales`. A revenda nasce em `TRIAL` por 10 dias e ganha uma loja de demonstração (`DEMO`).
+</Step>
+<Step title="Dê acesso" icon="user-plus">
+Adicione membros ao painel da revenda e, se ela usar um sistema próprio, autorize o app dela com o scope `dv.partner`.
+</Step>
+<Step title="Ative a assinatura" icon="circle-check">
+`POST /partner/v2/resales/{resaleId}/activate`. Lojas da revenda só podem ser ativadas com a revenda ativa.
+</Step>
+</Steps>
+
+<CardGroup cols={2}>
+<Card title="Definições" icon="book-open" href="/guides/partner/resale/definicoes">
+Status e ciclo de vida da assinatura da revenda.
+</Card>
+<Card title="Utilizando a API" icon="code" href="/guides/partner/resale/utilizando-a-api">
+Todos os endpoints de revendas, com exemplos.
+</Card>
+</CardGroup>
