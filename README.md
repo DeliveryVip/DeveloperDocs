@@ -106,5 +106,5 @@ Mudanças no branch `main` são publicadas automaticamente pela [integração do
 
 - Converse com a gente na [comunidade no Discord](https://discord.gg/AJF8Yha4).
 - Instabilidade? Confira o [status da plataforma](https://status.deliveryvip.com.br).
-- Encontrou um erro na documentação? [Abra uma issue](https://github.com/DeliveryVip/developer-docs/issues).
+- Encontrou um erro na documentação? [Abra uma issue](https://github.com/DeliveryVip/DeveloperDocs/issues).
 - Quer conversar sobre uma integração? [Agende uma reunião](https://calendar.app.google/EchaXk57y7xp8Hyx6).
