@@ -99,6 +99,13 @@ URL do painel daquela loja, codificada em **Base64**. É a base da tela de autor
 <ParamField query="embedded_url" type="string">
 URL do app dentro do painel, em Base64. Enviado na instalação.
 </ParamField>
+<ParamField query="id_token" type="string">
+JWT assinado com o seu Client Secret, que prova qual loja e qual usuário abriram o app. Veja [Apps incorporados](/inicio/primeiros-passos/apps-incorporados).
+</ParamField>
+
+<Warning>
+Não confie no `merchant_id` sozinho: ele não é assinado. Valide o `id_token` e use o `dest` dele.
+</Warning>
 </Step>
 
 <Step title="Redirecione para a tela de autorização">

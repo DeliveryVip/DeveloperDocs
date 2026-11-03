@@ -1,0 +1,166 @@
+---
+title: Apps incorporados
+description: Autentique o seu app dentro do painel da loja com o id_token, sem depender de cookies.
+icon: window-restore
+---
+
+Quando o app abre **incorporado ao painel**, ele roda num iframe dentro do domínio da DeliveryVip. Nesse contexto, Safari, Firefox e Chrome bloqueiam ou isolam os cookies do seu domínio, e uma sessão baseada em cookie quebra.
+
+Por isso a DeliveryVip entrega ao seu app um **`id_token`**: um JWT de vida curta, assinado com o **Client Secret** do app, que diz qual loja e qual usuário estão usando o app.
+
+## Como funciona
+
+<Steps>
+<Step title="O painel abre o seu app">
+O `id_token` chega na query da **URL do app**, junto com `merchant_id`, `site_url`, `embedded` e `embedded_url`. Veja os parâmetros em [Distribuição interativa](/inicio/primeiros-passos/distribuicao-interativa#fluxo-de-autorização).
+</Step>
+<Step title="O front-end envia o token ao seu backend">
+Em cada request, mande o `id_token` no header `Authorization: Bearer`. O [App Bridge](#app-bridge) faz isso por você com `dv.fetch`.
+</Step>
+<Step title="O backend valida o token">
+Com a assinatura e o `aud` conferidos, o `dest` diz de qual loja é o request. Veja [Validando no seu backend](#validando-no-seu-backend).
+</Step>
+<Step title="O App Bridge renova o token">
+O token vale 60 segundos. Enquanto o lojista usa o app, o App Bridge pede tokens novos ao painel.
+</Step>
+</Steps>
+
+<Info>
+O `id_token` também vem na URL quando o app abre fora do painel (botão **Acessar Aplicativo**) e no redirecionamento da instalação. Fora do iframe não há App Bridge: valide o token da URL e, a partir dele, abra a sua própria sessão.
+</Info>
+
+## O id_token
+
+<ResponseField name="iss" type="string">
+Endereço do painel que abriu o app. Pode ser o domínio de um parceiro. Use **só** para liberar o iframe (`frame-ancestors`); para saber de qual loja é o request, use o `dest`.
+</ResponseField>
+<ResponseField name="dest" type="uuid">
+ID da loja (ou do parceiro, ou do marketplace). Mesmo valor do `merchant_id`.
+</ResponseField>
+<ResponseField name="aud" type="string">
+O **Client ID** do seu app.
+</ResponseField>
+<ResponseField name="sub" type="string">
+ID opaco do usuário do painel.
+</ResponseField>
+<ResponseField name="iat" type="number">
+Emitido em (Unix timestamp, segundos).
+</ResponseField>
+<ResponseField name="nbf" type="number">
+Válido a partir de. Igual ao `iat`.
+</ResponseField>
+<ResponseField name="exp" type="number">
+Expira em. **60 segundos** depois do `iat`.
+</ResponseField>
+<ResponseField name="jti" type="string">
+Identificador único do token.
+</ResponseField>
+
+<Warning>
+O `merchant_id` da URL não prova nada sozinho: qualquer pessoa consegue montar essa URL. Confie no `dest` de um `id_token` válido.
+</Warning>
+
+## Validando no seu backend
+
+Em todo request, confira a assinatura (HS256 com o Client Secret), o `aud` (o seu Client ID) e a validade (`exp` e `nbf`, com folga de poucos segundos para diferença de relógio).
+
+<CodeGroup>
+```js Node.js
+import { jwtVerify } from 'jose'
+
+const secret = new TextEncoder().encode(process.env.DV_CLIENT_SECRET)
+
+export async function verifyIdToken (token) {
+  const { payload } = await jwtVerify(token, secret, {
+    algorithms: ['HS256'],
+    audience: process.env.DV_CLIENT_ID,
+    clockTolerance: 5
+  })
+  return { storeId: payload.dest, userId: payload.sub, panelUrl: payload.iss }
+}
+```
+
+```python Python
+import os
+import jwt
+
+def verify_id_token(token):
+    payload = jwt.decode(
+        token,
+        os.environ["DV_CLIENT_SECRET"],
+        algorithms=["HS256"],
+        audience=os.environ["DV_CLIENT_ID"],
+        leeway=5,
+    )
+    return {"store_id": payload["dest"], "user_id": payload["sub"], "panel_url": payload["iss"]}
+```
+
+```ruby Ruby
+require "jwt"
+
+def verify_id_token(token)
+  payload, = JWT.decode(token, ENV.fetch("DV_CLIENT_SECRET"), true,
+    algorithm: "HS256", aud: ENV.fetch("DV_CLIENT_ID"), verify_aud: true, leeway: 5)
+  {store_id: payload["dest"], user_id: payload["sub"], panel_url: payload["iss"]}
+end
+```
+</CodeGroup>
+
+Se a validação do token falhar, responda `401` com o header `WWW-Authenticate: Bearer error="invalid_token"` (RFC 6750). É esse header que faz o `dv.fetch` buscar um token novo e repetir o request. Um `401` sem ele (por exemplo, falta de permissão) volta direto para o seu código, sem repetir uma escrita. Se a API estiver em outra origem que não a página do app, inclua `WWW-Authenticate` em `Access-Control-Expose-Headers`.
+
+<Danger>
+Valide o token só no servidor. O Client Secret nunca vai para o front-end.
+</Danger>
+
+<Tip>
+O `id_token` chega na URL. Envie `Referrer-Policy: no-referrer` (ou `same-origin`) nas páginas do app para que ele não vaze no `Referer` de imagens, scripts e links de terceiros, e não registre essa URL em analytics, rastreamento de erros ou logs de acesso. Também não propague o `id_token` em links internos do app: depois da abertura, use `dv.idToken()`.
+</Tip>
+
+## App Bridge
+
+Para pedir tokens novos ao painel enquanto o lojista usa o app, carregue o App Bridge na página:
+
+```html
+<script src="https://assets.deliveryvip.com.br/app-bridge/v1.js"></script>
+```
+
+Ele expõe `window.dv`:
+
+| Função | O que faz |
+| --- | --- |
+| `dv.idToken()` | Promise com um `id_token` válido. Na abertura do app, reaproveita o da URL enquanto faltarem mais de 10 segundos para expirar; depois de um reload, ou quando o token está perto de expirar, pede um novo ao painel. |
+| `dv.fetch(url, options)` | Igual ao `fetch`, com `Authorization: Bearer <id_token>`. Em resposta `401` com `WWW-Authenticate: Bearer error="invalid_token"`, pede um token novo e tenta mais uma vez. |
+
+```js
+const response = await dv.fetch('/api/pedidos-do-dia')
+const pedidos = await response.json()
+```
+
+<Info>
+O painel só responde ao App Bridge na **origem da URL do app** cadastrada. Se o seu app navegar dentro do iframe para outro domínio, o bridge para de funcionar nesse domínio.
+</Info>
+
+## Permitindo o iframe
+
+Autorize o painel a incorporar o seu app com `frame-ancestors`. Como o painel pode estar no domínio de um parceiro, use o `iss` do `id_token` validado:
+
+```text
+Content-Security-Policy: frame-ancestors <iss do id_token>
+```
+
+## Erros comuns
+
+<AccordionGroup>
+<Accordion title="dv.idToken() rejeitou" icon="triangle-exclamation">
+O token da URL já está perto de expirar e o App Bridge não conseguiu outro. Acontece quando o app não está incorporado (aberto fora do painel), quando o painel não conseguiu emitir o token (por exemplo, sessão do lojista expirada) ou quando o painel não responde em 15 segundos. Peça ao lojista para reabrir o app pelo painel.
+</Accordion>
+<Accordion title="Meu backend recusa todo id_token" icon="key">
+Confira se está usando o Client Secret e o Client ID do mesmo app, e se o relógio do servidor está sincronizado. Se você gerou um Client Secret novo no painel, atualize o backend.
+</Accordion>
+<Accordion title="O App Bridge parou depois de uma navegação" icon="link-slash">
+O app saiu da origem da **URL do app** dentro do iframe (inclusive por um redirect, como de `app.com` para `www.app.com`). O console do navegador mostra `DV App Bridge: ignoring id_token request from …` com as duas origens. Mantenha as telas incorporadas no mesmo domínio cadastrado, ou cadastre a URL final.
+</Accordion>
+<Accordion title="O navegador não exibe o app no painel" icon="window-restore">
+O seu servidor envia `X-Frame-Options` ou um `frame-ancestors` que não inclui o painel. Libere o `iss` do `id_token`, como em [Permitindo o iframe](#permitindo-o-iframe).
+</Accordion>
+</AccordionGroup>
