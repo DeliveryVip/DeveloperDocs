@@ -56,7 +56,7 @@ Métodos de eventos: `WEBHOOK` e `POLLING`.
 | Token OAuth | Expira em **24 horas**; o token vigente é reutilizado até expirar |
 | Webhook | Responder **2xx** em até 5 s (3 s para conectar) |
 | Retentativas do webhook | Só para `408`, `429`, timeout e erro de conexão: **3 tentativas** no total. `5xx` não é retentado. |
-| Suspensão do webhook | **Por loja**, após 10 falhas consecutivas (retentativas contam). Reativação: reenviar o onboarding, o formulário do painel ou o botão "Reativar envio de webhooks". |
+| Suspensão do webhook | **Por loja**, após 30 falhas consecutivas (retentativas contam; alertas por e-mail em 10, 20 e 25). Reativação: reenviar o onboarding, o formulário do painel ou o botão "Reativar envio de webhooks". |
 | Importação do catálogo | Assíncrona; avisos em sequência agrupados em 10 s |
 
 ## Códigos de resposta comuns

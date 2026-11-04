@@ -49,7 +49,7 @@ Sob a `api_base_url` da extensão. Autenticação: `X-App-Signature` (HMAC-SHA25
 | Débito | **Síncrono**, dentro da criação do pedido: não-`201` ou timeout = o pedido não nasce |
 | Idempotência do débito | `relatedOrderId`: mesmo amount → mesmo `201`/`redemptionId`; amount diferente → `422 idempotency_conflict` |
 | Estorno | Assíncrono, até **5 tentativas** no total; `404` é terminal. Disparado em cancelamento, rejeição e não-pagamento (pedido aguardando pagamento há **30 min**). |
-| Webhooks | Retry só para `408`/`429` (3 tentativas); outros não-2xx (inclusive `5xx`) = recusa definitiva; **10 falhas consecutivas** suspendem as entregas |
+| Webhooks | Retry só para `408`/`429` (3 tentativas); outros não-2xx (inclusive `5xx`) = recusa definitiva; **30 falhas consecutivas** suspendem as entregas (alertas em 10, 20 e 25) |
 | Datas da API Merchant V3 | **UTC-3**. Veja [Datas e horários](/inicio/conceitos/datas-e-horarios). |
 
 ## Regras que valem decorar

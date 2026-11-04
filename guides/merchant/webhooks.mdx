@@ -227,8 +227,10 @@ Se o seu servidor estiver sobrecarregado e quiser que a DeliveryVip tente de nov
 ## Suspensão automática
 
 <Warning>
-Após **10 falhas consecutivas**, a DeliveryVip **suspende** o envio de webhooks da sua aplicação e avisa por e-mail, com o motivo da última falha. Cada tentativa que falha conta; uma entrega bem-sucedida zera o contador.
+Após **30 falhas consecutivas**, a DeliveryVip **suspende** o envio de webhooks da sua aplicação e avisa por e-mail, com o motivo da última falha. Cada tentativa que falha conta; uma entrega bem-sucedida zera o contador.
 </Warning>
+
+Antes da suspensão, o e-mail de contato da aplicação recebe um alerta **Falhas no envio de webhooks** ao atingir **10, 20 e 25 falhas consecutivas**. O alerta informa quantas falhas já houve, quantas faltam para a suspensão e o motivo da última. Corrija o endpoint assim que ele chegar: a próxima entrega bem-sucedida zera o contador e nada mais precisa ser feito.
 
 Enquanto o envio está suspenso, os eventos continuam disponíveis no [polling](/guides/merchant/events). Para retomar:
 
@@ -240,7 +242,7 @@ Confirme que a URL responde `2xx` para um `POST` com corpo JSON.
 No painel do desenvolvedor, abra a aplicação e entre em **Ver webhooks enviados**. No aviso **Envio de webhooks suspenso**, clique em **Reativar envios**.
 </Step>
 <Step title="Reenvie o que falhou">
-Na mesma tela, filtre por **Com falha** e reenvie as entregas que você precisa.
+Na mesma tela, filtre por **Com falha** e reenvie as entregas que você precisa. As entregas que ainda estavam em nova tentativa quando o envio foi suspenso também aparecem como falha, com o erro `Webhook suspended`.
 </Step>
 </Steps>
 
@@ -261,8 +263,11 @@ Quase sempre o corpo foi transformado antes do cálculo: o framework fez parse d
 <Accordion title="Recebo o mesmo evento duas vezes" icon="clone">
 É esperado: novas tentativas e reenvios manuais repetem o mesmo `eventId`, e o mesmo evento também aparece no polling. Guarde os `eventId` processados e descarte os repetidos.
 </Accordion>
+<Accordion title="Recebi o e-mail Falhas no envio de webhooks" icon="triangle-exclamation">
+O seu endpoint acumulou 10, 20 ou 25 falhas seguidas, e o envio será suspenso na 30ª. O e-mail traz o motivo da última falha. Corrija o endpoint: a próxima entrega bem-sucedida zera o contador. Depois, reenvie pelo painel as entregas com falha.
+</Accordion>
 <Accordion title="O envio foi suspenso" icon="circle-pause">
-O seu endpoint acumulou 10 falhas seguidas. Corrija o endpoint, clique em **Reativar envios** na tela **Webhooks enviados** e reenvie as entregas com falha. Enquanto isso, recupere os eventos pelo polling.
+O seu endpoint acumulou 30 falhas seguidas. Corrija o endpoint, clique em **Reativar envios** na tela **Webhooks enviados** e reenvie as entregas com falha. Enquanto isso, recupere os eventos pelo polling.
 </Accordion>
 <Accordion title="Meu endpoint retornou 500 e o evento não voltou" icon="rotate">
 Respostas `5xx` não são tentadas de novo automaticamente. Reenvie pelo painel ou recupere o evento pelo polling. Para pedir uma nova tentativa automática, responda `429` ou `408`.

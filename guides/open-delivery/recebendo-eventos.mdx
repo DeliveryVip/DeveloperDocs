@@ -157,7 +157,9 @@ Valide sobre os **bytes como chegaram**. Fazer parse e re-serializar o JSON muda
 | Qualquer outro código, **inclusive `5xx`** | Falha definitiva na primeira tentativa. Reenvio manual pelo painel de developers. |
 
 * **Toda tentativa que falha conta** para a suspensão, inclusive as retentativas. Uma entrega bem-sucedida zera a contagem.
-* Após **10 falhas consecutivas** as entregas daquela **loja** são **suspensas** (você é notificado por e-mail, com o nome da loja). As demais lojas continuam recebendo normalmente.
+* Ao atingir **10, 20 e 25 falhas consecutivas** em uma loja, o e-mail de contato do app recebe um alerta com o nome da loja e o motivo da última falha.
+* Na **30ª falha consecutiva**, as entregas daquela **loja** são **suspensas**, e chega um e-mail de suspensão. As demais lojas continuam recebendo normalmente.
+* Entregas que ainda estavam em nova tentativa quando a loja foi suspensa passam a falha (`Webhook suspended`) e podem ser reenviadas pelo painel.
 
 Para religar as entregas de uma loja suspensa, depois de corrigir o endpoint:
 
@@ -262,6 +264,6 @@ Eventos entregues por webhook **também** aparecem no polling até serem confirm
 | --- | --- | --- |
 | Assinatura nunca confere | Validando com o secret do app, ou sobre o JSON re-serializado | Use o `client_secret` da loja (`ods_...`) e o corpo bruto |
 | Os mesmos eventos voltam em toda chamada do polling | Acknowledgment não enviado, ou enviado com `eventId` em vez de `id` | Envie `[{ "id": "<eventId>" }]` para cada evento |
-| Entregas pararam de chegar | Loja suspensa após 10 falhas consecutivas | Corrija o endpoint e reative (onboarding, botão ou formulário) |
+| Entregas pararam de chegar | Loja suspensa após 30 falhas consecutivas | Corrija o endpoint e reative (onboarding, botão ou formulário) |
 | `5xx` do seu lado e o evento não voltou | `5xx` é falha definitiva, sem retentativa | Recupere pelo polling ou pelo reenvio manual no painel |
 | `403` no polling | Valor inválido em `eventType` ou `orderType` | Use só os valores da lista |

@@ -6,6 +6,16 @@ icon: newspaper
 
 Novidades, mudanças de comportamento e breaking changes nas APIs. Use os filtros por produto para ver só o que afeta a sua integração. Rotas em descontinuação ficam em [Deprecations](/deprecations).
 
+<Update label="04/11/2026" description="Webhooks suspensos após 30 falhas, com alertas" tags={["Webhooks", "Merchant API", "Open Delivery"]} rss={{ title: "04/11/2026: suspensão de webhooks após 30 falhas, com alertas", description: "O limite de falhas consecutivas passa de 10 para 30, com e-mails de alerta em 10, 20 e 25 falhas." }}>
+- **Webhooks:** a suspensão automática passa a acontecer após **30 falhas consecutivas** (antes eram 10). Vale para o envio da aplicação e para o envio por loja das extensões Open Delivery. Continua igual: toda tentativa que falha conta, uma entrega bem-sucedida zera o contador e a reativação é manual. [Saiba mais](/guides/merchant/webhooks#suspensão-automática)
+- **Webhooks:** ao atingir **10, 20 e 25 falhas consecutivas**, o e-mail de contato da aplicação recebe um alerta **Falhas no envio de webhooks**, com o número de falhas, quantas faltam para a suspensão e o motivo da última. No Open Delivery, o alerta traz o nome da loja. [Saiba mais](/guides/open-delivery/recebendo-eventos#reentrega-e-suspensão)
+- **Webhooks:** entregas que estavam em nova tentativa quando o envio foi suspenso passam a aparecer como falha (`Webhook suspended`) na tela **Webhooks enviados** e podem ser reenviadas. Antes, ficavam presas em tentativa, sem reenvio manual.
+
+<Info>
+Apps e lojas que já estavam suspensos continuam suspensos até a reativação. A contagem atual é mantida: um app com 12 falhas recebe o primeiro alerta em 20.
+</Info>
+</Update>
+
 <Update label="22/10/2026" description="Faturas com valor proporcional e novos tipos de item" tags={["Partner API"]} rss={{ title: "22/10/2026: faturas com valor proporcional e novos tipos de item", description: "usageTimeValue nos blocos de preço, valores em reais nos itens, novos tipos de item, RECEIVABLE condicional em resales/invoices e planId ignorado em revendas." }}>
 - **Invoices:** os blocos de preço das faturas (`totalPrice[]` com `type`, `value` e `currency`) agora trazem também `usageTimeValue`, o valor **proporcional ao tempo em que a assinatura da loja ficou ativa** no mês. O `value` continua sendo o valor do mês cheio. Vale para `GET /partner/v2/{partnerId}/invoices`, `GET /partner/v2/{partnerId}/merchants/invoices` e `GET /partner/v2/{partnerId}/resales/invoices` (no resumo, nos itens e nos planos). [Saiba mais](/guides/partner/invoices/definicoes)
 - **Invoices:** os itens de `GET /partner/v2/merchants/invoices` e `GET /partner/v2/resales/invoices` passam a trazer o valor em reais: `totalPrice` (mês cheio) e `totalUsageTimePrice` (proporcional ao `usageTime`). Os dois campos só são enviados quando o token representa o parceiro dono da fatura; para token de revenda eles não aparecem, assim como o `tieredPricingRanges` do `metadata`. [Saiba mais](/guides/partner/merchant/utilizando-a-api/listar-faturas-dos-merchants)

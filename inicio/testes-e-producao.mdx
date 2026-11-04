@@ -77,7 +77,7 @@ Antes de liberar o app para lojas reais, confira cada item na loja de teste. Esc
 | 3 | Resposta **2xx rápida**: o evento é gravado e processado depois (limite de 3 s para conectar e 5 s para responder). | [O que o seu endpoint deve fazer](/guides/merchant/webhooks#o-que-o-seu-endpoint-deve-fazer) |
 | 4 | Repetidos descartados pelo `eventId`. | [O que o seu endpoint deve fazer](/guides/merchant/webhooks#o-que-o-seu-endpoint-deve-fazer) |
 | 5 | Sobrecarga respondida com `429` ou `408`: só esses, timeouts e erros de conexão têm nova tentativa automática. Um `5xx` vira falha na hora. | [Tentativas e reenvio](/guides/merchant/webhooks#tentativas-e-reenvio) |
-| 6 | Plano para a suspensão: 10 falhas consecutivas suspendem o envio, e a reativação é manual no painel. | [Suspensão automática](/guides/merchant/webhooks#suspensão-automática) |
+| 6 | Plano para a suspensão: 30 falhas consecutivas suspendem o envio (com alertas por e-mail em 10, 20 e 25), e a reativação é manual no painel. | [Suspensão automática](/guides/merchant/webhooks#suspensão-automática) |
 | 7 | Polling rodando como reconciliação, para recuperar o que o webhook perdeu. | [Webhooks](/guides/merchant/webhooks) |
 | 8 | Tipos de evento desconhecidos respondidos com `2xx` e ignorados. | [Tipos de evento](/guides/merchant/webhooks#tipos-de-evento) |
 </Tab>
@@ -128,7 +128,7 @@ Como não há sandbox, não existe migração de ambiente: **nada muda nas URLs 
 
 <Steps>
 <Step title="Revise o app no painel" icon="sliders">
-Confira as permissões (scopes), o **e-mail de contato**, que recebe os avisos de instalação e de suspensão do webhook, e a **URL de webhook**, que agora deve apontar para o seu endpoint de produção. O app tem uma única URL de webhook para todas as lojas.
+Confira as permissões (scopes), o **e-mail de contato**, que recebe os avisos de instalação, os alertas de falhas no webhook e o aviso de suspensão, e a **URL de webhook**, que agora deve apontar para o seu endpoint de produção. O app tem uma única URL de webhook para todas as lojas.
 </Step>
 <Step title="Envie o token de autorização às lojas" icon="paper-plane">
 Cada loja instala o app pela Delivery Store com o token de autorização. Envie junto o guia [Instalando o app na loja](/inicio/primeiros-passos/instalando-app-na-loja) e peça o `merchantId` no fim.
@@ -151,8 +151,8 @@ Os eventos da loja de teste continuam chegando no mesmo app. Se você mantiver a
 <Card title="Webhooks enviados" icon="list-check" href="/guides/merchant/webhooks#acompanhamento">
 No painel do developer, na sua aplicação, **Ver webhooks enviados**: histórico de entregas, status HTTP, tentativas e reenvio das que falharam.
 </Card>
-<Card title="E-mail de suspensão" icon="envelope" href="/guides/merchant/webhooks#suspensão-automática">
-Após 10 falhas consecutivas, o envio é suspenso e o e-mail de contato do app recebe o aviso com o motivo. Reative em **Reativar envios**.
+<Card title="E-mails de alerta e suspensão" icon="envelope" href="/guides/merchant/webhooks#suspensão-automática">
+O e-mail de contato do app recebe alertas ao atingir 10, 20 e 25 falhas consecutivas. Após 30, o envio é suspenso e chega o aviso com o motivo. Reative em **Reativar envios**.
 </Card>
 </CardGroup>
 

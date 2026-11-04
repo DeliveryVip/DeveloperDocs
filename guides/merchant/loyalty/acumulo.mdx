@@ -164,7 +164,7 @@ Se usar webhook como canal (recomendado), valem as regras da [documentação de 
 * o `X-App-Id` dos webhooks é um identificador **fixo** da plataforma, não o `client_id` do seu app;
 * qualquer `2xx` é sucesso; apenas `408` e `429` são retentados (3 tentativas no total);
 * **qualquer outro não-2xx, inclusive `5xx`, é recusa definitiva** (fica para reenvio manual);
-* 10 falhas consecutivas suspendem as entregas do app.
+* 30 falhas consecutivas suspendem as entregas do app (com alertas por e-mail em 10, 20 e 25).
 
 <Check>
 Responda `2xx` rápido e processe o acúmulo de forma assíncrona. Se a busca do pedido falhar, não marque o `eventId` como processado: o polling (enquanto você não enviar o acknowledgment, por até 24 horas) ou um reenvio manual traz o evento de volta.

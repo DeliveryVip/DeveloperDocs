@@ -514,7 +514,7 @@ O pedido aparece como **confirmado** no painel da loja, e o evento `CONFIRMED` c
 | `invalid_client` no token | `client_secret` de outra loja, ou a loja desinstalou o app | Confira o secret da loja; depois de reinstalar, use o novo |
 | `404` em todas as chamadas | Rotas montadas sem o `/v1`, ou o token pedido em `/v1/oauth/token` | API em `https://od.deliveryvip.com.br/v1`; token em `https://od.deliveryvip.com.br/oauth/token` |
 | `orderURL` aponta para `api.deliveryvip.com.br/merchant/v3` | A loja ainda não tem `merchantId` configurado | Faça o [onboarding](/guides/open-delivery/onboarding-de-lojas) da loja |
-| O webhook não chega | URL não pública, loja sem `ordersWebhookURL`, ou entregas suspensas após 10 falhas | Confira a URL no onboarding; reenviar o onboarding religa as entregas |
+| O webhook não chega | URL não pública, loja sem `ordersWebhookURL`, ou entregas suspensas após 30 falhas | Confira a URL no onboarding; reenviar o onboarding religa as entregas |
 | Os mesmos eventos voltam no polling | Acknowledgment não enviado, ou enviado com `eventId` em vez de `id` | Envie `[{ "id": "<eventId>" }]` para cada evento processado |
 | `404` ao buscar o pedido | Pedido com pagamento online ainda não aprovado | Teste com pagamento na entrega; o programa tenta de novo no próximo polling |
 | `422` ao confirmar | O pedido não aceita a ação no estado atual (por exemplo, já cancelado) | Consulte o pedido e siga o [ciclo de vida](/guides/open-delivery/ciclo-de-vida-do-pedido) |
