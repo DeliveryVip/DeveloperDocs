@@ -362,7 +362,7 @@ document.fonts.ready.then(() => {
       { from: "dv", to: "op", text: "pedido (spec Order 1.3.0)", reply: true },
       { from: "op", to: "dv", text: "<code>POST /v1/orders/{orderId}/confirm</code>" },
       { from: "dv", to: "op", text: "202 + evento <code>CONFIRMED</code>", reply: true },
-      { from: "op", to: "dv", text: "<code>POST .../preparing</code>, <code>readyForPickup</code>, <code>dispatch</code>..." },
+      { from: "op", to: "dv", text: "<code>POST .../readyForPickup</code>, <code>dispatch</code>, <code>delivered</code>" },
       { from: "dv", to: "op", text: "202 + eventos correspondentes", reply: true },
       { note: "<code>delivered</code> gera <code>DELIVERED</code> e <code>CONCLUDED</code>", over: "dv" }
     ]

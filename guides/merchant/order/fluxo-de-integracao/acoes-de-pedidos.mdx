@@ -105,6 +105,8 @@ curl --request POST 'https://api.deliveryvip.com.br/merchant/v3/orders/{orderId}
 
 Quando a loja não vai atender o pedido, por exemplo por falta de item ou fora da área de entrega. O pedido é **cancelado na hora** e gera o evento `CANCELLED`. A resposta é `200 OK` com o `id` do pedido.
 
+Se o pedido tem uma entrega ativa com parceiro de logística, ela também é cancelada automaticamente, e o pagamento online é estornado. Um pedido já concluído não pode ser cancelado e responde `422`.
+
 <ParamField body="code" type="string">
 Motivo padronizado: `SYSTEMIC_ISSUES`, `DUPLICATE_APPLICATION`, `UNAVAILABLE_ITEM`, `RESTAURANT_WITHOUT_DELIVERY_MAN`, `OUTDATED_MENU`, `ORDER_OUTSIDE_THE_DELIVERY_AREA`, `BLOCKED_CUSTOMER`, `OUTSIDE_DELIVERY_HOURS`, `INTERNAL_DIFFICULTIES_OF_THE_RESTAURANT` ou `RISK_AREA`.
 </ParamField>

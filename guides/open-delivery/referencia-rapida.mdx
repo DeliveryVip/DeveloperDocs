@@ -19,7 +19,7 @@ Host: `https://od.deliveryvip.com.br`
 | `GET` | `/v1/events:polling` | Eventos pendentes (últimas 24 h, máx. 100 por chamada, mais antigos primeiro). Filtros `eventType` e `orderType` repetidos na query. |
 | `POST` | `/v1/events/acknowledgment` | Confirmar eventos processados (`202`, idempotente). |
 | `GET` | `/v1/orders/{orderId}` | Detalhes de um pedido. |
-| `POST` | `/v1/orders/{orderId}/{ação}` | Transicionar o status: `confirm`, `preparing`, `readyForPickup`, `pickedUp`, `dispatch`, `delivered`, `requestCancellation`, `acceptCancellation`, `denyCancellation`, `tracking`. |
+| `POST` | `/v1/orders/{orderId}/{ação}` | Transicionar o status: `confirm`, `readyForPickup`, `dispatch`, `delivered`, `requestCancellation`, `acceptCancellation`, `denyCancellation`, `tracking`. Veja o [ciclo por tipo de pedido](/guides/open-delivery/ciclo-de-vida-do-pedido#ciclo-por-tipo-de-pedido). |
 
 ## A DeliveryVip chama: seu sistema
 

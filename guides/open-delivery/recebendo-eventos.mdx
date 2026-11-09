@@ -56,13 +56,15 @@ Dados extras de alguns eventos, como o motivo de um cancelamento. Só vem quando
 | ------ | ------ |
 | `CREATED` | Novo pedido. |
 | `CONFIRMED` | Pedido confirmado. |
-| `PREPARING` | Pedido em preparo. |
+| `PREPARING` | Pedido em preparo. Fora da spec `1.3.0`; veja abaixo. |
 | `READY_FOR_PICKUP` | Pedido pronto para retirada. |
 | `DISPATCHED` | Pedido despachado para entrega. |
-| `PICKED_UP` | Pedido retirado. |
+| `PICKED_UP` | Pedido de retirada ou consumo no local retirado pelo cliente; vem logo antes do `CONCLUDED`. Fora da spec `1.3.0`; veja abaixo. |
 | `DELIVERED` | Pedido entregue. |
 | `CONCLUDED` | Pedido concluído. Fim do ciclo. |
 | `CANCELLED` | Pedido cancelado, pela loja, pelo seu sistema ou pela plataforma. |
+
+`PREPARING` e `PICKED_UP` vêm de versões mais novas do Open Delivery e não estão no enum da spec `1.3.0`. A DeliveryVip pode emiti-los mesmo que você nunca chame `preparing` ou `pickedUp`: basta que a loja ou outra integração faça essa transição. O fim do ciclo é sempre marcado pelo `CONCLUDED`.
 
 `PICKUP_AREA_ASSIGNED`, `CANCELLATION_REQUESTED`, `CANCELLATION_REQUEST_DENIED` e `ORDER_CANCELLATION_REQUEST` existem na spec e são aceitos no filtro `eventType`, mas **a DeliveryVip ainda não os emite**. Trate tipos desconhecidos confirmando o recebimento e seguindo em frente.
 
