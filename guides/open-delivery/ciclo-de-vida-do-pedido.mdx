@@ -68,7 +68,7 @@ O ciclo segue a spec Order `1.3.0` e muda conforme o `orderType`. Um pedido pode
         `readyForPickup` gera `READY_FOR_PICKUP`: o pedido aguarda o cliente.
       </Step>
       <Step title="Concluir">
-        O pedido é concluído (`CONCLUDED`) quando o cliente retira. A spec `1.3.0` não tem uma ação de retirada: normalmente quem conclui é a loja, no painel. Se o seu PDV controla a retirada, chame `delivered`. Nesses tipos de pedido, ele conclui o pedido.
+        O pedido é concluído (`CONCLUDED`) quando o cliente retira. Se o seu PDV controla a retirada, chame `pickedUp`, o equivalente ao `delivered` para esses tipos, que gera `PICKED_UP` e `CONCLUDED`. Se não, quem conclui é a loja, no painel, com os mesmos eventos.
       </Step>
     </Steps>
   </Tab>
@@ -111,8 +111,9 @@ print(response.status_code)  # 202; 422 se o pedido não aceita a ação
 | ---- | --------- | -------- | ------------- |
 | `confirm` | Confirma o pedido. | `202` | `CONFIRMED` |
 | `readyForPickup` | Pedido pronto: aguardando o entregador (entrega) ou o cliente (retirada e consumo no local). | `202` | `READY_FOR_PICKUP` |
-| `dispatch` | Pedido de entrega saiu para entrega. Pode ser chamado direto após `confirm`; `readyForPickup` antes é opcional. Se o pedido já foi despachado, responde `422`. Nos demais tipos, conclui o pedido, como o `delivered`. | `202` | `DISPATCHED` (nos demais tipos, os mesmos eventos do `delivered`) |
-| `delivered` | Pedido concluído. Em entrega: se o pedido ainda não tinha sido despachado, o despacho é registrado antes. Em retirada e consumo no local: se o pedido ainda estava em preparo, ele é marcado como pronto antes. | `202` | Entrega: `DELIVERED` e `CONCLUDED`, precedidos de `DISPATCHED` se faltava o despacho. Demais tipos: `PICKED_UP` e `CONCLUDED`, precedidos de `READY_FOR_PICKUP` se o pedido ainda estava em preparo |
+| `dispatch` | Pedido de entrega saiu para entrega. Pode ser chamado direto após `confirm`; `readyForPickup` antes é opcional. Se o pedido já foi despachado, responde `422`. Nos demais tipos, equivale ao `pickedUp`. | `202` | `DISPATCHED` (nos demais tipos, os mesmos eventos do `pickedUp`) |
+| `pickedUp` | Pedido de retirada ou consumo no local retirado pelo cliente: o equivalente ao `delivered` para esses tipos. Se ainda estava em preparo, é marcado como pronto antes. Em pedidos de entrega responde `422`. | `202` | `PICKED_UP` e `CONCLUDED`, precedidos de `READY_FOR_PICKUP` se o pedido ainda estava em preparo |
+| `delivered` | Pedido de entrega entregue. Se ainda não tinha sido despachado, o despacho é registrado antes. Nos demais tipos, equivale ao `pickedUp`. | `202` | `DELIVERED` e `CONCLUDED`, precedidos de `DISPATCHED` se faltava o despacho (nos demais tipos, os mesmos eventos do `pickedUp`) |
 | `requestCancellation` | Cancela o pedido. Se houver entrega ativa com parceiro de logística, ela é cancelada automaticamente. Pedido concluído não pode ser cancelado e responde `422`. | `200` | `CANCELLED` |
 | `acceptCancellation` | Compatibilidade com a spec. | `200` | - |
 | `denyCancellation` | Compatibilidade com a spec. | `200` | - |
@@ -121,7 +122,7 @@ print(response.status_code)  # 202; 422 se o pedido não aceita a ação
 As respostas de sucesso trazem o `id` do pedido: `{"id": "64939842-..."}`. Uma ação que o estado atual do pedido não aceita (por exemplo, despachar um pedido já cancelado) responde `422`.
 
 <Note>
-A API também aceita `preparing` e `pickedUp`, que vêm de versões mais novas do Open Delivery e não fazem parte da spec `1.3.0`. Você não precisa deles: depois do `confirm`, o pedido já está em preparo, e a retirada se conclui com `delivered`.
+`pickedUp` vem de versões mais novas do Open Delivery e não faz parte da spec `1.3.0`, assim como o `preparing`, que a API também aceita. Você não precisa do `preparing`: depois do `confirm`, o pedido já está em preparo, e a chamada só registra o evento `PREPARING`.
 </Note>
 
 ## Fluxo de cancelamento
