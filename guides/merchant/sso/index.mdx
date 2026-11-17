@@ -16,6 +16,10 @@ Para usar, você precisa de duas coisas:
 Estas rotas não usam token Bearer. Cada requisição é assinada pelo seu backend com o `client_secret` do app, como mostra a seção [Assinatura da requisição](#assinatura-da-requisição).
 </Info>
 
+<Note>
+Integra com um marketplace? A Marketplace API tem a [versão deste guia para marketplaces](/guides/marketplace/sso), com os exemplos e o vetor de teste da rota `POST /marketplace/v1/{marketplaceId}/customers/sso`.
+</Note>
+
 ## Como funciona
 
 <Frame caption="Do toque no seu app à loja já logada">
@@ -123,6 +127,8 @@ url = response.json()["url"]
 </CodeGroup>
 </Tab>
 <Tab title="Marketplace" icon="shop">
+O guia completo para marketplaces está em [Login de consumidores no marketplace](/guides/marketplace/sso).
+
 <CodeGroup>
 ```bash cURL
 curl --request POST 'https://api.deliveryvip.com.br/marketplace/v1/{marketplaceId}/customers/sso' \
@@ -259,15 +265,15 @@ Confira a sua implementação com estes valores. Se a assinatura não bater, o p
 | `client_id` | `client-abc` |
 | Método | `POST` |
 | Path | `/merchant/v3/7b1f2c3d-0000-4000-8000-000000000001/customers/sso` |
-| Corpo | `{"profile":{"name":"Maria Fixe","email":"maria@example.com","phone":"+5531999990000"}}` |
-| SHA-256 do corpo | `c72503b5c7381342ba8618888856344b5d1b37b3616a8c3db076d0650aa608de` |
+| Corpo | `{"profile":{"name":"Maria Silva","email":"maria@example.com","phone":"+5531999990000"}}` |
+| SHA-256 do corpo | `752f9f654982fa1147c774f7e370ec6c64ca344190d911db920bf80226ef8e58` |
 | Timestamp | `1763300000` |
 | Nonce | `9f2c8a1e-4b7d-4c21-9f3a-2e5d8c1b7a04` |
 
 A assinatura resultante é:
 
 ```text
-v1=a8d1762ff44e089b6d517ded1634a5cd8d0542cd47301aaaa4b8431645d4581a
+v1=3886debc43ba58468c6476e7e7f4a55d29513cca88fbde47b59728e015bb4a26
 ```
 
 <Warning>
