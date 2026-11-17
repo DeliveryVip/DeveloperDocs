@@ -212,6 +212,26 @@
                 "icon": "tag"
               },
               {
+                "group": "Fidelidade",
+                "icon": "gift",
+                "pages": [
+                  "guides/merchant/loyalty/index",
+                  "guides/merchant/loyalty/primeiros-passos",
+                  "guides/merchant/loyalty/operador-minimo",
+                  "guides/merchant/loyalty/ativando-o-programa",
+                  "guides/merchant/loyalty/acumulo",
+                  {
+                    "group": "Contrato do operador",
+                    "icon": "file-contract",
+                    "pages": [
+                      "guides/merchant/loyalty/contrato-do-operador/index",
+                      "guides/merchant/loyalty/contrato-do-operador/vinculo-e-pin",
+                      "guides/merchant/loyalty/contrato-do-operador/resgate-e-estorno"
+                    ]
+                  }
+                ]
+              },
+              {
                 "group": "Ferramentas",
                 "pages": [
                   "guides/merchant/tools/index",
@@ -391,11 +411,50 @@
                     "icon": "tag"
                   },
                   {
+                    "group": "Fidelidade",
+                    "icon": "gift",
+                    "pages": [
+                      "guides/merchant/loyalty/referencia-rapida",
+                      {
+                        "group": "Configuração do programa",
+                        "pages": [
+                          "reference/merchant/v3/loyalty",
+                          {
+                            "group": "Push da configuração",
+                            "openapi": "https://app.deliveryvip.com.br/swaggers/merchant.yaml",
+                            "pages": [
+                              "PUT /merchant/v3/{merchantId}/loyalty/config"
+                            ]
+                          },
+                          {
+                            "group": "Remoção da configuração",
+                            "openapi": "https://app.deliveryvip.com.br/swaggers/merchant.yaml",
+                            "pages": [
+                              "DELETE /merchant/v3/{merchantId}/loyalty/config"
+                            ]
+                          }
+                        ],
+                        "icon": "sliders"
+                      },
+                      {
+                        "group": "Rotas do operador",
+                        "openapi": "https://app.deliveryvip.com.br/swaggers/loyalty_operator.yaml",
+                        "pages": [
+                          "GET /v1/loyalty/ping",
+                          "POST /v1/loyalty/accounts:link",
+                          "GET /v1/loyalty/accounts/{accountId}",
+                          "POST /v1/loyalty/redemptions",
+                          "POST /v1/loyalty/redemptions/{redemptionId}/reversal"
+                        ],
+                        "icon": "server"
+                      }
+                    ]
+                  },
+                  {
                     "group": "Login de consumidores",
                     "openapi": "https://app.deliveryvip.com.br/swaggers/customer_sso.yaml",
                     "pages": [
-                      "POST /merchant/v3/{merchantId}/customers/sso",
-                      "POST /marketplace/v1/{marketplaceId}/customers/sso"
+                      "POST /merchant/v3/{merchantId}/customers/sso"
                     ],
                     "icon": "user-check"
                   },
@@ -501,76 +560,82 @@
             "icon": "right-left"
           },
           {
-            "tab": "Fidelidade",
+            "tab": "Marketplace API",
             "groups": [
               {
                 "group": "Visão geral",
                 "pages": [
-                  "guides/merchant/loyalty/index",
-                  "guides/merchant/loyalty/primeiros-passos",
-                  "guides/merchant/loyalty/operador-minimo"
+                  "guides/marketplace/index"
                 ],
                 "icon": "compass"
               },
               {
                 "group": "Guias",
                 "pages": [
-                  "guides/merchant/loyalty/ativando-o-programa",
-                  "guides/merchant/loyalty/acumulo"
+                  "guides/marketplace/lojas",
+                  "guides/marketplace/pedidos",
+                  "guides/marketplace/descontos",
+                  "guides/marketplace/sso"
                 ],
-                "icon": "map"
-              },
-              {
-                "group": "Contrato do operador",
-                "pages": [
-                  "guides/merchant/loyalty/contrato-do-operador/index",
-                  "guides/merchant/loyalty/contrato-do-operador/vinculo-e-pin",
-                  "guides/merchant/loyalty/contrato-do-operador/resgate-e-estorno"
-                ],
-                "icon": "file-contract"
+                "icon": "book-open"
               },
               {
                 "group": "Referência",
                 "pages": [
-                  "guides/merchant/loyalty/referencia-rapida",
                   {
-                    "group": "Configuração do programa",
+                    "group": "Marketplace",
+                    "openapi": "https://app.deliveryvip.com.br/swaggers/marketplace.yaml",
                     "pages": [
-                      "reference/merchant/v3/loyalty",
-                      {
-                        "group": "Push da configuração",
-                        "openapi": "https://app.deliveryvip.com.br/swaggers/merchant.yaml",
-                        "pages": [
-                          "PUT /merchant/v3/{merchantId}/loyalty/config"
-                        ]
-                      },
-                      {
-                        "group": "Remoção da configuração",
-                        "openapi": "https://app.deliveryvip.com.br/swaggers/merchant.yaml",
-                        "pages": [
-                          "DELETE /merchant/v3/{merchantId}/loyalty/config"
-                        ]
-                      }
+                      "GET /marketplace/v1/{marketplaceId}"
                     ],
-                    "icon": "sliders"
+                    "icon": "shop"
                   },
                   {
-                    "group": "Rotas do operador",
-                    "openapi": "https://app.deliveryvip.com.br/swaggers/loyalty_operator.yaml",
+                    "group": "Lojas",
+                    "openapi": "https://app.deliveryvip.com.br/swaggers/marketplace.yaml",
                     "pages": [
-                      "GET /v1/loyalty/ping",
-                      "POST /v1/loyalty/accounts:link",
-                      "GET /v1/loyalty/accounts/{accountId}",
-                      "POST /v1/loyalty/redemptions",
-                      "POST /v1/loyalty/redemptions/{redemptionId}/reversal"
+                      "GET /marketplace/v1/merchants",
+                      "GET /marketplace/v1/merchants/{merchantId}",
+                      "GET /marketplace/v1/merchants/sales"
                     ],
-                    "icon": "server"
+                    "icon": "store"
+                  },
+                  {
+                    "group": "Pedidos",
+                    "openapi": "https://app.deliveryvip.com.br/swaggers/marketplace.yaml",
+                    "pages": [
+                      "GET /marketplace/v1/{marketplaceId}/orders"
+                    ],
+                    "icon": "receipt"
+                  },
+                  {
+                    "group": "Descontos",
+                    "openapi": "https://app.deliveryvip.com.br/swaggers/marketplace.yaml",
+                    "pages": [
+                      "GET /marketplace/v1/{marketplaceId}/discounts",
+                      "POST /marketplace/v1/{marketplaceId}/discounts",
+                      "GET /marketplace/v1/{marketplaceId}/discounts/{discountId}",
+                      "PATCH /marketplace/v1/{marketplaceId}/discounts/{discountId}",
+                      "DELETE /marketplace/v1/{marketplaceId}/discounts/{discountId}",
+                      "POST /marketplace/v1/{marketplaceId}/discounts/{discountId}/available",
+                      "POST /marketplace/v1/{marketplaceId}/discounts/{discountId}/unavailable",
+                      "GET /marketplace/v1/{marketplaceId}/discounts/{discountId}/stats"
+                    ],
+                    "icon": "tag"
+                  },
+                  {
+                    "group": "Login de consumidores",
+                    "openapi": "https://app.deliveryvip.com.br/swaggers/customer_sso.yaml",
+                    "pages": [
+                      "POST /marketplace/v1/{marketplaceId}/customers/sso"
+                    ],
+                    "icon": "user-check"
                   }
                 ],
                 "icon": "code"
               }
             ],
-            "icon": "gift"
+            "icon": "shop"
           },
           {
             "tab": "Partner API",

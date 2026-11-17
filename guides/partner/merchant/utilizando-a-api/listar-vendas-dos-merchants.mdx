@@ -11,7 +11,8 @@ icon: chart-column
 | --- | --- |
 | `200 OK` | Lista de vendas por loja. |
 | `204 No Content` | Nenhuma loja encontrada. |
-| `403 Forbidden` | `subscriptionStatus` inválido ou `x-partners` fora do alcance do token. |
+| `403 Forbidden` | `x-partners` fora do alcance do token. |
+| `422 Unprocessable Content` | `subscriptionStatus` inválido (`Invalid subscription status`), `month` inválido (`Invalid month`) ou `year` inválido (`Invalid year`). |
 
 <Info>
 Entram no cálculo os pedidos **criados** no mês com status `pending`, `completed`, `preparing`, `ready` ou `delivering`. Pedidos cancelados ficam de fora.
@@ -63,15 +64,15 @@ Valor total vendido no mês, em reais.
 ## Filtros
 
 <ParamField query="year" type="integer">
-Ano. Sem ele, vale o ano corrente.
+Ano, de 1 a 9999. Sem ele, vale o ano corrente. Valor não inteiro ou fora do intervalo retorna `422`.
 </ParamField>
 
 <ParamField query="month" type="integer">
-Mês, de 1 a 12. Sem ele, vale o mês corrente.
+Mês, de 1 a 12. Sem ele, vale o mês corrente. Valor não inteiro ou fora do intervalo retorna `422`.
 </ParamField>
 
 <ParamField query="subscriptionStatus[]" type="string[]">
-Status da assinatura das lojas, repetido uma vez por valor: `TRIAL`, `TRIAL_EXPIRED`, `ACTIVATED`, `CANCELLED` ou `DEMO`.
+Status da assinatura das lojas, repetido uma vez por valor: `TRIAL`, `TRIAL_EXPIRED`, `ACTIVATED`, `CANCELLED` ou `DEMO`. Valor desconhecido retorna `422`.
 
 ```text
 /partner/v2/merchants/sales?subscriptionStatus[]=TRIAL&subscriptionStatus[]=ACTIVATED

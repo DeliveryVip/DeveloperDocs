@@ -1,0 +1,250 @@
+---
+title: Pedidos do marketplace
+sidebarTitle: Pedidos
+description: Liste os pedidos feitos por um marketplace, de todas as lojas dele, com filtros por período e tipo e paginação por cursor.
+icon: receipt
+---
+
+`GET /marketplace/v1/{marketplaceId}/orders` lista os pedidos que os consumidores fizeram **pelo marketplace**, em todas as lojas dele. Use para conciliar o movimento do marketplace, montar relatórios ou recuperar pedidos que o seu sistema perdeu. Pedidos que a loja recebeu pelo cardápio próprio ou por outros canais não aparecem aqui.
+
+A rota é **por marketplace**: o `marketplaceId` vai no caminho. Veja como obtê-lo na [Introdução](/guides/marketplace#para-começar) e as regras de `x-marketplaces` em [Header x-marketplaces](/guides/marketplace#header-x-marketplaces). A referência completa está em [Listar pedidos](/api-reference/pedidos/listar-pedidos).
+
+<Info>
+A listagem traz pedidos em **qualquer estado**, inclusive cancelados, do mais recente para o mais antigo. Não há filtro por estado: use o campo `lastEvent` de cada pedido.
+
+| Estado do pedido | `lastEvent` |
+| --- | --- |
+| Novo, aguardando a loja | `CREATED` |
+| Em preparo | `CONFIRMED` |
+| Pronto | `READY_FOR_PICKUP` |
+| Saiu para entrega | `DISPATCHED` |
+| Concluído | `CONCLUDED` |
+| Cancelado ou recusado | `CANCELLED` |
+
+Pedidos aguardando pagamento ou com pagamento não concluído vêm **sem** `lastEvent`.
+</Info>
+
+## Requisição
+
+<CodeGroup>
+```bash cURL
+curl --include 'https://api.deliveryvip.com.br/marketplace/v1/7b1f2c3d-0000-4000-8000-000000000001/orders?startsAt=2026-11-01&endsIn=2026-11-07&orderType[]=DELIVERY' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+const url = new URL(`https://api.deliveryvip.com.br/marketplace/v1/${marketplaceId}/orders`)
+url.searchParams.set('startsAt', '2026-11-01')
+url.searchParams.set('endsIn', '2026-11-07')
+url.searchParams.append('orderType[]', 'DELIVERY')
+
+const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+const orders = response.status === 204 ? [] : await response.json()
+const nextCursor = response.headers.get('x-next-cursor')
+```
+
+```python Python
+response = requests.get(
+    f"https://api.deliveryvip.com.br/marketplace/v1/{marketplace_id}/orders",
+    headers={"Authorization": f"Bearer {token}"},
+    params={"startsAt": "2026-11-01", "endsIn": "2026-11-07", "orderType[]": ["DELIVERY"]},
+)
+orders = [] if response.status_code == 204 else response.json()
+next_cursor = response.headers.get("x-next-cursor")
+```
+</CodeGroup>
+
+<ParamField path="marketplaceId" type="uuid" required>
+O marketplace. Se ele não existir, não tiver instalado o app ou ficar de fora de `x-marketplaces`, a resposta é `404`.
+</ParamField>
+
+### Filtros
+
+<ParamField query="startsAt" type="date">
+Primeiro dia do período, no formato `AAAA-MM-DD`, desde o início do dia no fuso de Brasília. Sem `endsIn`, o período vai até o fim do dia de hoje.
+</ParamField>
+
+<ParamField query="endsIn" type="date">
+Último dia do período, no formato `AAAA-MM-DD`, até o fim do dia. Exige `startsAt`: enviado sozinho, responde `406`.
+</ParamField>
+
+<ParamField query="orderType[]" type="string[]">
+Tipos de pedido, em maiúsculas ou minúsculas. Repita o parâmetro **com colchetes**, uma vez por valor. Um valor fora da lista responde `406`.
+
+| Valor | Traz |
+| --- | --- |
+| `DELIVERY` | Pedidos de entrega. |
+| `TAKEOUT` | Pedidos para retirada. |
+| `INDOOR` | Pedidos de autoatendimento (comandas e mesas) **e** pedidos de consumo no local. |
+| `DINE_IN` | Só os pedidos de consumo no local. |
+
+```text
+/marketplace/v1/{marketplaceId}/orders?orderType[]=DELIVERY&orderType[]=TAKEOUT
+```
+</ParamField>
+
+<Info>
+Os pedidos de consumo no local saem com `type: INDOOR` na resposta, por isso o filtro `INDOOR` também os traz.
+</Info>
+
+<Warning>
+Uma data que não pode ser interpretada, como `startsAt=2026-13-01`, é descartada sem erro. Sozinha, a resposta vem `200` sem filtro de período. Com `endsIn` válido, a resposta é `406`. Envie sempre `AAAA-MM-DD`.
+</Warning>
+
+### Formato dos complementos
+
+<ParamField query="views[]" type="string">
+Envie `optionGroups` para receber os complementos de cada item agrupados em `items[].optionGroups`, em vez da lista simples `items[].options`. O valor `groupOptions` é o formato antigo e está descontinuado: ele gera outra chave, `items[].optionsGroup`.
+
+```text
+/marketplace/v1/{marketplaceId}/orders?views[]=optionGroups
+```
+</ParamField>
+
+### Paginação
+
+<ParamField query="perPage" type="integer" default="30">
+Pedidos por página, entre **30** e **250**. Valores fora dessa faixa são ajustados para o limite mais próximo; um valor ausente, inválido ou zero vale 30.
+</ParamField>
+
+<ParamField query="next" type="string">
+Cursor da próxima página, copiado do header `X-Next-Cursor` da resposta anterior.
+</ParamField>
+
+<ParamField query="previous" type="string">
+Cursor da página anterior, copiado do header `X-Previous-Cursor`. Não envie `next` e `previous` juntos: a resposta é `400`.
+</ParamField>
+
+A resposta traz os cursores nos headers `X-Next-Cursor` e `X-Previous-Cursor` e as URLs prontas no header `Link` (`rel="next"` e `rel="prev"`). Cada header só vem quando existe a página correspondente. Veja [Paginação](/inicio/conceitos/paginacao).
+
+<Steps>
+<Step title="Primeira página">
+Chame a listagem com os filtros que você precisa.
+</Step>
+<Step title="Leia o cursor">
+Se a resposta tiver `X-Next-Cursor`, há mais pedidos.
+</Step>
+<Step title="Próxima página">
+Repita a mesma chamada com `next={cursor}`, mantendo os filtros, até a resposta vir sem `X-Next-Cursor`.
+</Step>
+</Steps>
+
+<Tip>
+Os nomes também são aceitos em snake_case: `starts_at`, `ends_in`, `per_page` e `order_type[]` funcionam como `startsAt`, `endsIn`, `perPage` e `orderType[]`.
+</Tip>
+
+## Respostas
+
+| Status | Quando |
+| --- | --- |
+| `200 OK` | Lista de pedidos da página. |
+| `204 No Content` | Nenhum pedido para os filtros informados. Sem corpo. |
+| `400 Bad Request` | `next` e `previous` enviados juntos. |
+| `404 Not Found` | O marketplace não existe, não instalou o app ou ficou de fora de `x-marketplaces`. |
+| `406 Not Acceptable` | Filtro inválido: `orderType[]` desconhecido ou `endsIn` sem `startsAt`. |
+
+No `406`, `title` é um objeto com o campo e as mensagens:
+
+```json
+{ "status": "406", "title": { "startsAt": ["can't be blank"] } }
+```
+
+Os erros de autenticação e de `x-marketplaces` estão em [Erros comuns](/guides/marketplace#erros-comuns).
+
+## O pedido
+
+Cada item da lista é um pedido **no mesmo formato da Merchant API v3**: o mesmo objeto de [Obter detalhes do pedido](/guides/merchant/order/fluxo-de-integracao/obter-detalhes-do-pedido), com os campos descritos em [Campos do pedido](/guides/merchant/order/fluxo-de-integracao/obter-detalhes-do-pedido#campos-do-pedido) e o schema em [Consultar pedido](/api-reference/orders/consultar-pedido). Um parser de pedidos da Merchant API serve aqui sem mudanças.
+
+Como a listagem junta todas as lojas do marketplace, use `merchant.id` para saber de qual loja é cada pedido. Ele é o mesmo `id` de [Lojas](/guides/marketplace/lojas).
+
+<Accordion title="Exemplo de resposta (200)" icon="code">
+```json
+[
+  {
+    "id": "6c6bba10-0000-4000-8000-000000000201",
+    "type": "DELIVERY",
+    "displayId": "7RGSGF",
+    "salesChannel": "MARKETPLACE",
+    "createdAt": "2026-11-03T19:48:23-03:00",
+    "orderTiming": "INSTANT",
+    "preparationStartDateTime": "2026-11-03T19:48:23-03:00",
+    "lastEvent": "CONFIRMED",
+    "merchant": {
+      "id": "7b1f2c3d-0000-4000-8000-000000000101",
+      "name": "Pizzaria Bella Napoli"
+    },
+    "items": [
+      {
+        "id": "27f1ae65-0000-4000-8000-000000000301",
+        "index": 0,
+        "name": "Pizza Margherita Grande",
+        "externalCode": "156",
+        "unit": "UN",
+        "quantity": 1,
+        "unitPrice": { "value": 59.9, "currency": "BRL" },
+        "totalPrice": { "value": 59.9, "currency": "BRL" }
+      }
+    ],
+    "otherFees": [
+      {
+        "name": "DELIVERY_FEE",
+        "type": "DELIVERY_FEE",
+        "receivedBy": "MERCHANT",
+        "price": { "value": 7.0, "currency": "BRL" }
+      }
+    ],
+    "total": {
+      "itemsPrice": { "value": 59.9, "currency": "BRL" },
+      "otherFees": { "value": 7.0, "currency": "BRL" },
+      "discount": { "value": 0.0, "currency": "BRL" },
+      "orderAmount": { "value": 66.9, "currency": "BRL" }
+    },
+    "payments": {
+      "prepaid": 66.9,
+      "pending": 0.0,
+      "methods": [
+        {
+          "value": 66.9,
+          "currency": "BRL",
+          "type": "PREPAID",
+          "method": "PIX"
+        }
+      ]
+    },
+    "customer": {
+      "id": "477c44bd-0000-4000-8000-000000000401",
+      "name": "Maria Silva",
+      "phone": { "number": "5511999990000" },
+      "email": "maria@exemplo.com",
+      "ordersCountOnMerchant": 3
+    },
+    "sendDelivered": true,
+    "sendPreparing": true,
+    "sendPickedUp": false,
+    "sendTracking": true
+  }
+]
+```
+
+O exemplo omite o bloco `delivery` (endereço e previsão de entrega) para ficar curto. Veja um pedido completo em [Obter detalhes do pedido](/guides/merchant/order/fluxo-de-integracao/obter-detalhes-do-pedido#exemplos).
+</Accordion>
+
+<AccordionGroup>
+<Accordion title="Posso confirmar ou despachar um pedido por aqui?" icon="hand">
+Não. A Marketplace API só lista os pedidos. As ações (confirmar, despachar, cancelar) são da loja, pela [Merchant API](/guides/merchant/order), com um token que tenha acesso a ela.
+</Accordion>
+<Accordion title="Qual fuso as datas do filtro usam?" icon="clock">
+`startsAt` e `endsIn` são datas, sem hora, interpretadas no fuso de Brasília: o período vai de 00:00:00 do primeiro dia a 23:59:59 do último.
+</Accordion>
+</AccordionGroup>
+
+## Próximos passos
+
+<CardGroup cols={2}>
+<Card title="Lojas e vendas" icon="store" href="/guides/marketplace/lojas">
+Consulte as lojas do marketplace e as vendas do mês.
+</Card>
+<Card title="Pedidos na Merchant API" icon="receipt" href="/guides/merchant/order">
+Entenda cada campo do pedido e o ciclo de vida dele.
+</Card>
+</CardGroup>

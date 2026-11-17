@@ -233,3 +233,4 @@ Os erros `422` trazem o motivo em `title`. Quando há mais de um erro de estrutu
 | `string at ... does not match pattern: ...` | UUID inválido (maiúsculas, v7), `name` sem letras ou números, ou `url` sem `https://` | Corrija o formato do campo indicado |
 | `... not available in merchant` | O ID referenciado não existe na loja. No update, também o próprio `id` do objeto | Crie o objeto antes (upsert) ou corrija o ID |
 | `modifierId '...' minPermitted cannot greater than maxPermitted` | `minPermitted` maior que `maxPermitted` | Ajuste os limites. Para "sem limite", envie os dois como `0` |
+| `{"serviceTime": ["must be greater than or equal to 0"]}` | `serviceTime` negativo num `SERVICE`. Erros de validação da loja vêm como objeto, com a chave do campo enviado (`serviceTime`, `merchantStatus` ou, no force, `status`) | Envie `serviceTime` igual ou maior que `0` |

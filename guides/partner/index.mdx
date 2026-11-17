@@ -116,9 +116,9 @@ Os erros seguem o formato `{"status": "422", "title": "..."}`. Veja [Erros](/ini
 | Status | Quando |
 | --- | --- |
 | `401 Unauthorized` | Token ausente, expirado ou revogado. |
-| `403 Forbidden` | Token sem o scope `dv.partner`, `x-partners` ou `partnerId` fora do alcance do token, ou filtro de assinatura inválido. |
+| `403 Forbidden` | Token sem o scope `dv.partner`, `x-partners` ou `partnerId` fora do alcance do token. |
 | `404 Not Found` | A loja, revenda, membro ou plano não existe ou não está abaixo de quem autorizou o app. |
-| `422 Unprocessable Content` | Dados inválidos ou transição de assinatura não permitida. |
+| `422 Unprocessable Content` | Dados inválidos, filtro inválido (como `subscriptionStatus`) ou transição de assinatura não permitida. |
 
 <Note>
 A Partner API V1 foi descontinuada e suas rotas foram removidas. Use apenas a V2. Veja [Deprecações](/deprecations).

@@ -83,7 +83,7 @@ Os erros seguem o formato `{"status": "<código>", "title": "<mensagem ou erros 
 | Status | Quando |
 | --- | --- |
 | `401 Unauthorized` | Token ausente, inválido ou expirado. |
-| `403 Forbidden` | Token sem o scope `dv.partner`; `x-partners` ou `partnerId` fora do alcance; `subscriptionStatus` inválido; parceiro sem domínio de painel (membros, magic link e cadastro). |
+| `403 Forbidden` | Token sem o scope `dv.partner`; `x-partners` ou `partnerId` fora do alcance; parceiro sem domínio de painel (membros, magic link e cadastro). |
 | `404 Not Found` | Loja, revenda, membro, plano ou app inexistente ou fora do alcance do token. |
 | `406 Not Acceptable` | Contratação ou cancelamento de recurso recusado. |
-| `422 Unprocessable Content` | Dados inválidos ou transição de assinatura não permitida. |
+| `422 Unprocessable Content` | Dados inválidos; filtro inválido (`subscriptionStatus`, `month`, `year`); ou transição de assinatura não permitida. |

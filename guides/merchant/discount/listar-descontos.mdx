@@ -17,7 +17,7 @@ Retorna os descontos da loja, automáticos e cupons, ordenados do cadastro mais 
 A loja.
 </ParamField>
 
-<ParamField query="per_page" type="integer" default="30">
+<ParamField query="perPage" type="integer" default="30">
 Quantos descontos por página, de `30` a `250`. Valores fora dessa faixa são ajustados para o limite mais próximo.
 </ParamField>
 
@@ -31,7 +31,7 @@ Cursor da página anterior, vindo do header `X-Previous-Cursor`. Não envie junt
 
 <CodeGroup>
 ```bash cURL
-curl --include 'https://api.deliveryvip.com.br/merchant/v3/{merchantId}/discounts?per_page=50' \
+curl --include 'https://api.deliveryvip.com.br/merchant/v3/{merchantId}/discounts?perPage=50' \
   --header 'Authorization: Bearer {token}'
 ```
 
@@ -41,7 +41,7 @@ let cursor = null
 
 do {
   const url = new URL(`https://api.deliveryvip.com.br/merchant/v3/${merchantId}/discounts`)
-  url.searchParams.set('per_page', '50')
+  url.searchParams.set('perPage', '50')
   if (cursor) url.searchParams.set('next', cursor)
 
   const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
@@ -56,7 +56,7 @@ do {
 discounts, cursor = [], None
 
 while True:
-    params = {"per_page": 50, **({"next": cursor} if cursor else {})}
+    params = {"perPage": 50, **({"next": cursor} if cursor else {})}
     response = requests.get(
         f"https://api.deliveryvip.com.br/merchant/v3/{merchant_id}/discounts",
         headers={"Authorization": f"Bearer {token}"},

@@ -157,9 +157,9 @@ discount = response.json()
 
 ## Resposta
 
-Retorna `200 OK` com o [objeto desconto](/guides/merchant/discount/obter-detalhes-do-desconto#resposta).
+Retorna `201 Created` com o [objeto desconto](/guides/merchant/discount/obter-detalhes-do-desconto#resposta).
 
-```json 200 OK
+```json 201 Created
 {
   "id": "4572126a-6161-4b68-af04-3cb2fb4fa7a5",
   "createdAt": "2024-04-20T19:43:15-03:00",
@@ -182,7 +182,7 @@ Retorna `200 OK` com o [objeto desconto](/guides/merchant/discount/obter-detalhe
 
 ## Erros
 
-Em `422`, o `title` traz os campos com problema e as mensagens de validação.
+Em `422`, o `title` traz os campos com problema e as mensagens de validação. As chaves são os campos do corpo, em camelCase e com o caminho completo: `type`, `rules.usageLimit`, `endsAt`. Erros das opções, como `CUMULATIVE_WITH_SMART` num `SMART`, vêm em `options`.
 
 ```json 422 Unprocessable Content
 {

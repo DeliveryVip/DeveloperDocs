@@ -140,7 +140,7 @@ merchant = response.json()
 | --- | --- |
 | `201 Created` | Loja criada. O corpo é a loja completa, no formato de [Obter detalhes](/guides/partner/merchant/utilizando-a-api/obter-detalhes-do-merchant). |
 | `403 Forbidden` | `partnerId` fora do alcance do token. |
-| `422 Unprocessable Content` | Dados inválidos. O `title` traz os erros por campo, com os nomes internos em snake\_case. |
+| `422 Unprocessable Content` | Dados inválidos. O `title` traz os erros por campo, com o nome enviado no corpo, em camelCase: `corporateName`, `personResponsible.phone.number`, `address.postalCode`. |
 
 ```json Resposta (201, resumida)
 {

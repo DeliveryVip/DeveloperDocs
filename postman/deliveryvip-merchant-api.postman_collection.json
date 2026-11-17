@@ -4496,7 +4496,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "Filtra pelo tipo do pedido.",
+                    "content": "Filtra pelo tipo do pedido. `INDOOR` também traz os pedidos de consumo no local; `DINE_IN` traz só os pedidos de consumo no local (que aparecem com tipo `INDOOR` na resposta).",
                     "type": "text/plain"
                   },
                   "key": "orderType[]",
@@ -4505,7 +4505,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "Filtra pelo tipo do pedido.",
+                    "content": "Filtra pelo tipo do pedido. `INDOOR` também traz os pedidos de consumo no local; `DINE_IN` traz só os pedidos de consumo no local (que aparecem com tipo `INDOOR` na resposta).",
                     "type": "text/plain"
                   },
                   "key": "orderType[]",
@@ -4514,19 +4514,19 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "Data inicial (inclusive). Se informada sem `ends_in`, vai até o fim do dia atual.",
+                    "content": "Data inicial (inclusive). Se informada sem `endsIn`, vai até o fim do dia atual.",
                     "type": "text/plain"
                   },
-                  "key": "starts_at",
+                  "key": "startsAt",
                   "value": "<date>"
                 },
                 {
                   "disabled": false,
                   "description": {
-                    "content": "Data final (inclusive). Exige `starts_at`.",
+                    "content": "Data final (inclusive). Exige `startsAt`.",
                     "type": "text/plain"
                   },
-                  "key": "ends_in",
+                  "key": "endsIn",
                   "value": "<date>"
                 },
                 {
@@ -4553,7 +4553,7 @@
                     "content": "Itens por página. Padrão 30; valores informados são limitados entre 30 e 250.",
                     "type": "text/plain"
                   },
-                  "key": "per_page",
+                  "key": "perPage",
                   "value": "30"
                 },
                 {
@@ -4616,7 +4616,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "Filtra pelo tipo do pedido.",
+                        "content": "Filtra pelo tipo do pedido. `INDOOR` também traz os pedidos de consumo no local; `DINE_IN` traz só os pedidos de consumo no local (que aparecem com tipo `INDOOR` na resposta).",
                         "type": "text/plain"
                       },
                       "key": "orderType[]",
@@ -4625,19 +4625,19 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "Data inicial (inclusive). Se informada sem `ends_in`, vai até o fim do dia atual.",
+                        "content": "Data inicial (inclusive). Se informada sem `endsIn`, vai até o fim do dia atual.",
                         "type": "text/plain"
                       },
-                      "key": "starts_at",
+                      "key": "startsAt",
                       "value": "<date>"
                     },
                     {
                       "disabled": false,
                       "description": {
-                        "content": "Data final (inclusive). Exige `starts_at`.",
+                        "content": "Data final (inclusive). Exige `startsAt`.",
                         "type": "text/plain"
                       },
-                      "key": "ends_in",
+                      "key": "endsIn",
                       "value": "<date>"
                     },
                     {
@@ -4655,7 +4655,7 @@
                         "content": "Itens por página. Padrão 30; valores informados são limitados entre 30 e 250.",
                         "type": "text/plain"
                       },
-                      "key": "per_page",
+                      "key": "perPage",
                       "value": "30"
                     },
                     {
@@ -4753,7 +4753,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "Filtra pelo tipo do pedido.",
+                        "content": "Filtra pelo tipo do pedido. `INDOOR` também traz os pedidos de consumo no local; `DINE_IN` traz só os pedidos de consumo no local (que aparecem com tipo `INDOOR` na resposta).",
                         "type": "text/plain"
                       },
                       "key": "orderType[]",
@@ -4762,19 +4762,19 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "Data inicial (inclusive). Se informada sem `ends_in`, vai até o fim do dia atual.",
+                        "content": "Data inicial (inclusive). Se informada sem `endsIn`, vai até o fim do dia atual.",
                         "type": "text/plain"
                       },
-                      "key": "starts_at",
+                      "key": "startsAt",
                       "value": "<date>"
                     },
                     {
                       "disabled": false,
                       "description": {
-                        "content": "Data final (inclusive). Exige `starts_at`.",
+                        "content": "Data final (inclusive). Exige `startsAt`.",
                         "type": "text/plain"
                       },
-                      "key": "ends_in",
+                      "key": "endsIn",
                       "value": "<date>"
                     },
                     {
@@ -4792,7 +4792,7 @@
                         "content": "Itens por página. Padrão 30; valores informados são limitados entre 30 e 250.",
                         "type": "text/plain"
                       },
-                      "key": "per_page",
+                      "key": "perPage",
                       "value": "30"
                     },
                     {
@@ -4853,7 +4853,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "Filtra pelo tipo do pedido.",
+                        "content": "Filtra pelo tipo do pedido. `INDOOR` também traz os pedidos de consumo no local; `DINE_IN` traz só os pedidos de consumo no local (que aparecem com tipo `INDOOR` na resposta).",
                         "type": "text/plain"
                       },
                       "key": "orderType[]",
@@ -4862,19 +4862,19 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "Data inicial (inclusive). Se informada sem `ends_in`, vai até o fim do dia atual.",
+                        "content": "Data inicial (inclusive). Se informada sem `endsIn`, vai até o fim do dia atual.",
                         "type": "text/plain"
                       },
-                      "key": "starts_at",
+                      "key": "startsAt",
                       "value": "<date>"
                     },
                     {
                       "disabled": false,
                       "description": {
-                        "content": "Data final (inclusive). Exige `starts_at`.",
+                        "content": "Data final (inclusive). Exige `startsAt`.",
                         "type": "text/plain"
                       },
-                      "key": "ends_in",
+                      "key": "endsIn",
                       "value": "<date>"
                     },
                     {
@@ -4892,7 +4892,7 @@
                         "content": "Itens por página. Padrão 30; valores informados são limitados entre 30 e 250.",
                         "type": "text/plain"
                       },
-                      "key": "per_page",
+                      "key": "perPage",
                       "value": "30"
                     },
                     {
@@ -4963,7 +4963,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "Filtra pelo tipo do pedido.",
+                        "content": "Filtra pelo tipo do pedido. `INDOOR` também traz os pedidos de consumo no local; `DINE_IN` traz só os pedidos de consumo no local (que aparecem com tipo `INDOOR` na resposta).",
                         "type": "text/plain"
                       },
                       "key": "orderType[]",
@@ -4972,19 +4972,19 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "Data inicial (inclusive). Se informada sem `ends_in`, vai até o fim do dia atual.",
+                        "content": "Data inicial (inclusive). Se informada sem `endsIn`, vai até o fim do dia atual.",
                         "type": "text/plain"
                       },
-                      "key": "starts_at",
+                      "key": "startsAt",
                       "value": "<date>"
                     },
                     {
                       "disabled": false,
                       "description": {
-                        "content": "Data final (inclusive). Exige `starts_at`.",
+                        "content": "Data final (inclusive). Exige `startsAt`.",
                         "type": "text/plain"
                       },
-                      "key": "ends_in",
+                      "key": "endsIn",
                       "value": "<date>"
                     },
                     {
@@ -5002,7 +5002,7 @@
                         "content": "Itens por página. Padrão 30; valores informados são limitados entre 30 e 250.",
                         "type": "text/plain"
                       },
-                      "key": "per_page",
+                      "key": "perPage",
                       "value": "30"
                     },
                     {
@@ -5073,7 +5073,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "Filtra pelo tipo do pedido.",
+                        "content": "Filtra pelo tipo do pedido. `INDOOR` também traz os pedidos de consumo no local; `DINE_IN` traz só os pedidos de consumo no local (que aparecem com tipo `INDOOR` na resposta).",
                         "type": "text/plain"
                       },
                       "key": "orderType[]",
@@ -5082,19 +5082,19 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "Data inicial (inclusive). Se informada sem `ends_in`, vai até o fim do dia atual.",
+                        "content": "Data inicial (inclusive). Se informada sem `endsIn`, vai até o fim do dia atual.",
                         "type": "text/plain"
                       },
-                      "key": "starts_at",
+                      "key": "startsAt",
                       "value": "<date>"
                     },
                     {
                       "disabled": false,
                       "description": {
-                        "content": "Data final (inclusive). Exige `starts_at`.",
+                        "content": "Data final (inclusive). Exige `startsAt`.",
                         "type": "text/plain"
                       },
-                      "key": "ends_in",
+                      "key": "endsIn",
                       "value": "<date>"
                     },
                     {
@@ -5112,7 +5112,7 @@
                         "content": "Itens por página. Padrão 30; valores informados são limitados entre 30 e 250.",
                         "type": "text/plain"
                       },
-                      "key": "per_page",
+                      "key": "perPage",
                       "value": "30"
                     },
                     {
@@ -5183,7 +5183,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "Filtra pelo tipo do pedido.",
+                        "content": "Filtra pelo tipo do pedido. `INDOOR` também traz os pedidos de consumo no local; `DINE_IN` traz só os pedidos de consumo no local (que aparecem com tipo `INDOOR` na resposta).",
                         "type": "text/plain"
                       },
                       "key": "orderType[]",
@@ -5192,19 +5192,19 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "Data inicial (inclusive). Se informada sem `ends_in`, vai até o fim do dia atual.",
+                        "content": "Data inicial (inclusive). Se informada sem `endsIn`, vai até o fim do dia atual.",
                         "type": "text/plain"
                       },
-                      "key": "starts_at",
+                      "key": "startsAt",
                       "value": "<date>"
                     },
                     {
                       "disabled": false,
                       "description": {
-                        "content": "Data final (inclusive). Exige `starts_at`.",
+                        "content": "Data final (inclusive). Exige `startsAt`.",
                         "type": "text/plain"
                       },
-                      "key": "ends_in",
+                      "key": "endsIn",
                       "value": "<date>"
                     },
                     {
@@ -5222,7 +5222,7 @@
                         "content": "Itens por página. Padrão 30; valores informados são limitados entre 30 e 250.",
                         "type": "text/plain"
                       },
-                      "key": "per_page",
+                      "key": "perPage",
                       "value": "30"
                     },
                     {
@@ -5313,7 +5313,7 @@
                     "content": "Itens por página. Padrão 30; valores informados são limitados entre 30 e 250.",
                     "type": "text/plain"
                   },
-                  "key": "per_page",
+                  "key": "perPage",
                   "value": "30"
                 },
                 {
@@ -5379,7 +5379,7 @@
                         "content": "Itens por página. Padrão 30; valores informados são limitados entre 30 e 250.",
                         "type": "text/plain"
                       },
-                      "key": "per_page",
+                      "key": "perPage",
                       "value": "30"
                     },
                     {
@@ -5480,7 +5480,7 @@
                         "content": "Itens por página. Padrão 30; valores informados são limitados entre 30 e 250.",
                         "type": "text/plain"
                       },
-                      "key": "per_page",
+                      "key": "perPage",
                       "value": "30"
                     },
                     {
@@ -5544,7 +5544,7 @@
                         "content": "Itens por página. Padrão 30; valores informados são limitados entre 30 e 250.",
                         "type": "text/plain"
                       },
-                      "key": "per_page",
+                      "key": "perPage",
                       "value": "30"
                     },
                     {
@@ -5618,7 +5618,7 @@
                         "content": "Itens por página. Padrão 30; valores informados são limitados entre 30 e 250.",
                         "type": "text/plain"
                       },
-                      "key": "per_page",
+                      "key": "perPage",
                       "value": "30"
                     },
                     {
@@ -5692,7 +5692,7 @@
                         "content": "Itens por página. Padrão 30; valores informados são limitados entre 30 e 250.",
                         "type": "text/plain"
                       },
-                      "key": "per_page",
+                      "key": "perPage",
                       "value": "30"
                     },
                     {
@@ -5766,7 +5766,7 @@
                         "content": "Itens por página. Padrão 30; valores informados são limitados entre 30 e 250.",
                         "type": "text/plain"
                       },
-                      "key": "per_page",
+                      "key": "perPage",
                       "value": "30"
                     },
                     {
@@ -5928,8 +5928,8 @@
                   }
                 }
               },
-              "status": "OK",
-              "code": 200,
+              "status": "Created",
+              "code": 201,
               "header": [
                 {
                   "key": "Content-Type",

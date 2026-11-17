@@ -6,6 +6,48 @@ icon: newspaper
 
 Novidades, mudanças de comportamento e breaking changes nas APIs. Use os filtros por produto para ver só o que afeta a sua integração. Rotas em descontinuação ficam em [Deprecations](/deprecations).
 
+<Update label="17/11/2026" description="Marketplace API, chaves dos erros de validação e erros 422 nos filtros da Partner API" tags={["Marketplace API", "Partner API", "Merchant API", "Open Delivery"]} rss={{ title: "17/11/2026: Marketplace API, chaves dos erros de validação e erros 422 nos filtros da Partner API", description: "Nova aba Marketplace API com visão geral, guias e referência; erros de validação passam a usar os nomes dos campos da requisição; filtros inválidos da Partner API passam a retornar 422." }}>
+- **Marketplace API:** nova aba **Marketplace API** na documentação, com visão geral (scope `dv.marketplace`, como obter o `marketplaceId` e como limitar as chamadas a parte dos marketplaces), guias de [Lojas e vendas](/guides/marketplace/lojas), [Pedidos](/guides/marketplace/pedidos), [Descontos](/guides/marketplace/descontos) e [Login de consumidores](/guides/marketplace/sso), e a referência de endpoints. [Saiba mais](/guides/marketplace)
+
+<Warning>
+**Breaking change, Partner API:** um `subscriptionStatus` inválido passa a retornar `422 Unprocessable Content` (`Invalid subscription status`), e não mais `403`, em `GET /partner/v2/merchants`, `GET /partner/v2/merchants/sales` e `GET /partner/v2/resales`. O `403` continua para `x-partners` fora do alcance do token. Em `GET /partner/v2/merchants/sales`, `month` fora de 1 a 12 ou não inteiro e `year` fora de 1 a 9999 ou não inteiro passam a retornar `422` (`Invalid month` e `Invalid year`). Antes, a maioria desses valores resultava em erro interno, e anos fora de 1 a 9999 eram aceitos. [Saiba mais](/guides/partner/merchant/utilizando-a-api/listar-vendas-dos-merchants)
+</Warning>
+
+<Warning>
+**Breaking change, Marketplace API:** mudanças de comportamento nas rotas da conta e na listagem de pedidos:
+
+- Um `subscriptionStatus` inválido em `GET /marketplace/v1/merchants` e `GET /marketplace/v1/merchants/sales` passa a retornar `422 Unprocessable Content` (`Invalid subscription status`), e não mais `403`.
+- Em `GET /marketplace/v1/merchants/sales`, `month` ou `year` inválidos passam a retornar `422` (`Invalid month` e `Invalid year`). Antes, a maioria desses valores resultava em erro interno, e anos fora de 1 a 9999 eram aceitos.
+- As vendas passam a contar só os pedidos feitos pelos marketplaces da chamada. Os totais podem diminuir.
+- Uma loja que está em mais de um marketplace aparece uma vez só, e as somas dela deixam de ser multiplicadas.
+- `marketplaceIds` passa a listar só os marketplaces da chamada.
+- Em `GET /marketplace/v1/{marketplaceId}/orders`, `orderType[]=INDOOR` passa a trazer também os pedidos de consumo no local. Para trazer só esses, use `orderType[]=DINE_IN`.
+- Criar um desconto sem `merchantIds`, ou com um valor que não é uma lista, passa a retornar `422` (`{"merchantIds": ["can't be blank"]}`). Antes, resultava em erro interno.
+
+[Saiba mais](/guides/marketplace/lojas)
+</Warning>
+
+<Warning>
+**Breaking change, Merchant API e Marketplace API:** criar um desconto (`POST /merchant/v3/{merchantId}/discounts` e `POST /marketplace/v1/{marketplaceId}/discounts`) passa a responder `201 Created`, e não mais `200 OK`, com o mesmo corpo. Se a sua integração confere o status exato, aceite `201` (ou qualquer `2xx`). [Saiba mais](/guides/merchant/discount/adicionar-um-desconto)
+</Warning>
+
+<Warning>
+**Breaking change, Merchant API, Marketplace API, Partner API e Open Delivery:** mudanças no corpo dos erros:
+
+- Nos erros de validação da Merchant API, da Marketplace API e da Partner API, as chaves de `title` passam a ser os campos da requisição, em camelCase e com o caminho completo, e não mais os nomes internos. Exemplos: `address.zip_code` vira `address.postalCode`, `usage_limit` vira `rules.usageLimit`, `sales_channels` vira `merchantIds` e `kind` vira `type` nos descontos e `orderType` nos pedidos.
+- No Open Delivery, `title` passa a ser sempre uma string, com as mensagens completas separadas por `|`. Antes, os erros de validação vinham como objeto.
+- Um erro sem mensagem passa a trazer em `title` o nome do status HTTP, como `Unprocessable Content`, e não mais um valor vazio.
+
+Se a sua integração lê as chaves de `title`, atualize os nomes. [Saiba mais](/inicio/conceitos/erros)
+</Warning>
+
+<Warning>
+**Breaking change, Merchant API:** em `GET /merchant/v3/{merchantId}/orders`, `orderType[]=INDOOR` passa a trazer também os pedidos de consumo no local feitos pelo cardápio de delivery, que já saíam com `type: INDOOR`. Para trazer só esses, use `orderType[]=DINE_IN`. [Saiba mais](/guides/merchant/order/listar-pedidos)
+</Warning>
+
+- **Documentação:** os parâmetros de query aparecem em camelCase: `startsAt`, `endsIn` e `perPage`. Os nomes em snake_case (`starts_at`, `ends_in`, `per_page`) continuam funcionando. [Saiba mais](/inicio/conceitos/paginacao)
+</Update>
+
 <Update label="16/11/2026" description="SSO de consumidores para apps parceiros" tags={["Merchant API"]} rss={{ title: "16/11/2026: SSO de consumidores para apps parceiros", description: "Novas rotas assinadas que emitem um código de login para abrir a loja ou o marketplace no webview com o consumidor logado." }}>
 - **SSO de consumidores:** novas rotas `POST /merchant/v3/{merchantId}/customers/sso` e `POST /marketplace/v1/{marketplaceId}/customers/sso` emitem um código de uso único que loga, ou cadastra, o consumidor ao abrir a loja ou o marketplace no webview do seu app. As rotas exigem o escopo `dv.customer_sso`, concedido pela DeliveryVip, e são assinadas com HMAC-SHA256 pelo `client_secret` do app, sem token Bearer. [Saiba mais](/guides/merchant/sso)
 </Update>

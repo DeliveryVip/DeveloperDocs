@@ -1,0 +1,14 @@
+---
+title: Login de consumidores no marketplace
+sidebarTitle: SSO de consumidores
+description: Abra o marketplace no webview do seu app com o consumidor já logado, ou cadastrado na hora.
+icon: user-check
+---
+
+O SSO de consumidores abre o marketplace no webview do seu app com o consumidor já logado. Seu backend chama `POST /marketplace/v1/{marketplaceId}/customers/sso` e recebe a `url` para abrir.
+
+A rota segue as mesmas regras do SSO de lojas: exige o escopo `dv.customer_sso` e é assinada com o `client_secret` do app, sem token Bearer. O guia completo, com a assinatura, os exemplos e os erros, fica na Merchant API.
+
+<Card title="Login de consumidores" icon="user-check" href="/guides/merchant/sso">
+Veja como assinar a chamada e abrir a loja ou o marketplace com o consumidor logado.
+</Card>

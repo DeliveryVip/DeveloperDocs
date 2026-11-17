@@ -129,4 +129,4 @@ resale = response.json()
 | --- | --- |
 | `201 Created` | Revenda criada, no formato de [Obter detalhes](/guides/partner/resale/utilizando-a-api/obter-detalhes-da-resale), com `subscription.status: TRIAL`. |
 | `403 Forbidden` | `partnerId` é de uma revenda ou está fora do alcance do token. |
-| `422 Unprocessable Content` | Dados inválidos. O `title` traz os erros por campo, com nomes internos em snake\_case. |
+| `422 Unprocessable Content` | Dados inválidos. O `title` traz os erros por campo, com o nome enviado no corpo, em camelCase: `corporateName`, `phone.number`, `address.postalCode`. |

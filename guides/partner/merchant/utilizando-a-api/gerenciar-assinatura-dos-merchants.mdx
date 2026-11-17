@@ -69,6 +69,7 @@ A ativação é recusada com `422` quando:
 * a loja é `DEMO` (`Subscription is demo`);
 * a assinatura do parceiro ou da revenda da loja não está `ACTIVATED` (`Partner subscription is not activated`);
 * o `planId` não existe, não está disponível ou não é visível para a loja (`Invalid plan`);
+* o `planId` não é um UUID em minúsculas (`title` traz o erro na chave `planId`);
 * a loja já está `ACTIVATED`.
 
 <Warning>

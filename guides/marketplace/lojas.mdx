@@ -1,0 +1,319 @@
+---
+title: Lojas e vendas
+description: Liste as lojas dos marketplaces, consulte uma loja e acompanhe a quantidade e o valor dos pedidos de cada uma no mês.
+icon: store
+---
+
+As rotas de lojas são **da conta**: valem para todos os marketplaces que instalaram o seu app, ou só para os listados no header `x-marketplaces`. Use-as para montar o cadastro das lojas no seu sistema, conferir a situação da assinatura de cada uma e acompanhar as vendas que os marketplaces geraram no mês. Antes de começar, veja a [Introdução](/guides/marketplace) para o token, o `marketplaceId` e o [header `x-marketplaces`](/guides/marketplace#header-x-marketplaces).
+
+| Operação | Rota | Referência |
+| --- | --- | --- |
+| Listar lojas | `GET /marketplace/v1/merchants` | [Listar lojas](/api-reference/lojas/listar-lojas) |
+| Consultar uma loja | `GET /marketplace/v1/merchants/{merchantId}` | [Consultar loja](/api-reference/lojas/consultar-loja) |
+| Vendas do mês | `GET /marketplace/v1/merchants/sales` | [Listar vendas das lojas](/api-reference/lojas/listar-vendas-das-lojas) |
+
+## Listar lojas
+
+`GET /marketplace/v1/merchants` devolve **todas** as lojas dos marketplaces da chamada, da mais recente para a mais antiga, numa única resposta. A lista não é paginada.
+
+<CodeGroup>
+```bash cURL
+curl --include 'https://api.deliveryvip.com.br/marketplace/v1/merchants?subscriptionStatus[]=ACTIVATED&subscriptionStatus[]=TRIAL' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+const url = new URL('https://api.deliveryvip.com.br/marketplace/v1/merchants')
+url.searchParams.append('subscriptionStatus[]', 'ACTIVATED')
+url.searchParams.append('subscriptionStatus[]', 'TRIAL')
+
+const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+const merchants = response.status === 204 ? [] : await response.json()
+```
+
+```python Python
+response = requests.get(
+    "https://api.deliveryvip.com.br/marketplace/v1/merchants",
+    headers={"Authorization": f"Bearer {token}"},
+    params={"subscriptionStatus[]": ["ACTIVATED", "TRIAL"]},
+)
+merchants = [] if response.status_code == 204 else response.json()
+```
+</CodeGroup>
+
+### Filtros
+
+<ParamField query="subscriptionStatus[]" type="string[]">
+Situação da assinatura da loja: `TRIAL`, `DEMO`, `TRIAL_EXPIRED`, `ACTIVATED` ou `CANCELLED`, em maiúsculas ou minúsculas. Repita o parâmetro uma vez por valor. Um valor desconhecido responde `422` com `Invalid subscription status`.
+</ParamField>
+
+<ParamField query="merchantIdentifier" type="string">
+CNPJ ou CPF da loja. A comparação é exata, com o documento escrito como está no cadastro da loja.
+</ParamField>
+
+<ParamField header="x-marketplaces" type="string">
+Restringe a chamada a parte dos marketplaces. Veja [Header `x-marketplaces`](/guides/marketplace#header-x-marketplaces).
+</ParamField>
+
+<Info>
+Uma loja que está em mais de um dos marketplaces da chamada aparece **uma vez só**. O campo `marketplaceIds` dela lista apenas os marketplaces que entram na chamada: os que instalaram o app e, se você enviou `x-marketplaces`, só os do header. Um marketplace da loja que não instalou o seu app nunca aparece.
+</Info>
+
+### Respostas
+
+| Status | Quando |
+| --- | --- |
+| `200 OK` | Lista de lojas. |
+| `204 No Content` | Nenhuma loja para os filtros, ou nenhum marketplace instalou o app. Sem corpo. |
+| `422 Unprocessable Content` | `subscriptionStatus[]` com valor desconhecido. |
+
+Os erros de autenticação e de `x-marketplaces` estão em [Erros comuns](/guides/marketplace#erros-comuns).
+
+## Consultar uma loja
+
+`GET /marketplace/v1/merchants/{merchantId}` devolve uma loja, no mesmo formato de cada item da listagem.
+
+<CodeGroup>
+```bash cURL
+curl 'https://api.deliveryvip.com.br/marketplace/v1/merchants/7b1f2c3d-0000-4000-8000-000000000101' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+const response = await fetch(
+  `https://api.deliveryvip.com.br/marketplace/v1/merchants/${merchantId}`,
+  { headers: { Authorization: `Bearer ${token}` } },
+)
+const merchant = await response.json()
+```
+
+```python Python
+response = requests.get(
+    f"https://api.deliveryvip.com.br/marketplace/v1/merchants/{merchant_id}",
+    headers={"Authorization": f"Bearer {token}"},
+)
+merchant = response.json()
+```
+</CodeGroup>
+
+<ParamField path="merchantId" type="uuid" required>
+A loja. Ela precisa pertencer a um dos marketplaces da chamada; caso contrário, ou se o id não existir, a resposta é `404` com `Record not found`.
+</ParamField>
+
+## Campos da loja
+
+Campos opcionais vazios da loja, do responsável e da assinatura são **omitidos** da resposta. No `address` é diferente: só `complement` e `reference` são omitidos. Os demais campos do endereço, e `latitude` e `longitude` em `coordinates`, podem vir `null`.
+
+<ResponseField name="id" type="uuid" required>
+Id da loja. É o `merchantId` das outras rotas e da [Merchant API](/guides/merchant).
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+Nome da loja.
+</ResponseField>
+
+<ResponseField name="corporateName" type="string">
+Razão social.
+</ResponseField>
+
+<ResponseField name="identifier" type="string">
+CNPJ ou CPF da loja, como está no cadastro.
+</ResponseField>
+
+<ResponseField name="email" type="string">
+E-mail da loja.
+</ResponseField>
+
+<ResponseField name="phone" type="object">
+Telefone da loja em `phone.number`, no formato E.164 sem `+` (`5511999999999`).
+</ResponseField>
+
+<ResponseField name="createdAt" type="date-time" required>
+Data de cadastro da loja.
+</ResponseField>
+
+<ResponseField name="personResponsible" type="object">
+Responsável pela loja. Só aparece quando pelo menos um dos campos está preenchido.
+
+<Expandable title="campos">
+<ResponseField name="name" type="string">Nome.</ResponseField>
+<ResponseField name="email" type="string">E-mail.</ResponseField>
+<ResponseField name="phone" type="object">Telefone em `phone.number`, no formato E.164 sem `+`.</ResponseField>
+<ResponseField name="identifier" type="string">CPF.</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseField name="address" type="object" required>
+Endereço da loja.
+
+<Expandable title="campos">
+<ResponseField name="country" type="string">Sigla do país (`BR`).</ResponseField>
+<ResponseField name="state" type="string">Sigla do estado.</ResponseField>
+<ResponseField name="city" type="string">Cidade.</ResponseField>
+<ResponseField name="district" type="string">Bairro.</ResponseField>
+<ResponseField name="street" type="string">Logradouro.</ResponseField>
+<ResponseField name="number" type="string">Número.</ResponseField>
+<ResponseField name="complement" type="string">Complemento. Omitido quando vazio.</ResponseField>
+<ResponseField name="reference" type="string">Ponto de referência. Omitido quando vazio.</ResponseField>
+<ResponseField name="postalCode" type="string">CEP.</ResponseField>
+<ResponseField name="formattedAddress" type="string">Endereço completo formatado.</ResponseField>
+<ResponseField name="coordinates" type="object">`latitude` e `longitude`.</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseField name="subscription" type="object" required>
+Assinatura da loja na DeliveryVip.
+
+<Expandable title="campos">
+<ResponseField name="status" type="string">`TRIAL`, `DEMO`, `TRIAL_EXPIRED`, `ACTIVATED` ou `CANCELLED`.</ResponseField>
+<ResponseField name="warning" type="boolean">A loja tem um aviso de pagamento. Só quando `status` é `ACTIVATED`.</ResponseField>
+<ResponseField name="blocked" type="boolean">A loja está bloqueada. Só quando `status` é `ACTIVATED`.</ResponseField>
+<ResponseField name="agreementCode" type="string">Código do contrato. Omitido quando vazio.</ResponseField>
+<ResponseField name="trialExpiresAt" type="date-time">Fim do período de teste. Só quando `status` é `TRIAL`.</ResponseField>
+<ResponseField name="lastActivationAt" type="date-time">Última ativação. Omitido se a assinatura nunca foi ativada.</ResponseField>
+<ResponseField name="lastCancellationAt" type="date-time">Último cancelamento. Omitido se a assinatura nunca foi cancelada.</ResponseField>
+<ResponseField name="lastBlockedAt" type="date-time">Último bloqueio. Só quando `status` é `ACTIVATED` e a loja já foi bloqueada.</ResponseField>
+<ResponseField name="lastWarningAt" type="date-time">Último aviso. Só quando `status` é `ACTIVATED` e a loja já recebeu aviso.</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseField name="marketplaceIds" type="uuid[]" required>
+Marketplaces da loja que entram na chamada: instalaram o app e, se você enviou `x-marketplaces`, estão no header.
+</ResponseField>
+
+<Accordion title="Exemplo de loja" icon="code">
+```json
+{
+  "id": "7b1f2c3d-0000-4000-8000-000000000101",
+  "name": "Pizzaria Bella Napoli",
+  "corporateName": "Bella Napoli Alimentos LTDA",
+  "identifier": "12345678000190",
+  "email": "contato@bellanapoli.com.br",
+  "phone": { "number": "5511999999999" },
+  "createdAt": "2026-03-10T14:22:05-03:00",
+  "personResponsible": {
+    "name": "Ana Souza",
+    "email": "ana@bellanapoli.com.br",
+    "phone": { "number": "5511988887777" }
+  },
+  "address": {
+    "country": "BR",
+    "state": "SP",
+    "city": "São Paulo",
+    "district": "Moema",
+    "street": "Avenida Ibirapuera",
+    "number": "100",
+    "postalCode": "04029-000",
+    "formattedAddress": "Avenida Ibirapuera, 100 - Moema, São Paulo - SP, 04029-000",
+    "coordinates": { "latitude": -23.60512, "longitude": -46.66523 }
+  },
+  "subscription": {
+    "status": "ACTIVATED",
+    "warning": false,
+    "blocked": false,
+    "lastActivationAt": "2026-03-17T09:00:00-03:00"
+  },
+  "marketplaceIds": ["7b1f2c3d-0000-4000-8000-000000000001"]
+}
+```
+</Accordion>
+
+## Vendas do mês
+
+`GET /marketplace/v1/merchants/sales` devolve, para cada loja dos marketplaces da chamada, a quantidade e o valor total dos pedidos de um mês do calendário. Sem `month` e `year`, vale o mês atual.
+
+<CodeGroup>
+```bash cURL
+curl 'https://api.deliveryvip.com.br/marketplace/v1/merchants/sales?month=10&year=2026' \
+  --header 'Authorization: Bearer {token}'
+```
+
+```js Node.js
+const url = new URL('https://api.deliveryvip.com.br/marketplace/v1/merchants/sales')
+url.searchParams.set('month', '10')
+url.searchParams.set('year', '2026')
+
+const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+const sales = response.status === 204 ? [] : await response.json()
+```
+
+```python Python
+response = requests.get(
+    "https://api.deliveryvip.com.br/marketplace/v1/merchants/sales",
+    headers={"Authorization": f"Bearer {token}"},
+    params={"month": 10, "year": 2026},
+)
+sales = [] if response.status_code == 204 else response.json()
+```
+</CodeGroup>
+
+<ParamField query="month" type="integer">
+Mês, de `1` a `12`. Padrão: o mês atual. Fora dessa faixa, ou se não for um número inteiro, a resposta é `422` com `Invalid month`.
+</ParamField>
+
+<ParamField query="year" type="integer">
+Ano, como `2026`. Padrão: o ano atual. Se não for um número inteiro de `1` a `9999`, a resposta é `422` com `Invalid year`.
+</ParamField>
+
+<ParamField query="subscriptionStatus[]" type="string[]">
+Mesmo filtro da listagem de lojas. Um valor desconhecido responde `422` com `Invalid subscription status`.
+</ParamField>
+
+<ParamField query="merchantIdentifier" type="string">
+CNPJ ou CPF da loja, comparado de forma exata. Use para consultar as vendas de uma loja só.
+</ParamField>
+
+### O que entra na conta
+
+- **Período:** do primeiro ao último dia do mês, no fuso de Brasília, pela data de criação do pedido.
+- **Origem:** só os pedidos feitos **pelos marketplaces da chamada**. Pedidos da loja própria, de outros canais ou de marketplaces fora da chamada não contam. Para separar as vendas de um marketplace, envie só ele em `x-marketplaces`.
+- **Estados:** pedidos pendentes, em preparo, prontos, em entrega e concluídos. Pedidos aguardando pagamento, não pagos, recusados ou cancelados ficam de fora.
+
+Toda loja dos marketplaces da chamada aparece na resposta, inclusive as que não venderam no mês (com `0`). A lista vem ordenada por `ordersTotal`, do maior para o menor, e não é paginada.
+
+<ResponseField name="merchantId" type="uuid" required>
+Id da loja.
+</ResponseField>
+
+<ResponseField name="ordersCount" type="integer" required>
+Quantidade de pedidos no mês.
+</ResponseField>
+
+<ResponseField name="ordersTotal" type="number" required>
+Soma dos totais dos pedidos no mês, em reais, com até 4 casas decimais.
+</ResponseField>
+
+```json Exemplo de resposta (200)
+[
+  { "merchantId": "7b1f2c3d-0000-4000-8000-000000000101", "ordersCount": 42, "ordersTotal": 3527.8 },
+  { "merchantId": "7b1f2c3d-0000-4000-8000-000000000102", "ordersCount": 0, "ordersTotal": 0.0 }
+]
+```
+
+### Respostas
+
+| Status | Quando |
+| --- | --- |
+| `200 OK` | Vendas por loja. |
+| `204 No Content` | Nenhuma loja para os filtros, ou nenhum marketplace instalou o app. Sem corpo. |
+| `422 Unprocessable Content` | `month`, `year` ou `subscriptionStatus[]` inválidos. O `title` diz qual: `Invalid month`, `Invalid year` ou `Invalid subscription status`. |
+
+<AccordionGroup>
+<Accordion title="Os números não batem com o painel da loja" icon="calculator">
+O painel da loja soma todos os pedidos dela. Aqui entram só os pedidos feitos pelos marketplaces da chamada, nos estados listados acima. Confira também o `x-marketplaces`: sem ele, a conta junta todos os marketplaces que instalaram o app.
+</Accordion>
+<Accordion title="Como pego o id de cada marketplace a partir das lojas?" icon="fingerprint">
+O campo `marketplaceIds` de cada loja traz os marketplaces dela que entram na chamada. Veja [Descubra o marketplaceId](/guides/marketplace#para-começar).
+</Accordion>
+</AccordionGroup>
+
+## Próximos passos
+
+<CardGroup cols={2}>
+<Card title="Pedidos" icon="receipt" href="/guides/marketplace/pedidos">
+Liste os pedidos feitos pelo marketplace.
+</Card>
+<Card title="Descontos" icon="tags" href="/guides/marketplace/descontos">
+Crie cupons do marketplace e escolha as lojas.
+</Card>
+</CardGroup>

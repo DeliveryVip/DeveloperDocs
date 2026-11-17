@@ -46,10 +46,10 @@ Guarde as datas no seu banco em UTC (ou com o offset) e converta para o fuso da 
 
 ## Datas sem horário
 
-Filtros que recebem só a data, como `starts_at` e `ends_in` da [listagem de pedidos](/guides/merchant/order/listar-pedidos), usam `YYYY-MM-DD` e são interpretados no fuso de Brasília: `starts_at` vale a partir de 00:00:00 e `ends_in` até 23:59:59 do dia informado.
+Filtros que recebem só a data, como `startsAt` e `endsIn` da [listagem de pedidos](/guides/merchant/order/listar-pedidos), usam `YYYY-MM-DD` e são interpretados no fuso de Brasília: `startsAt` vale a partir de 00:00:00 e `endsIn` até 23:59:59 do dia informado.
 
 ```text
-/merchant/v3/{merchantId}/orders?starts_at=2026-10-01&ends_in=2026-10-15
+/merchant/v3/{merchantId}/orders?startsAt=2026-10-01&endsIn=2026-10-15
 ```
 
 ## Horários de funcionamento

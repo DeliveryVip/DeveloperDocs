@@ -18,11 +18,25 @@ Quando uma chamada falha, a API responde com um status HTTP de erro e, na maiori
 <ResponseField name="status" type="string">
 O código HTTP, **como string** (`"404"`, `"422"`).
 </ResponseField>
-<ResponseField name="title" type="string">
-A mensagem do erro, em inglês. Quando há mais de uma, elas vêm juntas na mesma string, separadas por `|`.
+<ResponseField name="title" type="string | object">
+A mensagem do erro, em inglês. Quando há mais de uma, elas vêm juntas na mesma string, separadas por `|`. Sem mensagem própria, vem o nome do status HTTP, como `Unprocessable Content`.
 </ResponseField>
 
-O formato vale para a Merchant API V3, a Partner API V2 e o Open Delivery.
+O formato vale para a Merchant API V3, a Marketplace API, a Partner API V2 e o Open Delivery.
+
+Em erros de validação, `title` pode ser um objeto que associa cada campo às suas mensagens. As chaves são os campos da requisição, em camelCase e com o caminho completo:
+
+```json 422 Unprocessable Content
+{
+  "status": "422",
+  "title": {
+    "name": ["can't be blank"],
+    "address.postalCode": ["can't be blank"]
+  }
+}
+```
+
+No Open Delivery, `title` é sempre uma string, com as mensagens separadas por `|`.
 
 <Warning>
 **Exceções ao formato.** Não assuma que todo erro tem corpo:
@@ -39,9 +53,9 @@ O formato vale para a Merchant API V3, a Partner API V2 e o Open Delivery.
 | --- | --- | --- | --- |
 | `400` | Bad Request | Parâmetros incompatíveis, como enviar os cursores `next` e `previous` juntos. | Corrija a requisição; repetir não resolve. |
 | `401` | Unauthorized | Token ausente, expirado ou revogado. | Obtenha um novo token e repita uma vez. |
-| `403` | Forbidden | Token sem o scope da rota, JSON malformado no corpo, filtro inválido no polling ou loja sem acesso em `x-polling-merchants` / `x-partners`. | Confira scope, corpo e headers. Não repita sem corrigir. |
+| `403` | Forbidden | Token sem o scope da rota, JSON malformado no corpo, filtro inválido no polling ou loja sem acesso em `x-polling-merchants` / `x-partners` / `x-marketplaces`. | Confira scope, corpo e headers. Não repita sem corrigir. |
 | `404` | Not Found | O recurso não existe ou não pertence às lojas que instalaram o seu app (`"title": "Record not found"`). | Confira o ID e se a loja instalou o app. |
-| `406` | Not Acceptable | Parâmetros inválidos em listagens e no acknowledgment, como datas fora do formato em `GET /merchant/v3/{merchantId}/orders`. | Corrija os parâmetros. |
+| `406` | Not Acceptable | Parâmetros inválidos em listagens e no acknowledgment, como um `orderType` desconhecido ou `endsIn` sem `startsAt` em `GET /merchant/v3/{merchantId}/orders`. | Corrija os parâmetros. |
 | `422` | Unprocessable Content | Dados inválidos para a regra de negócio, ou campo obrigatório ausente (`"param is missing: ..."`). | Leia o `title`, corrija os dados. |
 | `429` | Too Many Requests | Limite de requisições excedido. | Espere e repita com backoff. |
 | `500` | Internal Server Error | Erro inesperado na DeliveryVip (`"title": "Internal server error"`). | Repita com backoff; se persistir, confira o [status da plataforma](https://status.deliveryvip.com.br) e avise no Discord. |

@@ -14,7 +14,7 @@ npx mint broken-links --check-anchors
 
 ## Estrutura
 
-- `docs.json`: tema, navegação por produto (abas Início, Merchant API, Open Delivery, Fidelidade, Partner API, Changelog) e ícones dos grupos.
+- `docs.json`: tema, navegação por produto (abas Início, Merchant API, Open Delivery, Marketplace API, Partner API, Changelog; a Fidelidade é um grupo da Merchant API) e ícones dos grupos.
 - `index.mdx`: home com o seletor de caminho.
 - `inicio/`, `guides/<produto>/`, `reference/`: o caminho do arquivo é a URL. Não renomeie arquivos sem adicionar `redirects` no `docs.json`.
 - A Referência de endpoints é gerada das specs em `https://app.deliveryvip.com.br/swaggers/*.yaml` (fonte: `../Platform/public/swaggers`).

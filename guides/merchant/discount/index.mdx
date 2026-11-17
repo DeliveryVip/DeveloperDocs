@@ -50,7 +50,7 @@ Todas as rotas ficam em `https://api.deliveryvip.com.br/merchant/v3/{merchantId}
 | [Listar descontos](/guides/merchant/discount/listar-descontos) | `GET /discounts` | `200` ou `204` |
 | [Obter um desconto](/guides/merchant/discount/obter-detalhes-do-desconto) | `GET /discounts/{discountId}` | `200` |
 | [Estatísticas](/guides/merchant/discount/obter-estatistica-do-desconto) | `GET /discounts/{discountId}/stats` | `200` |
-| [Adicionar](/guides/merchant/discount/adicionar-um-desconto) | `POST /discounts` | `200` |
+| [Adicionar](/guides/merchant/discount/adicionar-um-desconto) | `POST /discounts` | `201` |
 | [Atualizar](/guides/merchant/discount/atualizar-um-desconto) | `PATCH /discounts/{discountId}` | `200` |
 | [Remover](/guides/merchant/discount/remover-um-desconto) | `DELETE /discounts/{discountId}` | `200` |
 | [Ativar](/guides/merchant/discount/acoes-dos-descontos/ativar-um-desconto) | `POST /discounts/{discountId}/available` | `200` |
@@ -73,4 +73,4 @@ Os erros seguem o [formato padrão](/inicio/conceitos/erros): `{ "status": "..."
 | `401 Unauthorized` | Token ausente, expirado ou inválido. |
 | `403 Forbidden` | A loja não contratou o módulo de descontos (`growth_discount_not_hired`). |
 | `404 Not Found` | O `merchantId` não autorizou o seu app, ou o desconto não existe ou foi removido. |
-| `422 Unprocessable Content` | Dados inválidos no cadastro ou na atualização. O `title` traz os campos com problema. |
+| `422 Unprocessable Content` | Dados inválidos no cadastro ou na atualização. O `title` traz os campos com problema, pelo nome enviado no corpo (`type`, `rules.usageLimit`). |

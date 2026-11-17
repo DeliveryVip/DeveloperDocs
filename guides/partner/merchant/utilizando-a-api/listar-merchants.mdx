@@ -10,7 +10,8 @@ icon: list
 | --- | --- |
 | `200 OK` | Lista de lojas. |
 | `204 No Content` | Nenhuma loja encontrada. A resposta vem sem corpo. |
-| `403 Forbidden` | `subscriptionStatus` inválido (`Invalid subscription status`) ou `x-partners` fora do alcance do token. |
+| `403 Forbidden` | `x-partners` fora do alcance do token. |
+| `422 Unprocessable Content` | `subscriptionStatus` inválido (`Invalid subscription status`). |
 
 ## Requisição
 
@@ -92,7 +93,7 @@ Cada item tem o mesmo formato de [Obter detalhes da loja](/guides/partner/mercha
 Os filtros podem ser combinados.
 
 <ParamField query="subscriptionStatus[]" type="string[]">
-Status da assinatura: `TRIAL`, `TRIAL_EXPIRED`, `ACTIVATED`, `CANCELLED` ou `DEMO`. Repita o parâmetro para cada valor, **com colchetes**. Um valor desconhecido retorna `403`.
+Status da assinatura: `TRIAL`, `TRIAL_EXPIRED`, `ACTIVATED`, `CANCELLED` ou `DEMO`. Repita o parâmetro para cada valor, **com colchetes**. Um valor desconhecido retorna `422`.
 
 ```text
 /partner/v2/merchants?subscriptionStatus[]=TRIAL&subscriptionStatus[]=ACTIVATED

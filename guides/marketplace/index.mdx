@@ -1,0 +1,122 @@
+---
+title: Marketplace API
+sidebarTitle: Introdução
+description: Entenda o que a Marketplace API oferece, como obter o marketplaceId e como limitar cada chamada a parte dos marketplaces.
+icon: shop
+---
+
+Na DeliveryVip, um **marketplace** é um canal que reúne várias lojas numa mesma vitrine. O consumidor entra no marketplace, escolhe a loja e faz o pedido.
+
+A Marketplace API dá ao seu app acesso aos marketplaces que o instalaram. Com ela, você consulta o marketplace, lista as lojas e as vendas delas e lista os pedidos feitos pelo marketplace. Também gerencia os descontos do marketplace e abre o marketplace com o consumidor já logado (SSO).
+
+| | |
+| --- | --- |
+| **Base URL** | `https://api.deliveryvip.com.br/marketplace/v1` |
+| **Scope** | `dv.marketplace` em todas as rotas, exceto o SSO de consumidores, que é assinado com o `client_secret` e exige `dv.customer_sso`. |
+| **Alcance** | Um token atende todos os marketplaces que instalaram o seu app. |
+| **Formato** | JSON com chaves em camelCase. Parâmetros de query e campos do corpo também são aceitos em snake_case. |
+
+## Para começar
+
+<Steps>
+<Step title="Peça a permissão Marketplace API" icon="shield-check">
+No painel de developers, marque a permissão **Marketplace API** (scope `dv.marketplace`) no seu app. Veja as permissões em [Distribuição direta](/inicio/primeiros-passos/distribuicao-direta#criando-o-app) ou [Distribuição interativa](/inicio/primeiros-passos/distribuicao-interativa).
+</Step>
+<Step title="Peça ao marketplace para instalar o app" icon="download">
+O marketplace instala o app pela Delivery Store do painel dele, com o token de autorização do seu app, como uma loja faria. Veja [Instalando o app na loja](/inicio/primeiros-passos/instalando-app-na-loja). Sem a instalação, o seu token não alcança o marketplace.
+</Step>
+<Step title="Obtenha o token de acesso" icon="key">
+Peça um token em `POST /authentication/v1/oauth/token` com `scope=dv.marketplace`. Veja [Autenticação](/inicio/conceitos/autenticacao#obtendo-o-token).
+</Step>
+<Step title="Descubra o marketplaceId" icon="fingerprint">
+**Não existe endpoint que liste os marketplaces que instalaram o app.** O `marketplaceId` chega por fora da API:
+
+- **Apps interativos:** ao abrir o app, a URL recebe o id do marketplace no parâmetro `merchant_id` (o nome é o mesmo para lojas e marketplaces), e o `id_token` traz o mesmo valor em `dest`. Veja [Distribuição interativa](/inicio/primeiros-passos/distribuicao-interativa#fluxo-de-autorização) e [Apps incorporados](/inicio/primeiros-passos/apps-incorporados#o-id_token).
+- **Token de `authorization_code`:** `GET /authentication/v1/oauth/token/info` devolve o id em `resource_owner_id`, com `resource_owner_type` igual a `"Marketplace"`. Em tokens `client_credentials` esses campos vêm `null`. Veja [Verificando o token](/inicio/conceitos/autenticacao#verificando-o-token).
+- **Painel de developers:** no detalhe da instalação, nas permissões do app, o id aparece com o rótulo **MERCHANT ID**, mesmo quando quem instalou é um marketplace.
+
+Pela API, só de forma indireta: cada loja de `GET /marketplace/v1/merchants` traz em `marketplaceIds` os marketplaces da chamada aos quais ela pertence. A união desses ids dá os marketplaces que instalaram o app e têm ao menos uma loja. `GET /marketplace/v1/{marketplaceId}` só confirma um id que você já tem. A resposta traz `name`, `type` (`DEFAULT`, `FRANCHISE` ou `MARKETPLACE`) e `merchantIds`, com todas as lojas do marketplace.
+</Step>
+</Steps>
+
+## Rotas por marketplace e rotas da conta
+
+As rotas se dividem em dois grupos:
+
+| Grupo | Rotas | Alcance |
+| --- | --- | --- |
+| **Por marketplace** | `/marketplace/v1/{marketplaceId}`, `/{marketplaceId}/orders` e `/{marketplaceId}/discounts` | Um marketplace, informado no caminho. Um marketplace que não existe ou que não instalou o app responde `404`. |
+| **Da conta** | `/marketplace/v1/merchants`, `/merchants/{merchantId}` e `/merchants/sales` | Todos os marketplaces que instalaram o app, ou só os listados no header `x-marketplaces`. Uma loja que está em mais de um deles aparece uma vez só. |
+
+O [login de consumidores](/guides/marketplace/sso) (`/{marketplaceId}/customers/sso`) também leva o marketplace no caminho, mas segue regras próprias de autenticação e de erro.
+
+<Info>
+O alcance é do **app**, não do token: um token `client_credentials` enxerga todos os marketplaces que instalaram o app, inclusive os que instalaram depois que o token foi emitido.
+</Info>
+
+## Header `x-marketplaces`
+
+Envie o header `x-marketplaces` para restringir a chamada a parte dos marketplaces. O valor é uma lista de ids separados por vírgula, num único header. Sem o header, a chamada vale para todos os marketplaces que instalaram o app.
+
+<CodeGroup>
+```bash cURL
+curl 'https://api.deliveryvip.com.br/marketplace/v1/merchants' \
+  --header 'Authorization: Bearer {token}' \
+  --header 'x-marketplaces: 7b1f2c3d-0000-4000-8000-000000000001,7b1f2c3d-0000-4000-8000-000000000002'
+```
+
+```js Node.js
+const response = await fetch('https://api.deliveryvip.com.br/marketplace/v1/merchants', {
+  headers: {
+    Authorization: `Bearer ${token}`,
+    'x-marketplaces': [marketplaceA, marketplaceB].join(','),
+  },
+})
+const merchants = response.status === 204 ? [] : await response.json()
+```
+
+```python Python
+response = requests.get(
+    "https://api.deliveryvip.com.br/marketplace/v1/merchants",
+    headers={
+        "Authorization": f"Bearer {token}",
+        "x-marketplaces": ",".join([marketplace_a, marketplace_b]),
+    },
+)
+merchants = [] if response.status_code == 204 else response.json()
+```
+</CodeGroup>
+
+<Warning>
+Um id de marketplace que não instalou o app (ou qualquer valor não reconhecido, inclusive um que não seja UUID) responde `403` com `invalid x-marketplaces <ids>`. Um header vazio, ou só com vírgulas, responde `403` com `x-marketplaces must be not empty`. Nas rotas por marketplace, um marketplace que ficou de fora do header é tratado como não encontrado: `404`.
+</Warning>
+
+## Guias
+
+<CardGroup cols={2}>
+<Card title="Lojas" icon="store" href="/guides/marketplace/lojas">
+Liste as lojas dos marketplaces, consulte uma loja e acompanhe as vendas do mês.
+</Card>
+<Card title="Pedidos" icon="receipt" href="/guides/marketplace/pedidos">
+Liste os pedidos feitos pelo marketplace, com filtros por tipo e período.
+</Card>
+<Card title="Descontos" icon="tags" href="/guides/marketplace/descontos">
+Crie cupons e descontos do marketplace, escolha as lojas e acompanhe o uso.
+</Card>
+<Card title="Login de consumidores" icon="user-check" href="/guides/marketplace/sso">
+Abra o marketplace no webview do seu app com o consumidor já logado.
+</Card>
+</CardGroup>
+
+## Erros comuns
+
+Os erros seguem o formato `{"status": "422", "title": "..."}`, com `status` como string. Em erros de validação, `title` é um objeto que associa cada campo às suas mensagens. As mensagens vêm sempre em inglês. As chaves de `title` são os campos da requisição, em camelCase e com o caminho completo, como `type`, `rules.usageLimit` e `merchantIds` nos descontos e `startsAt` nos pedidos. Veja [Erros](/inicio/conceitos/erros).
+
+| Status | Quando | O que fazer |
+| --- | --- | --- |
+| `400 Bad Request` | `next` e `previous` enviados juntos nas listagens paginadas. | Envie só um dos cursores. |
+| `401 Unauthorized` | Token ausente, inválido, expirado ou revogado. O corpo é `{"title": "Unauthorized", "status": 401}`, com `status` numérico. | Peça um token novo e repita a chamada uma vez. |
+| `403 Forbidden` | Token sem o scope `dv.marketplace` (resposta sem corpo), `x-marketplaces` com um marketplace que não instalou o app ou vazio, ou corpo que não é um JSON válido. | Confira o scope do token e os ids do header. |
+| `404 Not Found` | O marketplace não existe, não instalou o app ou ficou de fora de `x-marketplaces`; a loja não pertence aos marketplaces da chamada; o desconto não existe, foi excluído ou é de outro marketplace. | Confira os ids e o header `x-marketplaces`. |
+| `406 Not Acceptable` | Filtro inválido na listagem de pedidos: `orderType[]` desconhecido ou `endsIn` sem `startsAt`. | Corrija os filtros indicados em `title`. |
+| `422 Unprocessable Content` | `subscriptionStatus[]` desconhecido nas lojas; `month` ou `year` inválidos nas vendas; falha de validação ou corpo vazio ao criar ou alterar um desconto. | Leia o `title` e corrija os dados. |

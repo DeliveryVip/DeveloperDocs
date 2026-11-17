@@ -144,10 +144,10 @@ O parceiro não tem domínio de painel configurado. Nada é criado.
 ```
 </Tab>
 <Tab title="422 · validação">
-O `title` traz os erros por campo, com os nomes internos em snake\_case.
+O `title` traz os erros por campo, com o nome enviado no corpo, em camelCase: `user.password`, `store.corporateName`, `store.address.postalCode`.
 
 ```json
-{ "status": "422", "title": { "password": ["is too short (minimum is 6 characters)"] } }
+{ "status": "422", "title": { "user.password": ["is too short (minimum is 6 characters)"] } }
 ```
 </Tab>
 </Tabs>

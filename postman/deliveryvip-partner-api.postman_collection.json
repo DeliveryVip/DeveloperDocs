@@ -3542,7 +3542,7 @@
             },
             {
               "id": "93147840-23d7-4161-b54b-e7f060ed7260",
-              "name": "Proibido. Retornado quando `subscriptionStatus` tem um valor inválido (\"Invalid subscription status\") ou quando `x-partners` é inválido.",
+              "name": "Proibido. Retornado quando `x-partners` é inválido.",
               "originalRequest": {
                 "url": {
                   "path": [
@@ -3610,6 +3610,79 @@
                 }
               ],
               "body": "{\n  \"status\": \"<string>\",\n  \"title\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "3b048c95-f912-5ea8-b5cd-5273c5cffd38",
+              "name": "Dados inválidos. Retornado quando `subscriptionStatus` tem um valor inválido (\"Invalid subscription status\").",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "partner",
+                    "v2",
+                    "merchants"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "Filtra pelo status da assinatura. Aceita vários valores; maiúsculas e minúsculas são equivalentes.",
+                        "type": "text/plain"
+                      },
+                      "key": "subscriptionStatus[]",
+                      "value": "CANCELLED"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "Filtra pelo código de contrato da assinatura.",
+                        "type": "text/plain"
+                      },
+                      "key": "subscriptionAgreementCode",
+                      "value": "<string>"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "Filtra pelo CNPJ ou CPF da loja.",
+                        "type": "text/plain"
+                      },
+                      "key": "merchantIdentifier",
+                      "value": "<string>"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"status\": \"422\",\n  \"title\": \"Invalid subscription status\"\n}",
               "cookie": [],
               "_postman_previewlanguage": "json"
             }
@@ -3974,7 +4047,7 @@
             },
             {
               "id": "67dae4f9-5192-44a5-b2c1-b539d1558b15",
-              "name": "Proibido. Retornado quando `subscriptionStatus` tem um valor inválido (\"Invalid subscription status\") ou quando `x-partners` é inválido.",
+              "name": "Proibido. Retornado quando `x-partners` é inválido.",
               "originalRequest": {
                 "url": {
                   "path": [
@@ -4061,6 +4134,98 @@
                 }
               ],
               "body": "{\n  \"status\": \"<string>\",\n  \"title\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "5fe5cc26-084d-5e0c-9b31-1a80956bec3a",
+              "name": "Dados inválidos. Retornado quando `subscriptionStatus` tem um valor inválido (\"Invalid subscription status\"), quando `month` não é um inteiro de 1 a 12 (\"Invalid month\") ou quando `year` não é um inteiro de 1 a 9999 (\"Invalid year\").",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "partner",
+                    "v2",
+                    "merchants",
+                    "sales"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "Filtra pelo status da assinatura. Aceita vários valores; maiúsculas e minúsculas são equivalentes.",
+                        "type": "text/plain"
+                      },
+                      "key": "subscriptionStatus[]",
+                      "value": "CANCELLED"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "Filtra pelo código de contrato da assinatura.",
+                        "type": "text/plain"
+                      },
+                      "key": "subscriptionAgreementCode",
+                      "value": "<string>"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "Filtra pelo CNPJ ou CPF da loja.",
+                        "type": "text/plain"
+                      },
+                      "key": "merchantIdentifier",
+                      "value": "<string>"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "Ano de referência. Padrão é o ano corrente.",
+                        "type": "text/plain"
+                      },
+                      "key": "year",
+                      "value": "<integer>"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "Mês de referência (1 a 12). Padrão é o mês corrente.",
+                        "type": "text/plain"
+                      },
+                      "key": "month",
+                      "value": "<integer>"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"status\": \"422\",\n  \"title\": \"Invalid subscription status\"\n}",
               "cookie": [],
               "_postman_previewlanguage": "json"
             }
@@ -10771,7 +10936,7 @@
             },
             {
               "id": "cfddfbdb-4035-49b6-86aa-5bb827e35275",
-              "name": "Proibido. Retornado quando `subscriptionStatus` tem um valor inválido (\"Invalid subscription status\") ou quando `x-partners` é inválido.",
+              "name": "Proibido. Retornado quando `x-partners` é inválido.",
               "originalRequest": {
                 "url": {
                   "path": [
@@ -10839,6 +11004,79 @@
                 }
               ],
               "body": "{\n  \"status\": \"<string>\",\n  \"title\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "4cd57c0e-40f3-58c5-864d-7d06d4cb3926",
+              "name": "Dados inválidos. Retornado quando `subscriptionStatus` tem um valor inválido (\"Invalid subscription status\").",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "partner",
+                    "v2",
+                    "resales"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "Filtra pelo status da assinatura. Aceita vários valores; maiúsculas e minúsculas são equivalentes.",
+                        "type": "text/plain"
+                      },
+                      "key": "subscriptionStatus[]",
+                      "value": "CANCELLED"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "Filtra pelo código de contrato da assinatura.",
+                        "type": "text/plain"
+                      },
+                      "key": "subscriptionAgreementCode",
+                      "value": "<string>"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "Filtra pelo CNPJ ou CPF da revenda.",
+                        "type": "text/plain"
+                      },
+                      "key": "resaleIdentifier",
+                      "value": "<string>"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"status\": \"422\",\n  \"title\": \"Invalid subscription status\"\n}",
               "cookie": [],
               "_postman_previewlanguage": "json"
             }
