@@ -66,6 +66,8 @@ O corpo é um JSON com o objeto `profile`:
 O programa de fidelidade exige CPF e data de nascimento. Envie os dois para o consumidor já entrar apto a usar a fidelidade; se faltar algum, a loja pede o dado na hora de usar o benefício.
 </Tip>
 
+<Tabs>
+<Tab title="Loja" icon="store">
 <CodeGroup>
 ```bash cURL
 curl --request POST 'https://api.deliveryvip.com.br/merchant/v3/{merchantId}/customers/sso' \
@@ -119,6 +121,63 @@ response = requests.post(
 url = response.json()["url"]
 ```
 </CodeGroup>
+</Tab>
+<Tab title="Marketplace" icon="shop">
+<CodeGroup>
+```bash cURL
+curl --request POST 'https://api.deliveryvip.com.br/marketplace/v1/{marketplaceId}/customers/sso' \
+  --header 'Content-Type: application/json' \
+  --header "X-App-Id: $CLIENT_ID" \
+  --header "X-App-Timestamp: $TIMESTAMP" \
+  --header "X-App-Nonce: $NONCE" \
+  --header "X-App-Signature: $SIGNATURE" \
+  --data "$BODY"
+```
+
+```javascript Node.js
+const body = JSON.stringify({
+  profile: { name: "Maria", email: "maria@example.com", phone: "+5531999990000" },
+});
+const path = `/marketplace/v1/${marketplaceId}/customers/sso`;
+const timestamp = String(Math.floor(Date.now() / 1000));
+const nonce = crypto.randomUUID();
+
+const response = await fetch(`https://api.deliveryvip.com.br${path}`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "X-App-Id": clientId,
+    "X-App-Timestamp": timestamp,
+    "X-App-Nonce": nonce,
+    "X-App-Signature": signRequest({ secret, clientId, method: "POST", path, body, timestamp, nonce }),
+  },
+  body,
+});
+const { url } = await response.json();
+```
+
+```python Python
+body = json.dumps({"profile": {"name": "Maria", "email": "maria@example.com", "phone": "+5531999990000"}}, separators=(",", ":"))
+path = f"/marketplace/v1/{marketplace_id}/customers/sso"
+timestamp = str(int(time.time()))
+nonce = str(uuid.uuid4())
+
+response = requests.post(
+    f"https://api.deliveryvip.com.br{path}",
+    data=body.encode(),
+    headers={
+        "Content-Type": "application/json",
+        "X-App-Id": client_id,
+        "X-App-Timestamp": timestamp,
+        "X-App-Nonce": nonce,
+        "X-App-Signature": sign_request(secret, client_id, "POST", path, body, timestamp, nonce),
+    },
+)
+url = response.json()["url"]
+```
+</CodeGroup>
+</Tab>
+</Tabs>
 
 Resposta `201 Created`:
 
@@ -142,7 +201,7 @@ Resposta `201 Created`:
   Endereço para abrir no webview. Aponta para o domínio principal da loja (ou do marketplace).
 </ResponseField>
 
-O mesmo contrato vale para as duas rotas. Os detalhes de cada rota estão na seção Login de consumidores da Referência.
+A resposta é a mesma nas duas rotas; no marketplace, a `url` aponta para o domínio do marketplace. Os detalhes de cada rota estão na seção Login de consumidores da Referência.
 
 ## Assinatura da requisição
 
