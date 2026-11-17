@@ -6,6 +6,10 @@ icon: newspaper
 
 Novidades, mudanças de comportamento e breaking changes nas APIs. Use os filtros por produto para ver só o que afeta a sua integração. Rotas em descontinuação ficam em [Deprecations](/deprecations).
 
+<Update label="16/11/2026" description="SSO de consumidores para apps parceiros" tags={["Merchant API"]} rss={{ title: "16/11/2026: SSO de consumidores para apps parceiros", description: "Novas rotas assinadas que emitem um código de login para abrir a loja ou o marketplace no webview com o consumidor logado." }}>
+- **SSO de consumidores:** novas rotas `POST /merchant/v3/{merchantId}/customers/sso` e `POST /marketplace/v1/{marketplaceId}/customers/sso` emitem um código de uso único que loga, ou cadastra, o consumidor ao abrir a loja ou o marketplace no webview do seu app. As rotas exigem o escopo `dv.customer_sso`, concedido pela DeliveryVip, e são assinadas com HMAC-SHA256 pelo `client_secret` do app, sem token Bearer. [Saiba mais](/guides/merchant/sso)
+</Update>
+
 <Update label="04/11/2026" description="Webhooks suspensos após 30 falhas, com alertas" tags={["Webhooks", "Merchant API", "Open Delivery"]} rss={{ title: "04/11/2026: suspensão de webhooks após 30 falhas, com alertas", description: "O limite de falhas consecutivas passa de 10 para 30, com e-mails de alerta em 10, 20 e 25 falhas." }}>
 - **Webhooks:** a suspensão automática passa a acontecer após **30 falhas consecutivas** (antes eram 10). Vale para o envio da aplicação e para o envio por loja das extensões Open Delivery. Continua igual: toda tentativa que falha conta, uma entrega bem-sucedida zera o contador e a reativação é manual. [Saiba mais](/guides/merchant/webhooks#suspensão-automática)
 - **Webhooks:** ao atingir **10, 20 e 25 falhas consecutivas**, o e-mail de contato da aplicação recebe um alerta **Falhas no envio de webhooks**, com o número de falhas, quantas faltam para a suspensão e o motivo da última. No Open Delivery, o alerta traz o nome da loja. [Saiba mais](/guides/open-delivery/recebendo-eventos#reentrega-e-suspensão)

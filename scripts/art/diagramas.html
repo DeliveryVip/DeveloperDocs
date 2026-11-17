@@ -475,6 +475,27 @@ document.fonts.ready.then(() => {
       { from: "dv", to: "app", text: "access_token (24 h) + refresh_token", reply: true }
     ]
   })
+
+  render("sso-consumidor", "sequence", {
+    width: 1150,
+    participants: [
+      { id: "loja", label: "Loja", sub: "ou marketplace", icon: "store", tone: "teal" },
+      { id: "wv", label: "Consumidor", sub: "no webview do seu app", icon: "smartphone", tone: "green" },
+      you("Seu backend"),
+      { id: "dv", label: "API DeliveryVip", sub: "", icon: "cloud", tone: "orange" }
+    ],
+    steps: [
+      { from: "wv", to: "op", text: "Toca para abrir a loja" },
+      { from: "op", to: "dv", text: "<code>POST .../customers/sso</code>" },
+      { from: "dv", to: "op", text: "201 <code>{ code, expiresIn, url }</code>", reply: true },
+      { from: "op", to: "wv", text: "Abre a <code>url</code> no webview", reply: true },
+      { from: "wv", to: "loja", text: "<code>GET</code> da <code>url</code>" },
+      { self: "wv", text: "A página lê o <code>#code</code> e limpa a URL" },
+      { from: "wv", to: "loja", text: "<code>POST</code> com o código" },
+      { self: "loja", text: "Consome o código, acha ou cria a conta" },
+      { from: "loja", to: "wv", text: "303 para a home, já logado", reply: true }
+    ]
+  })
 })
 </script>
 </body>

@@ -221,6 +221,13 @@
                 "icon": "wrench"
               },
               {
+                "group": "Login de consumidores",
+                "pages": [
+                  "guides/merchant/sso/index"
+                ],
+                "icon": "user-check"
+              },
+              {
                 "group": "Referência",
                 "pages": [
                   "reference/merchant/v3/index",
@@ -382,6 +389,15 @@
                       }
                     ],
                     "icon": "tag"
+                  },
+                  {
+                    "group": "Login de consumidores",
+                    "openapi": "https://app.deliveryvip.com.br/swaggers/customer_sso.yaml",
+                    "pages": [
+                      "POST /merchant/v3/{merchantId}/customers/sso",
+                      "POST /marketplace/v1/{marketplaceId}/customers/sso"
+                    ],
+                    "icon": "user-check"
                   },
                   {
                     "group": "Ferramentas",
